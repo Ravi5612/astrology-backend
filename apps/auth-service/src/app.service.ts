@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AppService {
-  getHello(): string {
-    return 'Hello World!';
+  login(credential: { username: string; password: string }) {
+    console.log(credential);
+    return credential;
   }
 }

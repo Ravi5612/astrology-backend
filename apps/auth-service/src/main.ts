@@ -8,12 +8,12 @@ async function bootstrap() {
     {
       transport: Transport.TCP,
       options: {
-        port: 3001,
+        port: 4001,
       },
     },
   );
   await app.listen();
 }
 bootstrap()
-  .then(() => console.log(`Auth Service running at port 3001`))
+  .then(() => console.log(`Auth Service running at port 4001`))
   .catch((err) => console.error(err));
