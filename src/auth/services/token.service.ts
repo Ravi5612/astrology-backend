@@ -1,8 +1,9 @@
 // src/auth/token.service.ts
+import * as argon2 from 'argon2';
+import * as ms from 'ms';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes } from 'crypto';
-import * as argon2 from 'argon2';
 import { QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '@/users/entities/user.entity';
@@ -10,7 +11,6 @@ import { Credential } from '../entities/credential.entity';
 import { ConfigService } from '@nestjs/config';
 import { AuthConfig } from 'src/core/config/auth.config';
 import { BaseService } from 'src/common/services/transaction.service';
-import * as ms from 'ms';
 
 @Injectable()
 export class TokenService extends BaseService<Credential> {
@@ -80,10 +80,24 @@ export class TokenService extends BaseService<Credential> {
     throw new Error('Invalid refresh token');
   }
 
+  generate5MinToken<T extends object>(payload: T) {
+    return this.jwtService.sign(payload, {
+      expiresIn: 5 * 60 * 1000,
+      secret: this.jwtConfig.jwtSecret,
+    });
+  }
+
   async revoke(userId: number) {
     await this.credentialsRepo.update(
       { user: { id: userId } },
       { revoked: true },
     );
+  }
+
+  async verifyToken(token: string) {
+    return this.jwtService.verifyAsync<{ sub: number; email: string }>(token, {
+      secret: this.jwtConfig.jwtSecret,
+      clockTolerance: 10,
+    });
   }
 }

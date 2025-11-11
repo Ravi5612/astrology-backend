@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { MailService } from './mail.service';
-import { UserRegisteredEvent } from './events/user-register.event';
+import {
+  ConfirmEmailEvent,
+  ResetPasswordEvent,
+  SendMagicLinkEvent,
+  UserRegisteredEvent,
+} from './events/user.event';
 import { OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
@@ -13,7 +18,46 @@ export class NotificationService {
       event.email,
       'Welcome to MyApp!',
       `Hi ${event.name}, thanks for signing up!`,
-      `<h1>Welcome, ${event.name}</h1><p>Thanks for signing up!</p>`,
+      `<h1>Welcome, ${event.name}</h1>
+      <p>Thanks for signing up!</p>
+      <hr/>
+      <p><strong>Your token</strong>: ${event.verification_token}</p>
+      `,
+    );
+  }
+
+  @OnEvent('user:confirm')
+  async handleUserConfirmation(event: ConfirmEmailEvent) {
+    await this.mailService.sendMail(
+      event.email,
+      `Confirm your email`,
+      ` <p><strong>Your token</strong>: ${event.verification_token}</p>`,
+    );
+  }
+
+  @OnEvent('user:reset-password')
+  async handleResetPasswordEvent(event: ResetPasswordEvent) {
+    const link = `http://localhost:3000/reset-password?token=${event.password_reset_token}`;
+
+    await this.mailService.sendMail(
+      event.email,
+      `Reset your password`,
+      `Click here to reset password: ${link}`,
+    );
+  }
+
+  @OnEvent('user:magic-link')
+  async handleSendMagicLink(event: SendMagicLinkEvent) {
+    const link = `http://localhost:3000/login/magic?token=${event.token}`;
+
+    await this.mailService.sendMail(
+      event.email,
+      `Magic link`,
+      `Click here to login`,
+      `<button>
+      <a href=${link}>Click here to login</a>
+      </button>
+      `,
     );
   }
 }

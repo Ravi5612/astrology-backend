@@ -9,7 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { IS_PUBLIC } from '../decorators/public.decorator';
 
-interface IPayload {
+export interface IPayload {
   sub: number;
   roles: string[];
   iat: number;

@@ -1,4 +1,5 @@
 // src/auth/dto/register.dto.ts
+import { PickType } from '@nestjs/mapped-types';
 import {
   IsArray,
   IsEmail,
@@ -23,3 +24,9 @@ export class RegisterDto {
   @IsString({ each: true })
   roles: string[] = ['client'];
 }
+
+export class ForgotPasswordDto extends PickType(RegisterDto, ['email']) {}
+
+export class ResetPasswordDto extends PickType(RegisterDto, ['password']) {}
+
+export class SendMagicLinkDto extends PickType(RegisterDto, ['email']) {}

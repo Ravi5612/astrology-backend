@@ -1,27 +1,24 @@
+import { Request } from 'express';
 import {
   Controller,
   Post,
   Body,
   Req,
   UseGuards,
+  Query,
   Get,
-  // Patch,
-  // Delete,
 } from '@nestjs/common';
+
 import { AuthService } from './services/auth.service';
-import {
-  RegisterDto,
-  LoginDto,
-  //   OAuthUserDto,
-  RefreshTokenDto,
-  //   ForgotPasswordDto,
-  //   ResetPasswordDto,
-} from './dto';
+import { RegisterDto, LoginDto, RefreshTokenDto } from './dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Request } from 'express';
 import { TokenService } from './services/token.service';
-// import { OAuthUserDto } from './dto/oauth-user.dto';
+import {
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  SendMagicLinkDto,
+} from './dto/register.dto';
 
 @Controller({
   path: 'auth',
@@ -43,25 +40,25 @@ export class AuthController {
     return this.authService.login(dto, req.ip, req.get('user-agent'));
   }
 
-  // @Post('email/confirm')
-  // confirmEmail(@Body() dto: { token: string }) {
-  //   return this.authService.confirmEmail(dto.token);
-  // }
+  @Post('email/confirm')
+  confirmEmail(@Body() dto: { token: string }) {
+    return this.authService.confirmEmail(dto.token);
+  }
 
-  // @Post('email/confirm/new')
-  // resendConfirmation(@Body() dto: { email: string }) {
-  //   return this.authService.resendConfirmation(dto.email);
-  // }
+  @Post('email/confirm/new')
+  resendConfirmation(@Body() dto: { email: string }) {
+    return this.authService.resendConfirmationEamil(dto.email);
+  }
 
-  // @Post('forgot/password')
-  // forgotPassword(@Body() dto: ForgotPasswordDto) {
-  //   return this.authService.forgotPassword(dto.email);
-  // }
+  @Post('forgot/password')
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.email);
+  }
 
-  // @Post('reset/password')
-  // resetPassword(@Body() dto: ResetPasswordDto) {
-  //   return this.authService.resetPassword(dto.token, dto.newPassword);
-  // }
+  @Post('reset/password')
+  resetPassword(@Query('token') token: string, @Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(token, dto.password);
+  }
 
   @Post('refresh')
   refresh(@CurrentUser('id') id: number, @Body() dto: RefreshTokenDto) {
@@ -71,12 +68,20 @@ export class AuthController {
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   logout(@CurrentUser('id') id: number) {
-    console.log({ id });
     return this.authService.logout(id);
   }
 
-  // @Post('google/login')
-  // googleLogin(@Body() dto: OAuthUserDto, @Req() req: Request) {
-  //   return this.authService.oauthLogin(dto, req.ip, req.get('user-agent'));
-  // }
+  @Post('magic/new')
+  sendMagicLink(@Body() dto: SendMagicLinkDto, @Req() req: Request) {
+    return this.authService.sendMagicLink(dto.email);
+  }
+
+  @Get('magic/login')
+  magicLinkLogin(@Query('token') token: string, @Req() req: Request) {
+    return this.authService.magicLinkLogin(
+      token,
+      req.ip,
+      req.get('user-agent'),
+    );
+  }
 }

@@ -25,7 +25,10 @@ export class OAuthService extends BaseService<OAuthAccount> {
     });
   }
 
-  async linkAccount(data: Partial<OAuthAccount>, queryRunner?: QueryRunner) {
+  private async linkAccount(
+    data: Partial<OAuthAccount>,
+    queryRunner?: QueryRunner,
+  ) {
     const repo = this.getRepo(queryRunner);
     const account = repo.create(data);
     return repo.save(account);
