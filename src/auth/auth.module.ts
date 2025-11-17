@@ -12,16 +12,19 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { DatabaseModule } from 'src/core/database/database.module';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { GoogleAuthController } from './google-auth.controller';
+import { UsedTokens } from './entities/used-tokens.entity';
+import { UsedTokensService } from './services/used-tokens.service';
 @Module({
   imports: [
     UsersModule,
-    TypeOrmModule.forFeature([Credential, OAuthAccount]),
+    TypeOrmModule.forFeature([Credential, OAuthAccount, UsedTokens]),
     DatabaseModule,
   ],
   providers: [
     AuthService,
     TokenService,
     OAuthService,
+    UsedTokensService,
     LocalStrategy,
     JwtStrategy,
     GoogleStrategy,

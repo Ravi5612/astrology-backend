@@ -19,6 +19,7 @@ import {
   SendMagicLinkEvent,
 } from '@/notification/events/user.event';
 import { JsonWebTokenError } from '@nestjs/jwt';
+import { UsedTokensService } from './used-tokens.service';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +27,7 @@ export class AuthService {
     private usersService: UsersService,
     private tokenService: TokenService,
     private oauthService: OAuthService,
+    private usedTokenService: UsedTokensService,
     private db: DatabaseService,
     private eventEmitter: EventEmitter2,
   ) {}
@@ -116,6 +118,8 @@ export class AuthService {
         throw new UnauthorizedException('User not found');
       }
 
+      await this.checkTokenUsed(token, userToConfirm.id);
+
       if (userToConfirm.emailVerified) {
         return {
           message: 'Email already verified',
@@ -125,6 +129,12 @@ export class AuthService {
       await this.usersService.update(userToConfirm.id, {
         emailVerified: true,
       });
+
+      await this.usedTokenService.addUsedToken(
+        token,
+        userToConfirm.id,
+        'email confirmation',
+      );
 
       return {
         message: 'Email verified successfully',
@@ -192,11 +202,19 @@ export class AuthService {
         throw new BadRequestException("User not found or doesn't exist");
       }
 
+      await this.checkTokenUsed(token, existingUser.id);
+
       const hashed = await argon2.hash(password, { type: argon2.argon2id });
 
       await this.usersService.update(existingUser.id, {
         password: hashed,
       });
+
+      await this.usedTokenService.addUsedToken(
+        token,
+        existingUser.id,
+        'password reset',
+      );
 
       return {
         message: 'Password updated successfully!',
@@ -242,11 +260,20 @@ export class AuthService {
         throw new UnauthorizedException("User not found or doesn't exist");
       }
 
+      await this.checkTokenUsed(token, user.id);
+
       const tokens = await this.tokenService.generateTokens(
         user,
         ip,
         userAgent,
       );
+
+      await this.usedTokenService.addUsedToken(
+        token,
+        user.id,
+        'magic link login',
+      );
+
       return instanceToPlain({ user, ...tokens });
     } catch (error) {
       if (error instanceof JsonWebTokenError) {
@@ -255,5 +282,13 @@ export class AuthService {
 
       throw error;
     }
+  }
+
+  async checkTokenUsed(token: string, userId: number) {
+    const usedToken = await this.usedTokenService.findOne(token, userId);
+
+    if (!usedToken) return;
+
+    throw new BadRequestException('Token already used');
   }
 }
