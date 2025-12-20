@@ -3,14 +3,14 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
-import { IUser } from '../guards/jwt-auth.guard';
+import { User } from '@/modules/users/entities/user.entity';
 
 export const CurrentUser = createParamDecorator(
-  <T extends keyof IUser | undefined>(
+  <T extends keyof User | undefined>(
     data: T | undefined,
     ctx: ExecutionContext,
   ) => {
-    const req = ctx.switchToHttp().getRequest<{ user?: IUser }>();
+    const req = ctx.switchToHttp().getRequest<{ user?: User }>();
 
     const user = req.user;
 

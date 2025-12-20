@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common/enums/version-type.enum';
 import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,6 +21,8 @@ async function bootstrap() {
     // Set to true if your frontend needs to send cookies or authorization headers
     credentials: true,
   });
+
+  app.use(cookieParser());
 
   app.setGlobalPrefix('api');
 
