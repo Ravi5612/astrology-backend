@@ -9,12 +9,13 @@ import {
   ManyToMany,
   JoinTable,
   OneToOne,
+  BeforeInsert,
+  AfterInsert,
 } from 'typeorm';
-import { OAuthAccount } from '../../auth/entities/oauth-accounts.entity';
-import { Credential } from '../../auth/entities/credential.entity';
+import { OAuthAccount } from '../../auth/infrastructure/persistence/entities/oauth-accounts.entity';
+import { Credential } from '../../auth/infrastructure/persistence/entities/credential.entity';
 import { Role } from '@/modules/role/entities/roles.entity';
 import { Exclude } from 'class-transformer';
-// import { ProfileClient } from './profile-client.entity';
 import { ProfileClient } from '@/modules/client/profile/entities/profile-client.entity';
 import { ProfileExpert } from '../../expert/profile/entities/profile-expert.entity';
 
@@ -30,8 +31,11 @@ export class User {
   @Exclude()
   password?: string; // argon2 hash
 
-  @Column({ default: false })
-  emailVerified: boolean;
+  @Column({
+    type: 'timestamptz',
+    nullable: true,
+  })
+  email_verified_at: Date | null;
 
   @Column({ nullable: true })
   name?: string;
@@ -51,10 +55,10 @@ export class User {
   credentials: Credential[];
 
   @CreateDateColumn()
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updated_at: Date;
 
   @OneToOne(() => ProfileClient, (p) => p.user, { cascade: true })
   profile_client?: ProfileClient;

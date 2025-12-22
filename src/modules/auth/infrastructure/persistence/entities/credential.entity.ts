@@ -16,7 +16,7 @@ export class Credential {
 
   // hashed refresh token (or session secret)
   @Column()
-  secretHash: string;
+  secret_hash: string;
 
   // distinguish between auth types (useful if you later expand)
   @Column({ default: 'refresh_token' })
@@ -27,17 +27,17 @@ export class Credential {
   user: User;
 
   @Column({ type: 'timestamptz' })
-  expiresAt: Date;
+  expires_at: Date;
 
   @Column({ default: false })
   revoked: boolean;
 
   @Column({ nullable: true })
-  ipAddress?: string;
+  ip_address?: string;
 
   @Column({ nullable: true })
-  userAgent?: string;
+  user_agent?: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  created_at: Date;
 }

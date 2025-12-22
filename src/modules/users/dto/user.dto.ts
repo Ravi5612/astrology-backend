@@ -2,6 +2,7 @@
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsDateString,
   IsEmail,
   IsOptional,
   IsString,
@@ -24,8 +25,8 @@ class UserDto {
   name?: string;
 
   @IsOptional()
-  @IsBoolean()
-  emailVerified?: boolean;
+  @IsDateString()
+  email_verified_at?: Date;
 
   @IsOptional()
   @ValidateNested({ each: true }) // validate each role object

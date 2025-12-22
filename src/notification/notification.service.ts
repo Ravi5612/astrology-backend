@@ -30,7 +30,7 @@ export class NotificationService {
   async handleUserConfirmation(event: ConfirmEmailEvent) {
     await this.mailService.sendMail(
       event.email,
-      `Confirm your email`,
+      `Verify your email`,
       ` <p><strong>Your token</strong>: ${event.verification_token}</p>`,
     );
   }

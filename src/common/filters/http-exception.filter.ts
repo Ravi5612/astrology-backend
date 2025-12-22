@@ -21,15 +21,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       message = exception.getResponse();
-      console.log({ exception });
     }
 
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
-      // message: typeof message === 'string' ? message : message.message,
-      message,
+      message: typeof message === 'string' ? message : message?.message,
     });
   }
 }

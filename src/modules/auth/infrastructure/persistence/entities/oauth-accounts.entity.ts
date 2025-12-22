@@ -17,7 +17,7 @@ export class OAuthAccount {
   provider: string;
 
   @Column()
-  providerId: string;
+  provider_id: string;
 
   @Column({ nullable: true })
   email?: string;

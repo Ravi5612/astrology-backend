@@ -12,8 +12,8 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/user.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { RolesGuard } from '@/modules/auth/guards/role.guard';
-import { JwtAuthGuard } from '@/modules/auth/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/interface/guards/role.guard';
+import { JwtAuthGuard } from '@/modules/auth/interface/guards/auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from './entities/user.entity';
 

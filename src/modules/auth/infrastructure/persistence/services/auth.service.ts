@@ -6,14 +6,15 @@ import {
 } from '@nestjs/common';
 import { UsersService } from '@/modules/users/users.service';
 import { TokenService } from './token.service';
-import { RegisterDto, LoginDto } from '../dto';
-import { OAuthUserDto } from '../dto/oauth-user.dto';
+// import { RegisterDto, LoginDto } from '../dto';
+// import { OAuthUserDto } from '../dto/oauth-user.dto';
+import { RegisterDto, LoginDto } from '@/modules/auth/interface/dto';
+import { OAuthUserDto } from '@/modules/auth/interface/dto';
 import { OAuthService } from './oauth.service';
 import { DatabaseService } from 'src/core/database/database.service';
 import { instanceToPlain } from 'class-transformer';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
-  UserRegisteredEvent,
   ConfirmEmailEvent,
   ResetPasswordEvent,
   SendMagicLinkEvent,
@@ -32,52 +33,6 @@ export class AuthService {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  async register(dto: RegisterDto, ip?: string, userAgent?: string) {
-    const existingUser = await this.usersService.findByEmail(dto.email);
-
-    if (existingUser) {
-      throw new BadRequestException('Email already exists!');
-    }
-
-    const hashed = await argon2.hash(dto.password, { type: argon2.argon2id });
-
-    const { roles, ...registerDto } = dto;
-
-    const formattedRoles = roles.map((r) => ({
-      name: r,
-    }));
-    return await this.db.transaction(async (queryRunner) => {
-      const user = await this.usersService.create(
-        { ...registerDto, roles: formattedRoles, password: hashed },
-        queryRunner,
-      );
-      const tokens = await this.tokenService.generateTokens(
-        user,
-        ip,
-        userAgent,
-        queryRunner,
-      );
-
-      const verification_token = this.tokenService.generate5MinToken({
-        sub: user.id,
-        email: user.email,
-      });
-
-      // send email notification
-      this.eventEmitter.emit(
-        'user:register',
-        new UserRegisteredEvent(
-          user.id,
-          user.email,
-          user.name,
-          verification_token,
-        ),
-      );
-
-      return instanceToPlain({ user, ...tokens });
-    });
-  }
-
   async validateUser(email: string, password: string) {
     const user = await this.usersService.findByEmailWithPassword(email);
     if (!user || !user.password)
@@ -88,65 +43,65 @@ export class AuthService {
     return user;
   }
 
-  async login(dto: LoginDto, ip?: string, userAgent?: string) {
-    const user = await this.validateUser(dto.email, dto.password);
-    const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
-    return instanceToPlain({ user, ...tokens });
-  }
+  // async login(dto: LoginDto, ip?: string, userAgent?: string) {
+  //   const user = await this.validateUser(dto.email, dto.password);
+  //   const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
+  //   return instanceToPlain({ user, ...tokens });
+  // }
 
-  async oauthLogin(dto: OAuthUserDto, ip?: string, userAgent?: string) {
-    // Find or create the user based on OAuth info
-    const user = await this.oauthService.findOrCreateUserFromOAuth(dto);
+  // async oauthLogin(dto: OAuthUserDto, ip?: string, userAgent?: string) {
+  //   // Find or create the user based on OAuth info
+  //   const user = await this.oauthService.findOrCreateUserFromOAuth(dto);
 
-    // Generate tokens for the user (access + refresh)
-    const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
+  //   // Generate tokens for the user (access + refresh)
+  //   const tokens = await this.tokenService.generateTokens(user, ip, userAgent);
 
-    return { user, ...tokens };
-  }
+  //   return { user, ...tokens };
+  // }
 
-  async logout(id: number) {
-    await this.tokenService.revoke(id);
-  }
+  // async logout(id: number) {
+  //   await this.tokenService.revoke(id);
+  // }
 
-  async confirmEmail(token: string) {
-    try {
-      const payload = await this.tokenService.verifyToken(token);
+  // async confirmEmail(token: string) {
+  //   try {
+  //     const payload = await this.tokenService.verifyToken(token);
 
-      const userToConfirm = await this.usersService.findByEmail(payload.email);
+  //     const userToConfirm = await this.usersService.findByEmail(payload.email);
 
-      if (!userToConfirm) {
-        throw new UnauthorizedException('User not found');
-      }
+  //     if (!userToConfirm) {
+  //       throw new UnauthorizedException('User not found');
+  //     }
 
-      await this.checkTokenUsed(token, userToConfirm.id);
+  //     await this.checkTokenUsed(token, userToConfirm.id);
 
-      if (userToConfirm.emailVerified) {
-        return {
-          message: 'Email already verified',
-        };
-      }
+  //     if (userToConfirm.email_verified_at) {
+  //       return {
+  //         message: 'Email already verified',
+  //       };
+  //     }
 
-      await this.usersService.update(userToConfirm.id, {
-        emailVerified: true,
-      });
+  //     await this.usersService.update(userToConfirm.id, {
+  //       email_verified_at: new Date(),
+  //     });
 
-      await this.usedTokenService.addUsedToken(
-        token,
-        userToConfirm.id,
-        'email confirmation',
-      );
+  //     await this.usedTokenService.markTokenAsUsed(
+  //       token,
+  //       userToConfirm.id,
+  //       'email confirmation',
+  //     );
 
-      return {
-        message: 'Email verified successfully',
-      };
-    } catch (error) {
-      if (error instanceof JsonWebTokenError) {
-        throw new BadRequestException('Invalid or expired token');
-      }
+  //     return {
+  //       message: 'Email verified successfully',
+  //     };
+  //   } catch (error) {
+  //     if (error instanceof JsonWebTokenError) {
+  //       throw new BadRequestException('Invalid or expired token');
+  //     }
 
-      throw error;
-    }
-  }
+  //     throw error;
+  //   }
+  // }
 
   async resendConfirmationEamil(email: string) {
     const existingUser = await this.usersService.findByEmail(email);
@@ -210,7 +165,7 @@ export class AuthService {
         password: hashed,
       });
 
-      await this.usedTokenService.addUsedToken(
+      await this.usedTokenService.markTokenAsUsed(
         token,
         existingUser.id,
         'password reset',
@@ -268,7 +223,7 @@ export class AuthService {
         userAgent,
       );
 
-      await this.usedTokenService.addUsedToken(
+      await this.usedTokenService.markTokenAsUsed(
         token,
         user.id,
         'magic link login',
@@ -285,7 +240,7 @@ export class AuthService {
   }
 
   async checkTokenUsed(token: string, userId: number) {
-    const usedToken = await this.usedTokenService.findOne(token, userId);
+    const usedToken = await this.usedTokenService.isTokenUsed(token, userId);
 
     if (!usedToken) return;
 

@@ -55,11 +55,11 @@ export class TokenService extends BaseService<Credential> {
 
     const credential = repo.create({
       user,
-      secretHash: refreshTokenHash,
+      secret_hash: refreshTokenHash,
       type: 'refresh_token',
-      expiresAt: new Date(Date.now() + expiresInMs),
-      ipAddress: ip,
-      userAgent,
+      expires_at: new Date(Date.now() + expiresInMs),
+      ip_address: ip,
+      user_agent: userAgent,
     });
 
     await repo.save(credential);
@@ -72,8 +72,8 @@ export class TokenService extends BaseService<Credential> {
     });
 
     for (const c of creds) {
-      if (c.expiresAt < new Date()) continue;
-      const valid = await argon2.verify(c.secretHash, refreshToken);
+      if (c.expires_at < new Date()) continue;
+      const valid = await argon2.verify(c.secret_hash, refreshToken);
       if (valid) return this.generateTokens({ id: userId } as User);
     }
 

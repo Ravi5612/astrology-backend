@@ -2,8 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { VersioningType } from '@nestjs/common/enums/version-type.enum';
 import { ValidationPipe } from '@nestjs/common';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import * as cookieParser from 'cookie-parser';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
+import { UnknownExceptionFilter } from './common/filters/unknown-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -41,7 +43,11 @@ async function bootstrap() {
   );
 
   // Apply global exception filter
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(
+    new UnknownExceptionFilter(), // Bug / crash
+    new HttpExceptionFilter(), // Client mistake
+    new DomainExceptionFilter(), // Business rule failed
+  );
 
   await app.listen(process.env.PORT ?? 4000);
 }

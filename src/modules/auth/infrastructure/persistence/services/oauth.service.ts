@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryRunner, Repository } from 'typeorm';
 import { OAuthAccount } from '../entities/oauth-accounts.entity';
-import { OAuthUserDto } from '../dto/oauth-user.dto';
+import { OAuthUserDto } from '@/modules/auth/interface/dto';
 import { UsersService } from '@/modules/users/users.service';
 import { User } from '@/modules/users/entities/user.entity';
 import { BaseService } from 'src/common/services/transaction.service';
@@ -20,7 +20,7 @@ export class OAuthService extends BaseService<OAuthAccount> {
 
   async findByProvider(provider: string, providerId: string) {
     return this.oauthRepo.findOne({
-      where: { provider, providerId },
+      where: { provider, provider_id: providerId },
       relations: ['user'],
     });
   }
@@ -48,14 +48,12 @@ export class OAuthService extends BaseService<OAuthAccount> {
       : null;
 
     if (!user) {
-      const isEmailVerified = dto.profile?._json?.email_verified ?? false;
-
       user = await this.usersService.create(
         {
           email: dto.email,
           name: dto.name,
           roles: dto.roles?.map((role) => ({ name: role })),
-          emailVerified: isEmailVerified,
+          email_verified_at: new Date(),
         },
         queryRunner,
       );

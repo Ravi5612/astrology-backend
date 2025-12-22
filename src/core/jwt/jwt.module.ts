@@ -18,7 +18,6 @@ import { AuthConfig } from '../config/auth.config';
 
         return {
           secret: jwtConfig?.jwtSecret,
-          signOptions: { expiresIn: jwtConfig?.jwtExpiresIn },
         };
       },
       inject: [ConfigService],

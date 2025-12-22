@@ -1,20 +1,23 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsedTokens } from '../entities/used-tokens.entity';
-import { Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
 import { createHash } from 'crypto';
 import { Injectable } from '@nestjs/common';
+import { BaseService } from '@/common/services/transaction.service';
 
 @Injectable()
-export class UsedTokensService {
+export class UsedTokensService extends BaseService<UsedTokens> {
   constructor(
     @InjectRepository(UsedTokens)
     private readonly usedTokensRepo: Repository<UsedTokens>,
-  ) {}
+  ) {
+    super(usedTokensRepo);
+  }
 
-  async findOne(token: string, userId: number) {
+  async isTokenUsed(token: string, userId: number) {
     const hashedToken = createHash('sha256').update(token).digest('hex');
 
-    return this.usedTokensRepo.findOne({
+    return this.usedTokensRepo.exists({
       where: {
         user: {
           id: userId,
@@ -24,8 +27,15 @@ export class UsedTokensService {
     });
   }
 
-  async addUsedToken(token: string, userId: number, purpose?: string) {
-    const tokenEntry = this.usedTokensRepo.create({
+  async markTokenAsUsed(
+    token: string,
+    userId: number,
+    purpose?: string,
+    qr?: QueryRunner,
+  ) {
+    const repo = this.getRepo(qr);
+
+    const tokenEntry = repo.create({
       user: {
         id: userId,
       },
@@ -33,6 +43,6 @@ export class UsedTokensService {
       purpose,
     });
 
-    return this.usedTokensRepo.save(tokenEntry);
+    return repo.save(tokenEntry);
   }
 }

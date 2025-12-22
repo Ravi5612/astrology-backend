@@ -25,10 +25,6 @@ export class UsersService extends BaseService<User> {
       name: dto.name,
     });
 
-    if (dto.emailVerified) {
-      user.emailVerified = dto.emailVerified;
-    }
-
     if (dto.roles?.length) {
       const roleNames = dto.roles.map((r) => r.name);
       const roles = await this.rolesService.findByNames(roleNames);
@@ -73,7 +69,11 @@ export class UsersService extends BaseService<User> {
   }
 
   // 🔹 Update user
-  async update(id: number, dto: Partial<CreateUserDto>): Promise<User> {
+  async update(
+    id: number,
+    dto: Partial<CreateUserDto>,
+    qr?: QueryRunner,
+  ): Promise<User> {
     await this.usersRepo.update(id, dto);
     return this.findById(id) as Promise<User>;
   }
