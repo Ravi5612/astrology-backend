@@ -9,10 +9,8 @@ import {
   Get,
 } from '@nestjs/common';
 
-import { AuthService } from '../../infrastructure/persistence/services/auth.service';
-import { RegisterDto, LoginDto, RefreshTokenDto } from '../dto';
+import { RegisterDto, LoginDto } from '../dto';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
-import { TokenService } from '../../infrastructure/persistence/services/token.service';
 import {
   ForgotPasswordDto,
   ResetPasswordDto,
@@ -21,6 +19,7 @@ import {
 import { JwtAuthGuard } from '../guards/auth.guard';
 import { AuthFacade } from '../../application/auth.facade';
 import { instanceToPlain } from 'class-transformer';
+import { JwtAuthRefreshGuard } from '../guards/auth-refresh.guard';
 
 @Controller({
   path: 'auth',
@@ -61,20 +60,21 @@ export class AuthController {
     return this.authFacade.resendVerificationEmail(email);
   }
 
-  // @Post('forgot/password')
-  // forgotPassword(@Body() dto: ForgotPasswordDto) {
-  //   return this.authService.forgotPassword(dto.email);
-  // }
+  @Post('forgot/password')
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authFacade.forgotPassword(dto.email);
+  }
 
-  // @Post('reset/password')
-  // resetPassword(@Query('token') token: string, @Body() dto: ResetPasswordDto) {
-  //   return this.authService.resetPassword(token, dto.password);
-  // }
+  @Post('reset/password')
+  resetPassword(@Query('token') token: string, @Body() dto: ResetPasswordDto) {
+    return this.authFacade.resetPassword(token, dto.password);
+  }
 
-  // @Post('refresh')
-  // refresh(@CurrentUser('id') id: number, @Body() dto: RefreshTokenDto) {
-  //   return this.tokenService.refreshTokens(id, dto.refreshToken);
-  // }
+  @Get('refresh')
+  @UseGuards(JwtAuthRefreshGuard)
+  refresh(@Req() req: Request) {
+    return this.authFacade.refreshToken(req['refreshToken']!);
+  }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
@@ -82,17 +82,19 @@ export class AuthController {
     return this.authFacade.logout(id);
   }
 
-  // @Post('magic/new')
-  // sendMagicLink(@Body() dto: SendMagicLinkDto, @Req() req: Request) {
-  //   return this.authService.sendMagicLink(dto.email);
-  // }
+  @Post('magic/new')
+  sendMagicLink(@Body() dto: SendMagicLinkDto, @Req() req: Request) {
+    return this.authFacade.sendMagicLink(dto.email);
+  }
 
-  // @Get('magic/login')
-  // magicLinkLogin(@Query('token') token: string, @Req() req: Request) {
-  //   return this.authService.magicLinkLogin(
-  //     token,
-  //     req.ip,
-  //     req.get('user-agent'),
-  //   );
-  // }
+  @Get('magic/login')
+  async magicLinkLogin(@Query('token') token: string, @Req() req: Request) {
+    const { user, tokens } = await this.authFacade.loginWithMagicLink(
+      token,
+      req.ip,
+      req.get('user-agent'),
+    );
+
+    return instanceToPlain({ user, ...tokens });
+  }
 }

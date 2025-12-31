@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryRunner, Repository } from 'typeorm';
 import { OAuthAccount } from '../entities/oauth-accounts.entity';
-import { OAuthUserDto } from '@/modules/auth/interface/dto';
+import { OAuthUserDto } from '@/modules/auth/presentation/dto';
 import { UsersService } from '@/modules/users/users.service';
 import { User } from '@/modules/users/entities/user.entity';
 import { BaseService } from 'src/common/services/transaction.service';

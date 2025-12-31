@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { LoginDto } from '../../interface/dto';
+import { LoginDto } from '../../presentation/dto';
 import { UsersService } from '@/modules/users/users.service';
 import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';
 import { User } from '@/modules/users/entities/user.entity';

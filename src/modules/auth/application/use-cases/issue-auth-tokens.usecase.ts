@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
 import { User } from '@/modules/users/entities/user.entity';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
-import { CredentialRepository } from '../../infrastructure/persistence/repositories/credentials.repository';
+import { SessionRepository } from '../../infrastructure/persistence/repositories/session.repository';
 
 @Injectable()
 export class IssueAuthTokensUseCase {
   constructor(
     private readonly tokenCrypto: TokenCryptoService,
-    private readonly credentialsRepo: CredentialRepository,
+    private readonly sessionRepo: SessionRepository,
   ) {}
 
   async execute(
@@ -24,7 +24,7 @@ export class IssueAuthTokensUseCase {
 
     const { raw, hash } = await this.tokenCrypto.createRefreshToken();
 
-    await this.credentialsRepo.storeRefreshToken(
+    const savedSession = await this.sessionRepo.storeRefreshToken(
       {
         user,
         ip_address: ip,
@@ -36,6 +36,6 @@ export class IssueAuthTokensUseCase {
       queryRunner,
     );
 
-    return { accessToken, refreshToken: raw };
+    return { accessToken, refreshToken: `${savedSession.id}.${raw}` };
   }
 }

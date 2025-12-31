@@ -57,10 +57,14 @@ export class UsersService extends BaseService<User> {
   }
 
   // 🔹 Find by ID
-  async findById(id: number): Promise<User> {
+  async findById(id: number, all: boolean = true): Promise<User> {
     const existingUser = await this.usersRepo.findOne({
       where: { id },
-      relations: ['roles', 'oauthAccounts', 'credentials'],
+      relations: {
+        roles: true,
+        oauthAccounts: all,
+        sessions: all,
+      },
     });
 
     if (!existingUser) throw new NotFoundException('User not found');

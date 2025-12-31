@@ -7,23 +7,23 @@ import { randomBytes } from 'crypto';
 import { QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '@/modules/users/entities/user.entity';
-import { Credential } from '../entities/credential.entity';
+import { Session } from '../entities/session.entity';
 import { ConfigService } from '@nestjs/config';
 import { AuthConfig } from 'src/core/config/auth.config';
 import { BaseService } from 'src/common/services/transaction.service';
 
 @Injectable()
-export class TokenService extends BaseService<Credential> {
+export class TokenService extends BaseService<Session> {
   private jwtConfig: AuthConfig;
 
   constructor(
     private jwtService: JwtService,
     private configService: ConfigService,
 
-    @InjectRepository(Credential)
-    private credentialsRepo: Repository<Credential>,
+    @InjectRepository(Session)
+    private sessionRepo: Repository<Session>,
   ) {
-    super(credentialsRepo);
+    super(sessionRepo);
     const config = this.configService.get<AuthConfig>('auth');
 
     if (!config) {
@@ -67,7 +67,7 @@ export class TokenService extends BaseService<Credential> {
   }
 
   async refreshTokens(userId: number, refreshToken: string) {
-    const creds = await this.credentialsRepo.find({
+    const creds = await this.sessionRepo.find({
       where: { user: { id: userId }, type: 'refresh_token', revoked: false },
     });
 
@@ -88,10 +88,7 @@ export class TokenService extends BaseService<Credential> {
   }
 
   async revoke(userId: number) {
-    await this.credentialsRepo.update(
-      { user: { id: userId } },
-      { revoked: true },
-    );
+    await this.sessionRepo.update({ user: { id: userId } }, { revoked: true });
   }
 
   async verifyToken(token: string) {

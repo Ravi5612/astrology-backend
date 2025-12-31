@@ -17,10 +17,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message: any = 'Internal server error';
+    let stack: any;
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       message = exception.getResponse();
+      stack = exception.stack;
     }
 
     response.status(status).json({
@@ -28,6 +30,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       path: request.url,
       message: typeof message === 'string' ? message : message?.message,
+      ...(process.env.NODE_ENV === 'development' && { stack }),
     });
   }
 }

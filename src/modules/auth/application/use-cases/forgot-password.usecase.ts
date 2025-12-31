@@ -1,13 +1,12 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UsersService } from '@/modules/users/users.service';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
-import { VerifyEmailEvent } from '../../domain/events/verify-email.event';
-import { EmailVerificationPolicy } from '../../domain/policies/email-verification.policy';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { User } from '@/modules/users/entities/user.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ResetPasswordEvent } from '../../domain/events/reset-password.event';
 
 @Injectable()
-export class ResendVerificationEmailUseCase {
+export class ForgotPasswordUseCase {
   constructor(
     private readonly usersService: UsersService,
     private readonly tokenCrypto: TokenCryptoService,
@@ -21,24 +20,22 @@ export class ResendVerificationEmailUseCase {
       throw new BadRequestException("User not found or doesn't exist");
     }
 
-    EmailVerificationPolicy.canResendVerification(existingUser);
-
     this.sendEmail(existingUser);
 
     return {
-      message: 'Confirmation email sent!',
+      message: 'Password reset link sent!',
     };
   }
 
   private sendEmail(user: User) {
-    const verification_token = this.tokenCrypto.signTemporaryToken({
+    const reset_password_token = this.tokenCrypto.signTemporaryToken({
       sub: user.id,
       email: user.email,
     });
 
     this.eventEmitter.emit(
-      'auth.email.verify',
-      new VerifyEmailEvent(user.email, verification_token),
+      'auth.reset.password',
+      new ResetPasswordEvent(user.email, reset_password_token),
     );
   }
 }

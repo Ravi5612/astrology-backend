@@ -44,32 +44,4 @@ export class EmailService {
       throw new InternalServerErrorException('Failed to send email');
     }
   }
-
-  /**
-   * Send email confirmation
-   */
-  async sendConfirmationEmail(to: string, token: string) {
-    const confirmUrl = `${process.env.FRONTEND_URL}/confirm-email?token=${token}`;
-    const html = `
-      <p>Hello,</p>
-      <p>Please confirm your email by clicking the link below:</p>
-      <a href="${confirmUrl}">Confirm Email</a>
-      <p>If you did not request this, you can ignore this email.</p>
-    `;
-    return this.sendEmail(to, 'Confirm your email', html);
-  }
-
-  /**
-   * Send password reset email
-   */
-  async sendResetPasswordEmail(to: string, token: string) {
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-    const html = `
-      <p>Hello,</p>
-      <p>Click the link below to reset your password:</p>
-      <a href="${resetUrl}">Reset Password</a>
-      <p>If you did not request this, you can ignore this email.</p>
-    `;
-    return this.sendEmail(to, 'Reset your password', html);
-  }
 }

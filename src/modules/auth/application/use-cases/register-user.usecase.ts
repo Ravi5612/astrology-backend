@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { RegisterDto } from '../../interface/dto';
+import { RegisterDto } from '../../presentation/dto';
 import { RegistrationPolicy } from '../../domain/policies/registration.policy';
 import { DatabaseService } from '@/core/database/database.service';
 import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';
@@ -8,6 +8,7 @@ import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.ser
 import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
 import { UsersService } from '@/modules/users/users.service';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
+import { User } from '@/modules/users/entities/user.entity';
 
 @Injectable()
 export class RegisterUserUseCase {
@@ -50,6 +51,12 @@ export class RegisterUserUseCase {
       return { user, tokens };
     });
 
+    this.sendEmail(response);
+
+    return response;
+  }
+
+  private sendEmail<T extends { user: User }>(response: T) {
     const verification_token = this.tokenCrypto.signTemporaryToken({
       sub: response.user.id,
       email: response.user.email,
@@ -65,7 +72,5 @@ export class RegisterUserUseCase {
         verification_token,
       ),
     );
-
-    return response;
   }
 }

@@ -9,11 +9,9 @@ import {
   ManyToMany,
   JoinTable,
   OneToOne,
-  BeforeInsert,
-  AfterInsert,
 } from 'typeorm';
 import { OAuthAccount } from '../../auth/infrastructure/persistence/entities/oauth-accounts.entity';
-import { Credential } from '../../auth/infrastructure/persistence/entities/credential.entity';
+import { Session } from '../../auth/infrastructure/persistence/entities/session.entity';
 import { Role } from '@/modules/role/entities/roles.entity';
 import { Exclude } from 'class-transformer';
 import { ProfileClient } from '@/modules/client/profile/entities/profile-client.entity';
@@ -51,8 +49,8 @@ export class User {
   @OneToMany(() => OAuthAccount, (oa) => oa.user)
   oauthAccounts: OAuthAccount[];
 
-  @OneToMany(() => Credential, (c) => c.user)
-  credentials: Credential[];
+  @OneToMany(() => Session, (c) => c.user)
+  sessions: Session[];
 
   @CreateDateColumn()
   created_at: Date;
@@ -65,4 +63,8 @@ export class User {
 
   @OneToOne(() => ProfileExpert, (p) => p.user, { cascade: true })
   profile_expert?: ProfileExpert;
+
+  isVerified() {
+    return !!this.email_verified_at;
+  }
 }

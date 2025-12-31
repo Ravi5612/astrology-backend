@@ -1,18 +1,12 @@
 import { Module } from '@nestjs/common';
-// import { AuthService } from './services/auth.service';
-// import { AuthController } from './presentation/controllers/auth.controller';
-import { AuthController } from './interface/controllers/auth.controller';
-// import { TokenService } from './services/token.service';
-// import { OAuthService } from './services/oauth.service';
+import { AuthController } from './presentation/controllers/auth.controller';
 import { UsersModule } from '@/modules/users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Credential } from './infrastructure/persistence/entities/credential.entity';
+import { Session } from './infrastructure/persistence/entities/session.entity';
 import { OAuthAccount } from './infrastructure/persistence/entities/oauth-accounts.entity';
-import { JwtStrategy } from './interface/strategies/jwt.strategy';
-// import { GoogleStrategy } from './presentation/strategies/google.strategy';
-
+import { JwtStrategy } from './presentation/strategies/jwt.strategy';
 import { DatabaseModule } from 'src/core/database/database.module';
-// import { GoogleAuthController } from './presentation/controllers/google-auth.controller';
+
 import { UsedTokens } from './infrastructure/persistence/entities/used-tokens.entity';
 import { AuthFacade } from './application/auth.facade';
 import { LoginWithEmailUseCase } from './application/use-cases/login-with-email.usecase';
@@ -20,23 +14,31 @@ import { RegisterUserUseCase } from './application/use-cases/register-user.useca
 import { Argon2PasswordHasher } from './infrastructure/hashing/argon2-password.hasher';
 import { IssueAuthTokensUseCase } from './application/use-cases/issue-auth-tokens.usecase';
 import { TokenCryptoService } from './infrastructure/tokens/token-crypto.service';
-import { CredentialRepository } from './infrastructure/persistence/repositories/credentials.repository';
+import { SessionRepository } from './infrastructure/persistence/repositories/session.repository';
 import { UserRegisteredHandler } from './application/event-handlers/user-registered.handler';
 import { EmailService } from '@/common/services/email.service';
 import { LoginWithGoogleUseCase } from './application/use-cases/login-with-google.usecase';
 import { OAuthService } from './infrastructure/persistence/services/oauth.service';
-import { GoogleStrategy } from './interface/strategies/google.strategy';
-import { GoogleAuthController } from './interface/controllers/google-auth.controller';
+import { GoogleStrategy } from './presentation/strategies/google.strategy';
+import { GoogleAuthController } from './presentation/controllers/google-auth.controller';
 import { LogoutUserUseCase } from './application/use-cases/logout-user.usecase';
 import { VerifyEmailUseCase } from './application/use-cases/verify-email.usecase';
 import { UsedTokensService } from './infrastructure/persistence/services/used-tokens.service';
 import { ResendVerificationEmailUseCase } from './application/use-cases/resend-verification-email.usecase';
-// import { EmailService } from '@/common/services/email.service';
-// import { UsedTokensService } from './services/used-tokens.service';
+import { ForgotPasswordUseCase } from './application/use-cases/forgot-password.usecase';
+import { ResetPasswordEventHandler } from './application/event-handlers/reset-password.handler';
+import { VerifyEmailHandler } from './application/event-handlers/verify-email.handler';
+import { ResetPasswordUseCase } from './application/use-cases/reset-password.usecase';
+import { RefreshTokenUseCase } from './application/use-cases/refresh-token.usecase';
+import { JwtRefreshStrategy } from './presentation/strategies/jwt-refresh.strategy';
+import { SendMagicLinkEventHandler } from './application/event-handlers/send-magic-link.handler';
+import { SendMagicLinkUseCase } from './application/use-cases/send-magic-link.usecase';
+import { LoginWithMagicLinkUseCase } from './application/use-cases/login-with-magic-link.usecase';
+
 @Module({
   imports: [
     UsersModule,
-    TypeOrmModule.forFeature([Credential, OAuthAccount, UsedTokens]),
+    TypeOrmModule.forFeature([Session, OAuthAccount, UsedTokens]),
     DatabaseModule,
   ],
   providers: [
@@ -45,8 +47,11 @@ import { ResendVerificationEmailUseCase } from './application/use-cases/resend-v
     OAuthService,
     UsedTokensService,
     JwtStrategy,
-    AuthFacade,
+    JwtRefreshStrategy,
     GoogleStrategy,
+
+    AuthFacade,
+    // Use case -  start
     RegisterUserUseCase,
     LoginWithEmailUseCase,
     LoginWithGoogleUseCase,
@@ -54,10 +59,20 @@ import { ResendVerificationEmailUseCase } from './application/use-cases/resend-v
     LogoutUserUseCase,
     VerifyEmailUseCase,
     ResendVerificationEmailUseCase,
+    ForgotPasswordUseCase,
+    ResetPasswordUseCase,
+    RefreshTokenUseCase,
+    SendMagicLinkUseCase,
+    LoginWithMagicLinkUseCase,
+    // Use case - end
+
     Argon2PasswordHasher,
     TokenCryptoService,
-    CredentialRepository,
+    SessionRepository,
     UserRegisteredHandler,
+    ResetPasswordEventHandler,
+    VerifyEmailHandler,
+    SendMagicLinkEventHandler,
     EmailService,
   ],
   controllers: [AuthController, GoogleAuthController],

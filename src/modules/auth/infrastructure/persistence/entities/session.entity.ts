@@ -6,13 +6,15 @@ import {
   ManyToOne,
   CreateDateColumn,
   JoinColumn,
+  BeforeInsert,
 } from 'typeorm';
 import { User } from '@/modules/users/entities/user.entity';
+import { uuidv7 } from 'uuidv7';
 
-@Entity('credentials')
-export class Credential {
-  @PrimaryGeneratedColumn()
-  id: number;
+@Entity('sessions')
+export class Session {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   // hashed refresh token (or session secret)
   @Column()
@@ -22,7 +24,7 @@ export class Credential {
   @Column({ default: 'refresh_token' })
   type: 'refresh_token' | 'api_key' | 'device_session';
 
-  @ManyToOne(() => User, (u) => u.credentials, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (u) => u.sessions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
@@ -40,4 +42,13 @@ export class Credential {
 
   @CreateDateColumn()
   created_at: Date;
+
+  isActive(now: Date = new Date()) {
+    return !this.revoked && now < this.expires_at;
+  }
+
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) this.id = uuidv7();
+  }
 }
