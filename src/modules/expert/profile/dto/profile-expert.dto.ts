@@ -1,4 +1,4 @@
-import { AddressDto } from '@/common/dto/address.dto';
+import { AddressDto } from '@/common/address/address.dto';
 import { Type } from 'class-transformer';
 import {
   IsArray,

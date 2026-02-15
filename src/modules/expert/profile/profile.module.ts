@@ -6,7 +6,7 @@ import { User } from '@/modules/users/entities/user.entity';
 import { ProfileExpert } from './entities/profile-expert.entity';
 import { ProfileService } from './profile.service';
 import { ProfileController } from './profile.controller';
-import { Address } from '@/common/entities/address.entity';
+import { Address } from '@/common/address/address.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ProfileExpert, User, Address])],

@@ -10,7 +10,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Address } from '@/common/entities/address.entity';
+import { Address } from '@/common/address/address.entity';
 
 @Entity('profile_clients')
 @Check(`"gender" IN ('male', 'female', 'other')`)

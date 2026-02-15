@@ -6,7 +6,7 @@ import { User } from '@/modules/users/entities/user.entity';
 import { ProfileClient } from './entities/profile-client.entity';
 import { ProfileController } from './profile.controller';
 import { ProfileService } from './profile.service';
-import { Address } from '@/common/entities/address.entity';
+import { Address } from '@/common/address/address.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ProfileClient, User, Address])],

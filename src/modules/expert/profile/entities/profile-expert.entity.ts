@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 
 import { User } from '@/modules/users/entities/user.entity';
-import { Address } from '@/common/entities/address.entity';
+import { Address } from '@/common/address/address.entity';
 
 @Entity('profile_experts')
 @Check(`"gender" IN ('male', 'female', 'other')`)

@@ -25,20 +25,34 @@ export class Address {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  street: string;
+  // Map property "line1" to DB column "street"
+  @Column({ name: 'street', type: 'varchar', length: 255 })
+  line1: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  city: string;
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  houseNo?: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  state: string;
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  city?: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  country: string;
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  district?: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  state?: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  country?: string;
+
+  // Map property "zipCode" to DB column "postal_code"
+  @Column({ name: 'postal_code', type: 'varchar', length: 10, nullable: true })
+  zipCode: string;
 
   @Column({ type: 'varchar', length: 10, nullable: true })
-  postal_code: string;
+  pincode?: string;
+
+  @Column({ type: 'bool', default: false })
+  isPrimary: boolean;
 
   @Column({
     type: 'enum',
