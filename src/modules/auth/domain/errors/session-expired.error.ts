@@ -1,4 +1,4 @@
-import { DomainError } from '@/common/domain/domain.error';
+import { DomainError } from '@/common/types/domain.error';
 import { HttpStatus } from '@nestjs/common';
 
 export class SessionExpiredError extends DomainError {
