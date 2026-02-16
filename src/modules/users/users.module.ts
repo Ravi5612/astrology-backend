@@ -1,14 +1,32 @@
-import { Module } from '@nestjs/common';
-import { UsersController } from './users.controller';
-import { UsersService } from './users.service';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
-import { RolesModule } from '@/modules/role/roles.module';
+import { UsersController } from './presentation/controllers/users.controller';
+import { User } from './infrastructure/persistence/entities/user.entity';
+import { RolesModule } from '../role/roles.module';
+import { UserRepositoryImpl } from './infrastructure/persistence/repositories/user.repository';
+import { CreateUserUseCase } from './application/use-cases/create-user.usecase';
+import { FindUserUseCase } from './application/use-cases/find-user.usecase';
+import { UpdateUserUseCase } from './application/use-cases/update-user.usecase';
+import { DeleteUserUseCase } from './application/use-cases/delete-user.usecase';
+import { AssignRoleToUserUseCase } from './application/use-cases/assign-role-to-user.usecase';
+import { UsersFacade } from './application/users.facade';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User]), RolesModule],
   controllers: [UsersController],
-  providers: [UsersService],
-  exports: [UsersService],
+  providers: [
+    UsersFacade,
+    CreateUserUseCase,
+    FindUserUseCase,
+    UpdateUserUseCase,
+    DeleteUserUseCase,
+    AssignRoleToUserUseCase,
+    {
+      provide: 'UserRepository',
+      useClass: UserRepositoryImpl,
+    },
+    UserRepositoryImpl, // Register concrete class as well if needed, or just relying on string token
+  ],
+  exports: [UsersFacade, 'UserRepository', UserRepositoryImpl, TypeOrmModule], // Export Facade and Repository
 })
 export class UsersModule {}

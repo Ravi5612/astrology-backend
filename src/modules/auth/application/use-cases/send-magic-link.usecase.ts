@@ -1,5 +1,5 @@
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { UsersService } from '@/modules/users/users.service';
+import { UsersFacade } from '@/modules/users/application/users.facade';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { SendMagicLinkEvent } from '../../domain/events/send-magic-link.event';
@@ -7,13 +7,13 @@ import { SendMagicLinkEvent } from '../../domain/events/send-magic-link.event';
 @Injectable()
 export class SendMagicLinkUseCase {
   constructor(
-    private readonly usersService: UsersService,
+    private readonly usersFacade: UsersFacade,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async execute(email: string) {
-    const existingUser = await this.usersService.findByEmail(email);
+    const existingUser = await this.usersFacade.findByEmail(email);
 
     if (!existingUser) {
       throw new BadRequestException("User not found or doesn't exist");

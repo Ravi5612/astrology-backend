@@ -3,8 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { QueryRunner, Repository } from 'typeorm';
 import { OAuthAccount } from '../entities/oauth-accounts.entity';
 import { OAuthUserDto } from '@/modules/auth/presentation/dto';
-import { UsersService } from '@/modules/users/users.service';
-import { User } from '@/modules/users/entities/user.entity';
+import { UsersFacade } from '@/modules/users/application/users.facade';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { BaseService } from 'src/common/services/transaction.service';
 // import { instanceToPlain } from 'class-transformer';
 
@@ -13,7 +13,7 @@ export class OAuthService extends BaseService<OAuthAccount> {
   constructor(
     @InjectRepository(OAuthAccount)
     private oauthRepo: Repository<OAuthAccount>,
-    private usersService: UsersService,
+    private usersFacade: UsersFacade,
   ) {
     super(oauthRepo);
   }
@@ -43,12 +43,13 @@ export class OAuthService extends BaseService<OAuthAccount> {
 
     if (oauth?.user) return oauth.user;
 
+    // eslint-disable-next-line prefer-const
     let user = dto.email
-      ? await this.usersService.findByEmail(dto.email)
+      ? await this.usersFacade.findByEmail(dto.email)
       : null;
 
     if (!user) {
-      user = await this.usersService.create(
+      user = await this.usersFacade.create(
         {
           email: dto.email,
           name: dto.name,

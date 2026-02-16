@@ -5,7 +5,7 @@ import {
   UpdateProfileExpertDto,
 } from './dto/profile-expert.dto';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from '@/modules/users/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 
 @Controller('expert/profile')
 export class ProfileController {

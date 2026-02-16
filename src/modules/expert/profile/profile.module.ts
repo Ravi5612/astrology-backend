@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { User } from '@/modules/users/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 
 import { ProfileExpert } from './entities/profile-expert.entity';
 import { ProfileService } from './profile.service';

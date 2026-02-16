@@ -12,7 +12,7 @@ import {
   UpdateProfileExpertDto,
 } from './dto/profile-expert.dto';
 import { Address } from '@/common/address/address.entity';
-import { User } from '@/modules/users/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 
 @Injectable()
 export class ProfileService {

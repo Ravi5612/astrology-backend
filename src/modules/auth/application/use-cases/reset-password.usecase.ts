@@ -1,15 +1,15 @@
-import { UsersService } from '@/modules/users/users.service';
+import { UsersFacade } from '@/modules/users/application/users.facade';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';
 import { UsedTokensService } from '../../infrastructure/persistence/services/used-tokens.service';
-import { User } from '@/modules/users/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { TokenAlreadyUsedError } from '../../domain/errors/token-already-used.error';
 
 @Injectable()
 export class ResetPasswordUseCase {
   constructor(
-    private readonly usersService: UsersService,
+    private readonly usersFacade: UsersFacade,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly usedTokenService: UsedTokensService,
     private readonly hasher: Argon2PasswordHasher,
@@ -18,7 +18,7 @@ export class ResetPasswordUseCase {
   async execute(token: string, password: string) {
     const payload = await this.verifyTokenOrFail(token);
 
-    const existingUser = await this.usersService.findByEmail(payload.email);
+    const existingUser = await this.usersFacade.findByEmail(payload.email);
 
     if (!existingUser) {
       throw new BadRequestException("User not found or doesn't exist");
@@ -56,7 +56,7 @@ export class ResetPasswordUseCase {
   private async updatePassword(password: string, user: User) {
     const hashed = await this.hasher.hash(password);
 
-    await this.usersService.update(user.id, {
+    await this.usersFacade.update(user.id, {
       password: hashed,
     });
   }

@@ -1,21 +1,21 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { UsersService } from '@/modules/users/users.service';
+import { UsersFacade } from '@/modules/users/application/users.facade';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { VerifyEmailEvent } from '../../domain/events/verify-email.event';
 import { EmailVerificationPolicy } from '../../domain/policies/email-verification.policy';
-import { User } from '@/modules/users/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 
 @Injectable()
 export class ResendVerificationEmailUseCase {
   constructor(
-    private readonly usersService: UsersService,
+    private readonly usersFacade: UsersFacade,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async execute(email: string) {
-    const existingUser = await this.usersService.findByEmail(email);
+    const existingUser = await this.usersFacade.findByEmail(email);
 
     if (!existingUser) {
       throw new BadRequestException("User not found or doesn't exist");

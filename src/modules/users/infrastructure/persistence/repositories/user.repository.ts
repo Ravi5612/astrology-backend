@@ -1,0 +1,75 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, QueryRunner } from 'typeorm';
+import { BaseService } from '@/common/services/transaction.service';
+import { User } from '../entities/user.entity';
+import { UserRepository } from '../../../domain/repositories/user.repository.interface';
+
+@Injectable()
+export class UserRepositoryImpl extends BaseService<User> implements UserRepository {
+  constructor(
+    @InjectRepository(User)
+    private readonly usersRepo: Repository<User>,
+  ) {
+    super(usersRepo);
+  }
+
+  async create(data: Partial<User>, queryRunner?: QueryRunner): Promise<User> {
+     const repo = this.getRepo(queryRunner);
+     const user = repo.create(data);
+     return repo.save(user);
+  }
+
+  async findAll(queryRunner?: QueryRunner): Promise<User[]> {
+    return this.getRepo(queryRunner).find({
+      relations: ['roles', 'oauthAccounts'],
+    });
+  }
+
+  async findByEmail(email: string, queryRunner?: QueryRunner): Promise<User | null> {
+    return this.getRepo(queryRunner).findOne({ where: { email } });
+  }
+
+  async findByEmailWithPassword(email: string, queryRunner?: QueryRunner): Promise<User | null> {
+      return this.getRepo(queryRunner)
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email })
+      .leftJoinAndSelect('user.roles', 'roles')
+      .getOne();
+  }
+
+  async findById(id: number, all: boolean = true, queryRunner?: QueryRunner): Promise<User | null> {
+    return this.getRepo(queryRunner).findOne({
+      where: { id },
+      relations: {
+        roles: true,
+        oauthAccounts: all,
+        sessions: all,
+      },
+    });
+  }
+
+  async update(id: number, data: Partial<User>, queryRunner?: QueryRunner): Promise<User> {
+     const repo = this.getRepo(queryRunner);
+     
+     // Remove relations from data if they present to avoid TypeORM issues with update
+     // For roles, we should use specific methods or save.
+     // But for now, let's try to save if we have complex data, or update if simple.
+     // However, the interface says `update`.
+     // To keep it simple and consistent with Service:
+     await repo.update(id, data);
+     
+     // Re-fetch to return the updated entity, ensuring we use the same transaction if present
+     const updatedUser = await repo.findOne({ where: { id } });
+     if (!updatedUser) {
+        throw new Error(`User with id ${id} not found after update`);
+     }
+     return updatedUser;
+  }
+
+  async delete(id: number, queryRunner?: QueryRunner): Promise<void> {
+    const repo = this.getRepo(queryRunner);
+    await repo.delete(id);
+  }
+}

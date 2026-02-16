@@ -1,16 +1,15 @@
-// src/auth/strategies/jwt.strategy.ts
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
-import { UsersService } from '@/modules/users/users.service';
+import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AuthConfig } from '@/config/auth.config';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
     config: ConfigService,
-    private usersService: UsersService,
+    private usersFacade: UsersFacade,
   ) {
     const authConfig = config.get<AuthConfig>('auth');
 
@@ -28,7 +27,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: any) {
-    const user = await this.usersService.findById(payload.sub);
+    const user = await this.usersFacade.findById(payload.sub);
     console.log({ user });
     return user;
   }

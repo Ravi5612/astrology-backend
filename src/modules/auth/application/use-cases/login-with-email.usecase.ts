@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { LoginDto } from '../../presentation/dto';
-import { UsersService } from '@/modules/users/users.service';
+import { UsersFacade } from '@/modules/users/application/users.facade';
 import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';
-import { User } from '@/modules/users/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { InvalidCredentialsError } from '../../domain/errors/invalid-credentials.error';
 import { AuthPolicy } from '../../domain/policies/auth.policy';
 import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
@@ -10,13 +10,13 @@ import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
 @Injectable()
 export class LoginWithEmailUseCase {
   constructor(
-    private readonly usersService: UsersService,
+    private readonly usersFacade: UsersFacade,
     private passwordHasher: Argon2PasswordHasher,
     private readonly issueTokens: IssueAuthTokensUseCase,
   ) {}
 
   async execute(dto: LoginDto, ip?: string, userAgent?: string) {
-    const user = await this.usersService.findByEmailWithPassword(dto.email);
+    const user = await this.usersFacade.findByEmailWithPassword(dto.email);
 
     const isValidPassword = await this.validatePassword(dto, user);
 

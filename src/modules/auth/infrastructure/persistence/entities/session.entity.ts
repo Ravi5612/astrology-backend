@@ -8,7 +8,7 @@ import {
   JoinColumn,
   BeforeInsert,
 } from 'typeorm';
-import { User } from '@/modules/users/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { uuidv7 } from 'uuidv7';
 
 @Entity('sessions')

@@ -6,7 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { randomBytes } from 'crypto';
 import { QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '@/modules/users/entities/user.entity';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { Session } from '../entities/session.entity';
 import { ConfigService } from '@nestjs/config';
 import { AuthConfig } from '@/config/auth.config';
