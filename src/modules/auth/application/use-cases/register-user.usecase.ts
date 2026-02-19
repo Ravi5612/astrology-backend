@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { RegisterDto } from '../../presentation/dto';
+import { RegisterDto } from '../../api/dto';
 import { RegistrationPolicy } from '../../domain/policies/registration.policy';
 import { DatabaseService } from '@/core/database/database.service';
 import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';

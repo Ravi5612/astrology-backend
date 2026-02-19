@@ -1,14 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { UserRepository } from '../../domain/repositories/user.repository.interface';
 import { RolesService } from '@/modules/role/roles.service';
 import { User } from '../../infrastructure/persistence/entities/user.entity';
-import { Inject } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
+import { UserRepository } from '../../infrastructure/persistence/repositories/user.repository';
 
 @Injectable()
 export class AssignRoleToUserUseCase {
   constructor(
-    @Inject('UserRepository')
     private readonly userRepository: UserRepository,
     private readonly rolesService: RolesService,
   ) {}

@@ -6,6 +6,7 @@ import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 export class UserRegisteredHandler {
   private readonly logger = new Logger(UserRegisteredHandler.name);
   constructor(private readonly nodeMailerService: NodeMailerService) {}
+
   @OnEvent('auth.user.registered', { async: true })
   async handle(event: UserRegisteredEvent) {
     this.logger.debug('Email sending to the user');

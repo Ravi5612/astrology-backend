@@ -15,7 +15,7 @@ import { Session } from '@/modules/auth/infrastructure/persistence/entities/sess
 import { Role } from '@/modules/role/entities/roles.entity';
 import { Exclude } from 'class-transformer';
 import { ProfileClient } from '@/modules/client/profile/entities/profile-client.entity';
-import { ProfileExpert } from '@/modules/expert/profile/entities/profile-expert.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 
 @Entity('users')
 export class User {
@@ -38,6 +38,9 @@ export class User {
   @Column({ nullable: true })
   name?: string;
 
+  @Column({type: "text", nullable: true})
+  avatar?: string;
+
   @ManyToMany(() => Role, (r) => r.users, { eager: true })
   @JoinTable({
     name: 'user_roles',
@@ -45,6 +48,9 @@ export class User {
     inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' },
   })
   roles: Role[];
+
+  @Column({ default: false })
+  isBlocked: boolean;
 
   @OneToMany(() => OAuthAccount, (oa) => oa.user)
   oauthAccounts: OAuthAccount[];

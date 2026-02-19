@@ -23,6 +23,6 @@ import { ExternalModule } from './external/external.module';
     ClientModule,
     ExpertModule,
     ExternalModule,
-  ],
+  ]
 })
 export class AppModule {}

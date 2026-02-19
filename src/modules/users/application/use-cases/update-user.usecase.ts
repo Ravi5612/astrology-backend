@@ -1,12 +1,11 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
-import { UserRepository } from '../../domain/repositories/user.repository.interface';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { User } from '../../infrastructure/persistence/entities/user.entity';
 import { QueryRunner } from 'typeorm';
+import { UserRepository } from '../../infrastructure/persistence/repositories/user.repository';
 
 @Injectable()
 export class UpdateUserUseCase {
   constructor(
-    @Inject('UserRepository')
     private readonly userRepository: UserRepository,
   ) {}
 

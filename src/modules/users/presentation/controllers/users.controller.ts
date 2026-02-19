@@ -11,8 +11,8 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from '../dto/user.dto';
 import { UsersFacade } from '../../application/users.facade';
-import { JwtAuthGuard } from '../../../auth/presentation/guards/auth.guard';
-import { RolesGuard } from '../../../auth/presentation/guards/role.guard';
+import { JwtAuthGuard } from '../../../auth/api/guards/auth.guard';
+import { RolesGuard } from '../../../auth/api/guards/role.guard';
 import { Roles } from '../../../../common/decorators/roles.decorator';
 // import { UserRole } from '../../../role/enum/role.enum';
 import { User } from '../../infrastructure/persistence/entities/user.entity';

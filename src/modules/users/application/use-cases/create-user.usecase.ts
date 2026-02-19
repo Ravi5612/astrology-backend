@@ -1,14 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { UserRepository } from '../../domain/repositories/user.repository.interface';
+import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from '../../presentation/dto/user.dto';
 import { User } from '../../infrastructure/persistence/entities/user.entity';
 import { RolesService } from '@/modules/role/roles.service'; // We might need to decouple this later, but for now duplicate logic
 import { QueryRunner } from 'typeorm';
+import { UserRepository } from '../../infrastructure/persistence/repositories/user.repository';
 
 @Injectable()
 export class CreateUserUseCase {
   constructor(
-    @Inject('UserRepository')
     private readonly userRepository: UserRepository,
     private readonly rolesService: RolesService,
   ) {}

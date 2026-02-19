@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './presentation/controllers/auth.controller';
+import { AuthController } from './api/controllers/auth.controller';
 import { UsersModule } from '@/modules/users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Session } from './infrastructure/persistence/entities/session.entity';
 import { OAuthAccount } from './infrastructure/persistence/entities/oauth-accounts.entity';
-import { JwtStrategy } from './presentation/strategies/jwt.strategy';
+import { JwtStrategy } from './api/strategies/jwt.strategy';
 import { DatabaseModule } from 'src/core/database/database.module';
 
 import { UsedTokens } from './infrastructure/persistence/entities/used-tokens.entity';
@@ -18,8 +18,8 @@ import { SessionRepository } from './infrastructure/persistence/repositories/ses
 import { UserRegisteredHandler } from './application/event-handlers/user-registered.handler';
 import { LoginWithGoogleUseCase } from './application/use-cases/login-with-google.usecase';
 import { OAuthService } from './infrastructure/persistence/services/oauth.service';
-import { GoogleStrategy } from './presentation/strategies/google.strategy';
-import { GoogleAuthController } from './presentation/controllers/google-auth.controller';
+import { GoogleStrategy } from './api/strategies/google.strategy';
+import { GoogleAuthController } from './api/controllers/google-auth.controller';
 import { LogoutUserUseCase } from './application/use-cases/logout-user.usecase';
 import { VerifyEmailUseCase } from './application/use-cases/verify-email.usecase';
 import { UsedTokensService } from './infrastructure/persistence/services/used-tokens.service';
@@ -29,7 +29,7 @@ import { ResetPasswordEventHandler } from './application/event-handlers/reset-pa
 import { VerifyEmailHandler } from './application/event-handlers/verify-email.handler';
 import { ResetPasswordUseCase } from './application/use-cases/reset-password.usecase';
 import { RefreshTokenUseCase } from './application/use-cases/refresh-token.usecase';
-import { JwtRefreshStrategy } from './presentation/strategies/jwt-refresh.strategy';
+import { JwtRefreshStrategy } from './api/strategies/jwt-refresh.strategy';
 import { SendMagicLinkEventHandler } from './application/event-handlers/send-magic-link.handler';
 import { SendMagicLinkUseCase } from './application/use-cases/send-magic-link.usecase';
 import { LoginWithMagicLinkUseCase } from './application/use-cases/login-with-magic-link.usecase';

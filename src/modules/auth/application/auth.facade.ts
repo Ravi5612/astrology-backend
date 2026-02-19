@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { LoginWithEmailUseCase } from './use-cases/login-with-email.usecase';
 import { RegisterUserUseCase } from './use-cases/register-user.usecase';
-import { LoginDto, RegisterDto } from '../presentation/dto';
+import { LoginDto, RegisterDto } from '../api/dto';
 import { LogoutUserUseCase } from './use-cases/logout-user.usecase';
 import { VerifyEmailUseCase } from './use-cases/verify-email.usecase';
 import { ResendVerificationEmailUseCase } from './use-cases/resend-verification-email.usecase';

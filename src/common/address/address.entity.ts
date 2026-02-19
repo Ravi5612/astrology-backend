@@ -7,7 +7,7 @@ import {
   Unique,
 } from 'typeorm';
 import { ProfileClient } from '@/modules/client/profile/entities/profile-client.entity';
-import { ProfileExpert } from '../../modules/expert/profile/entities/profile-expert.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 
 export enum AddressTag {
   HOME = 'home',

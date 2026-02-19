@@ -1,0 +1,51 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ProfileExpert } from '../../infrastructure/persistence/entities/profile-expert.entity';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { ExpertGateway } from '../../api/gateways/expert.gateway';
+
+@Injectable()
+export class GetProfileUseCase {
+  private readonly logger = new Logger(GetProfileUseCase.name);
+
+  constructor(
+    @InjectRepository(ProfileExpert)
+    private readonly profileRepo: Repository<ProfileExpert>,
+    private readonly expertGateway: ExpertGateway,
+  ) {}
+
+  async execute(user: User) {
+    const profile = await this.profileRepo.findOne({
+      where: { user: { id: user.id } },
+      relations: ['user', 'addresses'],
+    });
+
+    if (!profile) return null;
+
+    const plain = { ...profile } as any;
+    plain.languages = profile.languages
+      ? profile.languages
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [];
+    plain.userId = profile.user?.id;
+    plain.isAvailable = profile.is_available;
+    plain.is_online = profile.user?.id
+      ? this.expertGateway.isExpertOnline(profile.user.id)
+      : false;
+    plain.total_likes = (profile as any).total_likes || 0;
+    plain.custom_services = profile.custom_services || [];
+
+    this.logger.log(
+      `Returning profile for user ${user.id}: ${JSON.stringify({
+        ...plain,
+        user: undefined,
+        addresses: undefined,
+      })}`,
+    );
+
+    return plain;
+  }
+}
