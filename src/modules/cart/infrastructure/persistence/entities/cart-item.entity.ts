@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Cart } from './cart.entity';
-import { Product } from '@/modules/product/entities/product.entity';
+import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
 
 @Entity('cart_items')
 export class CartItem {

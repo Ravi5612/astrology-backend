@@ -7,7 +7,7 @@ import {
     CreateDateColumn,
 } from 'typeorm';
 import { Order } from './order.entity';
-import { Product } from '@/modules/product/entities/product.entity';
+import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
 
 @Entity('order_items')
 export class OrderItem {

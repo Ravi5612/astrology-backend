@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Cart } from '../../infrastructure/persistence/entities/cart.entity';
 import { CartItem } from '../../infrastructure/persistence/entities/cart-item.entity';
 import { AddToCartDto } from '../../api/dto/create-cart.dto';
-import { Product } from '@/modules/product/entities/product.entity';
+import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 
 @Injectable()

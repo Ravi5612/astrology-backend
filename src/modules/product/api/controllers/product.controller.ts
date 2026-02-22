@@ -7,23 +7,28 @@ import {
   Patch,
   Param,
   Delete,
+  UploadedFile,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ProductService } from './product.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { JwtAuthGuard } from '../auth/api/guards/auth.guard';
-import { RolesGuard } from '../auth/api/guards/role.guard';
+import { ProductFacade } from '../../application/product.facade';
+import { CreateProductDto } from '../dto/create-product.dto';
+import { UpdateProductDto } from '../dto/update-product.dto';
+import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
+import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
-import { UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { memoryStorage } from 'multer';
 import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
 import { UploadApiResponse } from 'cloudinary';
 
-@Controller('products')
+@Controller({
+  path: 'products',
+  version: '1',
+})
 export class ProductController {
   constructor(
-    private readonly productService: ProductService,
+    private readonly productFacade: ProductFacade,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
@@ -39,10 +44,9 @@ export class ProductController {
     @Body() createProductDto: CreateProductDto,
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
-    let imageUrl = createProductDto.imageUrl; // Keep existing if sent
+    let imageUrl = createProductDto.imageUrl;
 
     if (files && files.length > 0) {
-      // Try to pick the first image file
       const file = files[0];
       try {
         const uploadedImage = (await this.cloudinaryService.uploadImage(
@@ -57,17 +61,17 @@ export class ProductController {
     }
 
     createProductDto.imageUrl = imageUrl;
-    return this.productService.create(createProductDto);
+    return this.productFacade.create(createProductDto);
   }
 
   @Get()
   findAll() {
-    return this.productService.findAll();
+    return this.productFacade.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.productService.findOne(+id);
+    return this.productFacade.findOne(+id);
   }
 
   @Patch(':id')
@@ -91,15 +95,13 @@ export class ProductController {
         updateProductDto.imageUrl = uploadedImage.secure_url;
       }
     }
-    // If no new file is uploaded, keep the old imageUrl (already in database)
-    // updateProductDto will contain other fields
-    return this.productService.update(+id, updateProductDto);
+    return this.productFacade.update(+id, updateProductDto);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   remove(@Param('id') id: string) {
-    return this.productService.remove(+id);
+    return this.productFacade.remove(+id);
   }
 }
