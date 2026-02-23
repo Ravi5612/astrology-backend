@@ -1,4 +1,4 @@
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import {
   Controller,
   Post,
@@ -7,6 +7,7 @@ import {
   UseGuards,
   Query,
   Get,
+  Res,
 } from '@nestjs/common';
 
 import { RegisterDto, LoginDto } from '../dto';
@@ -71,13 +72,23 @@ export class AuthController {
 
   @Get('refresh')
   @UseGuards(JwtAuthRefreshGuard)
-  refresh(@Req() req: Request) {
-    return this.authFacade.refreshToken(req['refreshToken']!);
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const tokens = await this.authFacade.refreshToken(req['refreshToken']!);
+    this.setCookies(res, tokens);
+    return tokens;
   }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  logout(@CurrentUser('id') id: number) {
+  logout(
+    @CurrentUser('id') id: number,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
     return this.authFacade.logout(id);
   }
 
@@ -95,5 +106,29 @@ export class AuthController {
     );
 
     return tokens;
+  }
+
+  private setCookies(
+    res: Response,
+    tokens: { accessToken: string; refreshToken: string },
+  ) {
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax' as const,
+      path: '/',
+    };
+
+    res.cookie('accessToken', tokens.accessToken, {
+      ...cookieOptions,
+      maxAge: 15 * 60 * 1000, // 15 min
+    });
+
+    res.cookie('refreshToken', tokens.refreshToken, {
+      ...cookieOptions,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
   }
 }

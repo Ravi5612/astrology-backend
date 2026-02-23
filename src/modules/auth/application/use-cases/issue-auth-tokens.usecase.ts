@@ -9,7 +9,7 @@ export class IssueAuthTokensUseCase {
   constructor(
     private readonly tokenCrypto: TokenCryptoService,
     private readonly sessionRepo: SessionRepository,
-  ) {}
+  ) { }
 
   async execute(
     user: User,
@@ -17,9 +17,16 @@ export class IssueAuthTokensUseCase {
     ua?: string,
     queryRunner?: QueryRunner,
   ) {
+    const rolesMap: Record<string, string> = {
+      client: 'user',
+      expert: 'agent',
+      admin: 'admin',
+    };
+    const primaryRole = user.roles?.[0]?.name || 'client';
+
     const accessToken = await this.tokenCrypto.createAccessToken({
-      sub: user.id,
-      roles: user.roles.map((r) => r.name),
+      userId: user.id,
+      role: rolesMap[primaryRole] || primaryRole,
     });
 
     const { raw, hash } = await this.tokenCrypto.createRefreshToken();

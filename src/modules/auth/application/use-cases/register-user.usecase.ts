@@ -19,7 +19,7 @@ export class RegisterUserUseCase {
     private readonly hasher: Argon2PasswordHasher,
     private readonly issueTokens: IssueAuthTokensUseCase,
     private readonly tokenCrypto: TokenCryptoService,
-  ) {}
+  ) { }
 
   async execute(dto: RegisterDto, ip?: string, userAgent?: string) {
     const existingUser = await this.usersFacade.findByEmail(dto.email);
@@ -58,7 +58,7 @@ export class RegisterUserUseCase {
 
   private sendEmail<T extends { user: User }>(response: T) {
     const verification_token = this.tokenCrypto.signTemporaryToken({
-      sub: response.user.id,
+      userId: response.user.id,
       email: response.user.email,
     });
 

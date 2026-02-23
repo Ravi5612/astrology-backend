@@ -10,7 +10,7 @@ export class SendMagicLinkUseCase {
     private readonly usersFacade: UsersFacade,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async execute(email: string) {
     const existingUser = await this.usersFacade.findByEmail(email);
@@ -20,7 +20,7 @@ export class SendMagicLinkUseCase {
     }
 
     const token = this.tokenCrypto.signTemporaryToken({
-      sub: existingUser.id,
+      userId: existingUser.id,
       email: existingUser.email,
     });
 
