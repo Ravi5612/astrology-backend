@@ -2,15 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
-import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AuthConfig } from '@/config/auth.config';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(
-    config: ConfigService,
-    private usersFacade: UsersFacade,
-  ) {
+  constructor(config: ConfigService) {
     const authConfig = config.get<AuthConfig>('auth');
 
     if (!authConfig) {
@@ -27,8 +23,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: any) {
-    const user = await this.usersFacade.findById(payload.sub);
-    console.log({ user });
-    return user;
+    // We return a simplified user object based on the JWT payload.
+    // This avoids a database hit on every protected request.
+    return {
+      id: payload.userId,
+      role: payload.role,
+      roles: [{ name: payload.role }], // For compatibility with RolesGuard
+    };
   }
 }

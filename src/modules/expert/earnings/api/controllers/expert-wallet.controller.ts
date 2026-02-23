@@ -19,7 +19,7 @@ import { User } from '@/modules/users/infrastructure/persistence/entities/user.e
     version: '1',
 })
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('expert')
+@Roles('agent')
 export class ExpertWalletController {
     constructor(private readonly earningsFacade: ExpertEarningsFacade) { }
 

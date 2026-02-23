@@ -6,7 +6,16 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { DEFAULT_ROLES, ROLES_KEY } from '@/common/decorators/roles.decorator';
-import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+
+/**
+ * JWT payload user shape from JwtStrategy.validate():
+ *   { id: number, role: string, roles: { name: string }[] }
+ */
+interface JwtUser {
+  id: number;
+  role?: string;
+  roles?: { name: string }[];
+}
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -22,15 +31,22 @@ export class RolesGuard implements CanActivate {
     // If no roles are required → allow access
     if (!requiredRoles || requiredRoles.length === 0) return true;
 
-    const { user } = context.switchToHttp().getRequest<{ user?: User }>();
+    const { user } = context.switchToHttp().getRequest<{ user?: JwtUser }>();
 
-    if (!user?.roles || !Array.isArray(user.roles)) {
-      throw new ForbiddenException('No roles assigned');
+    if (!user) {
+      throw new ForbiddenException('No user found in request');
     }
 
-    const hasRole = user.roles.some((role) =>
-      requiredRoles.includes(role.name),
-    );
+    const userRole = user.role;
+    const userRoles = Array.isArray(user.roles)
+      ? user.roles.map((r) => r.name)
+      : [];
+
+    const hasRole =
+      (userRole && requiredRoles.includes(userRole as DEFAULT_ROLES)) ||
+      userRoles.some((roleName) =>
+        requiredRoles.includes(roleName as DEFAULT_ROLES),
+      );
 
     if (!hasRole) {
       throw new ForbiddenException('Insufficient role');

@@ -28,7 +28,7 @@ export class CreateTodoUseCase {
     const profile = await this.getExpertProfile(userId);
     const todo = this.todoRepo.create({
       ...dto,
-      expertId: profile.id,
+      expert_id: profile.id,
     });
     return this.todoRepo.save(todo);
   }

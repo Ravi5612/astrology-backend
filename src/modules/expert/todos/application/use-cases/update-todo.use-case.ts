@@ -13,7 +13,7 @@ export class UpdateTodoUseCase {
     private readonly todoRepo: Repository<Todo>,
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
-  ) {}
+  ) { }
 
   private async getExpertProfile(userId: number) {
     const profile = await this.profileRepo.findOne({
@@ -28,7 +28,7 @@ export class UpdateTodoUseCase {
   async execute(userId: number, id: number, dto: UpdateTodoDto) {
     const profile = await this.getExpertProfile(userId);
     const todo = await this.todoRepo.findOne({
-      where: { id, expertId: profile.id },
+      where: { id, expert_id: profile.id },
     });
     if (!todo) {
       throw new TodoNotFoundError();

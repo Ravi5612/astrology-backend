@@ -16,7 +16,7 @@ export class VerifyEmailUseCase {
     private readonly usersFacade: UsersFacade,
     private readonly usedTokenService: UsedTokensService,
     private readonly tokenCrypto: TokenCryptoService,
-  ) {}
+  ) { }
 
   async execute(token: string) {
     const payload = await this.verifyTokenOrFail(token);
@@ -57,7 +57,7 @@ export class VerifyEmailUseCase {
   // 🔐 infra → application boundary
   private verifyTokenOrFail(token: string) {
     try {
-      return this.tokenCrypto.verifyJwt<{ sub: number; email: string }>(token);
+      return this.tokenCrypto.verifyJwt<{ userId: number; email: string }>(token);
     } catch {
       throw new BadRequestException('Invalid or expired token');
     }

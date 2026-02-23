@@ -39,8 +39,10 @@ export class TokenService extends BaseService<Session> {
     userAgent?: string,
     queryRunner?: QueryRunner,
   ) {
+    const rolesMap: Record<string, string> = { client: 'user', expert: 'agent', admin: 'admin' };
+    const primaryRole = user.roles?.[0]?.name || 'client';
     const accessToken = await this.jwtService.signAsync(
-      { sub: user.id, roles: user.roles.map((r) => r.name) },
+      { userId: user.id, role: rolesMap[primaryRole] || primaryRole },
       { expiresIn: this.jwtConfig?.jwtExpiresIn as any },
     );
 
@@ -92,7 +94,7 @@ export class TokenService extends BaseService<Session> {
   }
 
   async verifyToken(token: string) {
-    return this.jwtService.verifyAsync<{ sub: number; email: string }>(token, {
+    return this.jwtService.verifyAsync<{ userId: number; email: string }>(token, {
       secret: this.jwtConfig.jwtSecret,
       clockTolerance: 10,
     });
