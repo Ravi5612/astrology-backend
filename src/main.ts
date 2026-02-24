@@ -22,7 +22,8 @@ async function bootstrap() {
 
     // Authorization header is needed for Bearer token auth,
     // Cookie header is needed for cookie-based auth
-    allowedHeaders: 'Content-Type, Accept, Authorization, Cookie',
+    allowedHeaders:
+      'Content-Type, Accept, Authorization, Cookie, Cache-Control, Pragma, Expires',
 
     // Required for cookies to be sent cross-origin
     credentials: true,
