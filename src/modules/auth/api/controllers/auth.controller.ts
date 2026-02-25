@@ -27,7 +27,7 @@ import { JwtAuthRefreshGuard } from '../guards/auth-refresh.guard';
   version: '1',
 })
 export class AuthController {
-  constructor(private readonly authFacade: AuthFacade) {}
+  constructor(private readonly authFacade: AuthFacade) { }
 
   @Post('email/register')
   async register(
@@ -98,6 +98,7 @@ export class AuthController {
     return this.authFacade.resetPassword(token, dto.password);
   }
 
+  @Post('refresh')
   @Get('refresh')
   @UseGuards(JwtAuthRefreshGuard)
   async refresh(
