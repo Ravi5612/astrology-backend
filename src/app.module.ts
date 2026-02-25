@@ -21,6 +21,7 @@ import { FestivalModule } from '@/modules/festival/festival.module';
 import { MatchmakingModule } from '@/modules/matchmaking/matchmaking.module';
 import { QuotesModule } from '@/modules/quotes/quotes.module';
 import { AdminModule } from '@/modules/admin/admin.module';
+import { SupportModule } from '@/modules/support/support.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { AdminModule } from '@/modules/admin/admin.module';
     MatchmakingModule,
     QuotesModule,
     AdminModule,
+    SupportModule,
   ]
 })
 export class AppModule { }
