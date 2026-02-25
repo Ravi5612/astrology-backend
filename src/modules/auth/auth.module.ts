@@ -37,6 +37,12 @@ import { SendMagicLinkEventHandler } from './application/event-handlers/send-mag
 import { SendMagicLinkUseCase } from './application/use-cases/send-magic-link.usecase';
 import { LoginWithMagicLinkUseCase } from './application/use-cases/login-with-magic-link.usecase';
 import { ExternalModule } from '@/external/external.module';
+import {
+  AUTH_PROFILE_CREATION_STRATEGIES,
+} from './application/strategies/auth-profile-creation.strategy';
+import { ClientAuthProfileCreationStrategy } from './application/strategies/client-auth-profile-creation.strategy';
+import { ExpertAuthProfileCreationStrategy } from './application/strategies/expert-auth-profile-creation.strategy';
+import { AuthProfileCreationResolver } from './application/strategies/auth-profile-creation.resolver';
 
 @Module({
   imports: [
@@ -56,6 +62,20 @@ import { ExternalModule } from '@/external/external.module';
     JwtRefreshStrategy,
     GoogleStrategy,
     GoogleAuthGuard,
+    ClientAuthProfileCreationStrategy,
+    ExpertAuthProfileCreationStrategy,
+    AuthProfileCreationResolver,
+    {
+      provide: AUTH_PROFILE_CREATION_STRATEGIES,
+      useFactory: (
+        expert: ExpertAuthProfileCreationStrategy,
+        client: ClientAuthProfileCreationStrategy,
+      ) => [expert, client],
+      inject: [
+        ExpertAuthProfileCreationStrategy,
+        ClientAuthProfileCreationStrategy,
+      ],
+    },
 
     AuthFacade,
     // Use case -  start

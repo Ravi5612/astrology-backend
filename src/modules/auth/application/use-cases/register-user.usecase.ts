@@ -9,8 +9,7 @@ import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
-import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
-import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { AuthProfileCreationResolver } from '../strategies/auth-profile-creation.resolver';
 
 @Injectable()
 export class RegisterUserUseCase {
@@ -21,9 +20,8 @@ export class RegisterUserUseCase {
     private readonly hasher: Argon2PasswordHasher,
     private readonly issueTokens: IssueAuthTokensUseCase,
     private readonly tokenCrypto: TokenCryptoService,
-    private readonly clientProfileFacade: ClientProfileFacade,
-    private readonly expertProfileFacade: ExpertProfileFacade,
-  ) { }
+    private readonly profileCreationResolver: AuthProfileCreationResolver,
+  ) {}
 
   async execute(dto: RegisterDto, ip?: string, userAgent?: string) {
     const existingUser = await this.usersFacade.findByEmail(dto.email);
@@ -41,24 +39,13 @@ export class RegisterUserUseCase {
           ...dto,
           roles: formattedRoles,
           password: hashedPassword,
-          email_verified_at: process.env.NODE_ENV !== 'production' ? new Date() : undefined,
+          email_verified_at:
+            process.env.NODE_ENV !== 'production' ? new Date() : undefined,
         },
         queryRunner,
       );
 
-      // Auto-create profile
-      const roleNames = dto.roles;
-      if (roleNames.includes('expert')) {
-        await this.expertProfileFacade.createProfile(user, {
-          full_name: user.name || '',
-          phone_number: dto.phone,
-        } as any, queryRunner);
-      } else {
-        await this.clientProfileFacade.createProfile(user.id, {
-          full_name: user.name || '',
-          phone: dto.phone,
-        } as any, queryRunner);
-      }
+      await this.profileCreationResolver.ensureProfile(user, queryRunner);
 
       const tokens = await this.issueTokens.execute(
         user,
