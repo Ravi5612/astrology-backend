@@ -1,6 +1,6 @@
 import { Controller, Get, UseGuards, Query, Param, Patch, Body } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
-import { ProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { AdminFacade } from '../../application/admin.facade';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
@@ -13,7 +13,7 @@ export class AdminController {
   constructor(
     private readonly adminFacade: AdminFacade,
     private readonly usersFacade: UsersFacade,
-    private readonly profileFacade: ProfileFacade,
+    private readonly profileFacade: ExpertProfileFacade,
   ) { }
 
   @Get('analytics/user-growth')

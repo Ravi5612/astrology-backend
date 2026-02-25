@@ -19,7 +19,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
-import { ProfileFacade } from '../../application/profile.facade';
+import { ExpertProfileFacade } from '../../application/profile.facade';
 import {
   CreateProfileExpertDto,
   UpdateProfileExpertDto,
@@ -44,7 +44,7 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 @UseGuards(JwtAuthGuard)
 export class ProfileController {
   constructor(
-    private readonly profileFacade: ProfileFacade,
+    private readonly profileFacade: ExpertProfileFacade,
     private readonly cloudinaryService: CloudinaryService,
   ) { }
 

@@ -9,6 +9,8 @@ import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 
 @Injectable()
 export class RegisterUserUseCase {
@@ -19,6 +21,8 @@ export class RegisterUserUseCase {
     private readonly hasher: Argon2PasswordHasher,
     private readonly issueTokens: IssueAuthTokensUseCase,
     private readonly tokenCrypto: TokenCryptoService,
+    private readonly clientProfileFacade: ClientProfileFacade,
+    private readonly expertProfileFacade: ExpertProfileFacade,
   ) { }
 
   async execute(dto: RegisterDto, ip?: string, userAgent?: string) {
@@ -37,9 +41,22 @@ export class RegisterUserUseCase {
           ...dto,
           roles: formattedRoles,
           password: hashedPassword,
+          email_verified_at: process.env.NODE_ENV !== 'production' ? new Date() : undefined,
         },
         queryRunner,
       );
+
+      // Auto-create profile
+      const roleNames = dto.roles;
+      if (roleNames.includes('expert')) {
+        await this.expertProfileFacade.createProfile(user, {
+          full_name: user.name || '',
+        } as any);
+      } else {
+        await this.clientProfileFacade.createProfile(user.id, {
+          full_name: user.name || '',
+        } as any);
+      }
 
       const tokens = await this.issueTokens.execute(
         user,

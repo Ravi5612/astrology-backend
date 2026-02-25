@@ -10,7 +10,7 @@ import { ExpertGateway } from './api/gateways/expert.gateway';
 import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
 import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
 
-import { ProfileFacade } from './application/profile.facade';
+import { ExpertProfileFacade } from './application/profile.facade';
 import { GetProfileUseCase } from './application/use-cases/get-profile.usecase';
 import { CreateProfileUseCase } from './application/use-cases/create-profile.usecase';
 import { UpdateProfileUseCase } from './application/use-cases/update-profile.usecase';
@@ -32,7 +32,7 @@ import { ExpertStatusChangedHandler } from './application/event-handlers/expert-
   controllers: [ProfileController],
   providers: [
     ExpertGateway,
-    ProfileFacade,
+    ExpertProfileFacade,
     GetProfileUseCase,
     CreateProfileUseCase,
     UpdateProfileUseCase,
@@ -45,6 +45,6 @@ import { ExpertStatusChangedHandler } from './application/event-handlers/expert-
     KycStatusChangedHandler,
     ExpertStatusChangedHandler,
   ],
-  exports: [ProfileFacade, ExpertGateway, GetExpertByIdUseCase, TypeOrmModule],
+  exports: [ExpertProfileFacade, ExpertGateway, GetExpertByIdUseCase, TypeOrmModule],
 })
 export class ProfileModule { }

@@ -56,6 +56,7 @@ export class OAuthService extends BaseService<OAuthAccount> {
     );
 
     user.markEmailAsVerified();
+    await this.usersFacade.update(user.id, { email_verified_at: user.email_verified_at }, queryRunner);
 
     await this.linkAccount({ ...dto, user }, queryRunner);
     return user;

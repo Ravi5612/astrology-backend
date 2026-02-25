@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { AuthController } from './api/controllers/auth.controller';
 import { UsersModule } from '@/modules/users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
+import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
 import { Session } from './infrastructure/persistence/entities/session.entity';
 import { OAuthAccount } from './infrastructure/persistence/entities/oauth-accounts.entity';
 import { JwtStrategy } from './api/strategies/jwt.strategy';
@@ -41,6 +43,8 @@ import { ExternalModule } from '@/external/external.module';
     TypeOrmModule.forFeature([Session, OAuthAccount, UsedTokens]),
     DatabaseModule,
     ExternalModule,
+    ClientProfileModule,
+    ExpertProfileModule,
   ],
   providers: [
     // AuthService,
@@ -78,4 +82,4 @@ import { ExternalModule } from '@/external/external.module';
   controllers: [AuthController, GoogleAuthController],
   // exports: [TokenService, OAuthService],
 })
-export class AuthModule {}
+export class AuthModule { }

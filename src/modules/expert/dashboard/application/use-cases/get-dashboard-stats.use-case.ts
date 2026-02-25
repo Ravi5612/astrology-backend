@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ChatFacade } from '@/modules/chat/application/chat.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { ProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { DashboardPolicy } from '../../domain/policies/dashboard.policy';
 import { ChatSessionStatus } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
 
@@ -10,8 +10,8 @@ export class GetDashboardStatsUseCase {
   constructor(
     private readonly chatFacade: ChatFacade,
     private readonly walletFacade: WalletFacade,
-    private readonly profileFacade: ProfileFacade,
-  ) {}
+    private readonly profileFacade: ExpertProfileFacade,
+  ) { }
 
   async execute(userId: number, type: 'today' | 'total' = 'today') {
     const expertProfile = await this.profileFacade.getExpertByUserId(userId);

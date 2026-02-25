@@ -7,14 +7,14 @@ import { UploadDocumentUseCase } from './use-cases/upload-document.usecase';
 import { CreateProfileClientDto, UpdateProfileClientDto } from '../infrastructure/persistence/dto/profile-client.dto';
 
 @Injectable()
-export class ProfileFacade {
+export class ClientProfileFacade {
   constructor(
     private readonly getProfileUseCase: GetProfileUseCase,
     private readonly createProfileUseCase: CreateProfileUseCase,
     private readonly updateProfileUseCase: UpdateProfileUseCase,
     private readonly updateProfilePictureUseCase: UpdateProfilePictureUseCase,
     private readonly uploadDocumentUseCase: UploadDocumentUseCase,
-  ) {}
+  ) { }
 
   async getProfile(userId: number) {
     return this.getProfileUseCase.execute(userId);

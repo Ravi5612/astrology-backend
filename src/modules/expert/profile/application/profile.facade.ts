@@ -13,7 +13,7 @@ import { GetTopRatedExpertsUseCase } from './use-cases/get-top-rated-experts.use
 import { GetExpertByUserIdUseCase } from './use-cases/get-expert-by-user-id.usecase';
 
 @Injectable()
-export class ProfileFacade {
+export class ExpertProfileFacade {
   constructor(
     private readonly getProfileUseCase: GetProfileUseCase,
     private readonly createProfileUseCase: CreateProfileUseCase,
@@ -24,7 +24,7 @@ export class ProfileFacade {
     private readonly updateKycStatusUseCase: UpdateKycStatusUseCase,
     private readonly getTopRatedExpertsUseCase: GetTopRatedExpertsUseCase,
     private readonly getExpertByUserIdUseCase: GetExpertByUserIdUseCase,
-  ) {}
+  ) { }
 
   async getProfile(user: User) {
     return this.getProfileUseCase.execute(user);

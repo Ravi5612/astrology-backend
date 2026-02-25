@@ -3,6 +3,8 @@ import { Profile } from 'passport-google-oauth20';
 import { DatabaseService } from '@/core/database/database.service';
 import { OAuthService } from '../../infrastructure/persistence/services/oauth.service';
 import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
+import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 
 @Injectable()
 export class LoginWithGoogleUseCase {
@@ -10,7 +12,9 @@ export class LoginWithGoogleUseCase {
     private readonly db: DatabaseService,
     private readonly oauthService: OAuthService,
     private readonly issueTokens: IssueAuthTokensUseCase,
-  ) {}
+    private readonly clientProfileFacade: ClientProfileFacade,
+    private readonly expertProfileFacade: ExpertProfileFacade,
+  ) { }
 
   async execute(input: {
     providerId: string;
@@ -33,6 +37,25 @@ export class LoginWithGoogleUseCase {
         },
         qr,
       );
+
+      // Auto-create profile if it doesn't exist
+      const roles = user.roles?.map((r) => r.name) || [];
+      if (roles.includes('expert')) {
+        const profile = await this.expertProfileFacade.getExpertByUserId(user.id);
+        if (!profile) {
+          await this.expertProfileFacade.createProfile(user, {
+            full_name: user.name || '',
+          } as any);
+        }
+      } else {
+        // Default to client profile
+        const profile = await this.clientProfileFacade.getProfile(user.id);
+        if (!profile) {
+          await this.clientProfileFacade.createProfile(user.id, {
+            full_name: user.name || '',
+          } as any);
+        }
+      }
 
       const tokens = await this.issueTokens.execute(
         user,

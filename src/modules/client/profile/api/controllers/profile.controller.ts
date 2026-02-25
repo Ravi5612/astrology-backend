@@ -12,7 +12,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
-import { ProfileFacade } from '../../application/profile.facade';
+import { ClientProfileFacade } from '../../application/profile.facade';
 import {
   CreateProfileClientDto,
   UpdateProfileClientDto,
@@ -21,7 +21,7 @@ import {
 @Controller('client/profile')
 @UseGuards(JwtAuthGuard)
 export class ProfileController {
-  constructor(private readonly profileFacade: ProfileFacade) {}
+  constructor(private readonly profileFacade: ClientProfileFacade) { }
 
   @Get()
   async getProfile(@CurrentUser() user: User) {
