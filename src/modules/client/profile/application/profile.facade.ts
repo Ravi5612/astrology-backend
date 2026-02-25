@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { QueryRunner } from 'typeorm';
 import { GetProfileUseCase } from './use-cases/get-profile.usecase';
 import { CreateProfileUseCase } from './use-cases/create-profile.usecase';
 import { UpdateProfileUseCase } from './use-cases/update-profile.usecase';
@@ -16,12 +17,12 @@ export class ClientProfileFacade {
     private readonly uploadDocumentUseCase: UploadDocumentUseCase,
   ) { }
 
-  async getProfile(userId: number) {
-    return this.getProfileUseCase.execute(userId);
+  async getProfile(userId: number, queryRunner?: QueryRunner) {
+    return this.getProfileUseCase.execute(userId, queryRunner);
   }
 
-  async createProfile(userId: number, dto: CreateProfileClientDto) {
-    return this.createProfileUseCase.execute(userId, dto);
+  async createProfile(userId: number, dto: CreateProfileClientDto, queryRunner?: QueryRunner) {
+    return this.createProfileUseCase.execute(userId, dto, queryRunner);
   }
 
   async updateProfile(userId: number, dto: UpdateProfileClientDto) {

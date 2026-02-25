@@ -7,10 +7,10 @@ import { UserRepository } from '../../infrastructure/persistence/repositories/us
 export class UpdateUserUseCase {
   constructor(
     private readonly userRepository: UserRepository,
-  ) {}
+  ) { }
 
   async execute(id: number, data: Partial<User>, queryRunner?: QueryRunner): Promise<User> {
-    const user = await this.userRepository.findById(id);
+    const user = await this.userRepository.findById(id, true, queryRunner);
     if (!user) throw new NotFoundException('User not found');
     return this.userRepository.update(id, data, queryRunner);
   }

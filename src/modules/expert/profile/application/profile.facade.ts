@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { QueryRunner } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { CreateProfileExpertDto, UpdateProfileExpertDto } from '../api/dto/profile-expert.dto';
 import { QueryExpertDto } from '../api/dto/query-expert.dto';
@@ -26,12 +27,12 @@ export class ExpertProfileFacade {
     private readonly getExpertByUserIdUseCase: GetExpertByUserIdUseCase,
   ) { }
 
-  async getProfile(user: User) {
-    return this.getProfileUseCase.execute(user);
+  async getProfile(user: User, queryRunner?: QueryRunner) {
+    return this.getProfileUseCase.execute(user, queryRunner);
   }
 
-  async createProfile(user: User, dto: CreateProfileExpertDto) {
-    return this.createProfileUseCase.execute(user, dto);
+  async createProfile(user: User, dto: CreateProfileExpertDto, queryRunner?: QueryRunner) {
+    return this.createProfileUseCase.execute(user, dto, queryRunner);
   }
 
   async updateProfile(user: User, dto: UpdateProfileExpertDto) {
@@ -58,7 +59,7 @@ export class ExpertProfileFacade {
     return this.getTopRatedExpertsUseCase.execute(limit);
   }
 
-  async getExpertByUserId(userId: number) {
-    return this.getExpertByUserIdUseCase.execute(userId);
+  async getExpertByUserId(userId: number, queryRunner?: QueryRunner) {
+    return this.getExpertByUserIdUseCase.execute(userId, queryRunner);
   }
 }

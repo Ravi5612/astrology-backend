@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, QueryRunner } from 'typeorm';
 import { ProfileExpert } from '../../infrastructure/persistence/entities/profile-expert.entity';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { ExpertGateway } from '../../api/gateways/expert.gateway';
@@ -13,10 +13,11 @@ export class GetProfileUseCase {
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
     private readonly expertGateway: ExpertGateway,
-  ) {}
+  ) { }
 
-  async execute(user: User) {
-    const profile = await this.profileRepo.findOne({
+  async execute(user: User, queryRunner?: QueryRunner) {
+    const repo = queryRunner ? queryRunner.manager.getRepository(ProfileExpert) : this.profileRepo;
+    const profile = await repo.findOne({
       where: { user: { id: user.id } },
       relations: ['user', 'addresses'],
     });
@@ -26,9 +27,9 @@ export class GetProfileUseCase {
     const plain = { ...profile } as any;
     plain.languages = profile.languages
       ? profile.languages
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean)
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
       : [];
     plain.userId = profile.user?.id;
     plain.isAvailable = profile.is_available;

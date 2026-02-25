@@ -44,7 +44,7 @@ export class OAuthService extends BaseService<OAuthAccount> {
 
     if (oauth?.user) return oauth.user;
 
-    let user = dto.email ? await this.usersFacade.findByEmail(dto.email) : null;
+    let user = dto.email ? await this.usersFacade.findByEmail(dto.email, queryRunner) : null;
 
     user ??= await this.usersFacade.create(
       {

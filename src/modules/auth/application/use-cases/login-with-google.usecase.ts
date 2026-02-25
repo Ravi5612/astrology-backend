@@ -41,19 +41,19 @@ export class LoginWithGoogleUseCase {
       // Auto-create profile if it doesn't exist
       const roles = user.roles?.map((r) => r.name) || [];
       if (roles.includes('expert')) {
-        const profile = await this.expertProfileFacade.getExpertByUserId(user.id);
+        const profile = await this.expertProfileFacade.getExpertByUserId(user.id, qr);
         if (!profile) {
           await this.expertProfileFacade.createProfile(user, {
             full_name: user.name || '',
-          } as any);
+          } as any, qr);
         }
       } else {
         // Default to client profile
-        const profile = await this.clientProfileFacade.getProfile(user.id);
+        const profile = await this.clientProfileFacade.getProfile(user.id, qr);
         if (!profile) {
           await this.clientProfileFacade.createProfile(user.id, {
             full_name: user.name || '',
-          } as any);
+          } as any, qr);
         }
       }
 

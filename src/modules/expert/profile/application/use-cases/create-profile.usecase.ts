@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, QueryRunner } from 'typeorm';
 import { ProfileExpert } from '../../infrastructure/persistence/entities/profile-expert.entity';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { CreateProfileExpertDto } from '../../api/dto/profile-expert.dto';
@@ -22,9 +22,12 @@ export class CreateProfileUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  async execute(user: User, dto: CreateProfileExpertDto) {
+  async execute(user: User, dto: CreateProfileExpertDto, queryRunner?: QueryRunner) {
+    const profileRepo = queryRunner ? queryRunner.manager.getRepository(ProfileExpert) : this.profileRepo;
+    const addressRepo = queryRunner ? queryRunner.manager.getRepository(Address) : this.addressRepo;
+
     try {
-      const exists = await this.profileRepo.findOne({
+      const exists = await profileRepo.findOne({
         where: { user: { id: user.id } },
       });
 
@@ -76,8 +79,8 @@ export class CreateProfileUseCase {
           ) ?? [],
       };
 
-      const profile = this.profileRepo.create(profileData);
-      const savedProfile = await this.profileRepo.save(profile);
+      const profile = profileRepo.create(profileData);
+      const savedProfile = await profileRepo.save(profile);
 
       // Emit events
       this.eventEmitter.emit(
@@ -92,7 +95,7 @@ export class CreateProfileUseCase {
         );
       }
 
-      return this.getProfileUseCase.execute(user);
+      return this.getProfileUseCase.execute(user, queryRunner);
     } catch (error) {
       this.logger.error(`Failed to create profile for user: ${user.id}`, error.stack);
       throw error;
