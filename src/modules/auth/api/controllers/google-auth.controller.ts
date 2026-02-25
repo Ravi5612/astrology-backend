@@ -1,8 +1,16 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
 import { GoogleAuthGuard } from '../guards/google-auth.guard';
+import { ConfigService } from '@nestjs/config';
+import 'dotenv/config';
 
 @Controller({
   path: 'auth/google',
@@ -51,40 +59,56 @@ export class GoogleAuthController {
 
   @Get('callback')
   @UseGuards(AuthGuard('google'))
-  async googleCallback(
-    @Req() req: Request,
-    @Res() res: Response,
-  ) {
+  async googleCallback(@Req() req: Request, @Res() res: Response) {
+    const rawState = req?.query?.state;
+
+    if (typeof rawState !== 'string') {
+      throw new BadRequestException('Missing Google state');
+    }
+
+    let state: { redirectUrl?: string };
+
+    try {
+      state = JSON.parse(decodeURIComponent(rawState));
+    } catch {
+      throw new BadRequestException('Invalid Google state');
+    }
+
     const authData = req.user as any;
     const frontendUrl = this.resolveFrontendUrl(req, authData);
 
-    if (authData && authData.accessToken) {
-      const isProduction = process.env.NODE_ENV === 'production';
+    // Prioritize state.redirectUrl if present, else fallback to resolved frontendUrl
+    state.redirectUrl = state.redirectUrl || frontendUrl;
 
-      const cookieOptions = {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: 'lax' as const,
-        path: '/',
-      };
+    const redirectUrl = new URL(state.redirectUrl);
 
-      // Set HttpOnly cookies
-      res.cookie('accessToken', authData.accessToken, {
-        ...cookieOptions,
-        maxAge: 15 * 60 * 1000,
-      });
+    const tokens = req.user as
+      | { accessToken?: string; refreshToken?: string }
+      | undefined;
 
-      res.cookie('refreshToken', authData.refreshToken, {
-        ...cookieOptions,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
-
-      // Redirect to frontend with tokens in URL (for frontend middleware to pick up)
-      const redirectUrl = `${frontendUrl}?accessToken=${authData.accessToken}&refreshToken=${authData.refreshToken}`;
-      return res.redirect(redirectUrl);
+    if (!tokens?.accessToken || !tokens?.refreshToken) {
+      return res.redirect(`${state.redirectUrl}?error=google_auth_failed`);
     }
 
-    // If no tokens, redirect to frontend with error
-    return res.redirect(`${frontendUrl}?error=google_auth_failed`);
+    this.setCookies(tokens, res);
+
+    return res.redirect(redirectUrl.toString());
+  }
+
+  private setCookies(
+    tokens: { accessToken?: string; refreshToken?: string },
+    res: Response,
+  ) {
+    res.cookie('accessToken', tokens.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    });
+
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
   }
 }
