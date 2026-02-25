@@ -9,6 +9,7 @@ import { ProfileController } from './api/controllers/profile.controller';
 import { ExpertGateway } from './api/gateways/expert.gateway';
 import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
 import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
+import { ChatModule } from '@/modules/chat/chat.module';
 
 import { ExpertProfileFacade } from './application/profile.facade';
 import { GetProfileUseCase } from './application/use-cases/get-profile.usecase';
@@ -28,6 +29,7 @@ import { ExpertStatusChangedHandler } from './application/event-handlers/expert-
     TypeOrmModule.forFeature([ProfileExpert, User, Address]),
     NodemailerModule,
     CloudinaryModule,
+    ChatModule,
   ],
   controllers: [ProfileController],
   providers: [

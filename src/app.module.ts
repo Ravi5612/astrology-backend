@@ -22,6 +22,7 @@ import { MatchmakingModule } from '@/modules/matchmaking/matchmaking.module';
 import { QuotesModule } from '@/modules/quotes/quotes.module';
 import { AdminModule } from '@/modules/admin/admin.module';
 import { SupportModule } from '@/modules/support/support.module';
+import { CallModule } from '@/modules/call/call.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { SupportModule } from '@/modules/support/support.module';
     QuotesModule,
     AdminModule,
     SupportModule,
+    CallModule,
   ]
 })
 export class AppModule { }

@@ -56,13 +56,34 @@ export class UpdateProfileUseCase {
     if (dto.bio !== undefined) profile.bio = dto.bio;
     if (dto.experience_in_years !== undefined) profile.experience_in_years = dto.experience_in_years;
 
-    if (dto.price !== undefined) profile.price = dto.price;
-    if (dto.chat_price !== undefined) profile.chat_price = dto.chat_price;
-    if (dto.call_price !== undefined) profile.call_price = dto.call_price;
-    if (dto.video_call_price !== undefined) profile.video_call_price = dto.video_call_price;
-    if (dto.report_price !== undefined) profile.report_price = dto.report_price;
-    if (dto.horoscope_price !== undefined) profile.horoscope_price = dto.horoscope_price;
-    if (dto.custom_services !== undefined) profile.custom_services = dto.custom_services;
+    if (dto.price !== undefined) {
+      this.logger.log(`Updating price to ${dto.price}`);
+      profile.price = dto.price;
+    }
+    if (dto.chat_price !== undefined) {
+      this.logger.log(`Updating chat_price to ${dto.chat_price}`);
+      profile.chat_price = dto.chat_price;
+    }
+    if (dto.call_price !== undefined) {
+      this.logger.log(`Updating call_price to ${dto.call_price}`);
+      profile.call_price = dto.call_price;
+    }
+    if (dto.video_call_price !== undefined) {
+      this.logger.log(`Updating video_call_price to ${dto.video_call_price}`);
+      profile.video_call_price = dto.video_call_price;
+    }
+    if (dto.report_price !== undefined) {
+      this.logger.log(`Updating report_price to ${dto.report_price}`);
+      profile.report_price = dto.report_price;
+    }
+    if (dto.horoscope_price !== undefined) {
+      this.logger.log(`Updating horoscope_price to ${dto.horoscope_price}`);
+      profile.horoscope_price = dto.horoscope_price;
+    }
+    if (dto.custom_services !== undefined) {
+      this.logger.log(`Updating custom_services: ${JSON.stringify(dto.custom_services)}`);
+      profile.custom_services = dto.custom_services;
+    }
     if (dto.bank_details !== undefined) profile.bank_details = dto.bank_details;
 
     if (dto.documents !== undefined) profile.documents = dto.documents;

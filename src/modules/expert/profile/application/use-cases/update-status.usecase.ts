@@ -7,6 +7,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfilePolicy } from '../../domain/policies/profile.policy';
 import { ExpertStatusChangedEvent } from '../../domain/events/profile-events';
 import { ActiveSessionOfflineError } from '../../domain/errors/active-session-offline.error';
+import { ChatFacade } from '@/modules/chat/application/chat.facade';
+import { ChatSessionStatus } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
 
 @Injectable()
 export class UpdateStatusUseCase {
@@ -16,7 +18,8 @@ export class UpdateStatusUseCase {
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+    private readonly chatFacade: ChatFacade,
+  ) { }
 
   async execute(user: User, isAvailable: boolean) {
     const profile = await this.profileRepo.findOne({
@@ -25,11 +28,16 @@ export class UpdateStatusUseCase {
 
     ProfilePolicy.ensureProfileExists(profile);
 
-    // Business Logic: Prevent going offline if there are active sessions (logic from comments)
+    // Business Logic: Prevent going offline if there are active sessions
     if (isAvailable === false) {
-      // Note: In a full DDD implementation, we might check an ActiveSessionsService or similar
-      // For now, we keep it simple or implement as needed.
-      throw new ActiveSessionOfflineError();
+      const activeSessionsCount = await this.chatFacade.getExpertSessionCount(profile.id, {
+        status: [ChatSessionStatus.ACTIVE, ChatSessionStatus.PENDING]
+      });
+
+      if (activeSessionsCount > 0) {
+        this.logger.warn(`Expert ${user.email} tried to go offline with ${activeSessionsCount} active sessions.`);
+        throw new ActiveSessionOfflineError();
+      }
     }
 
     profile.is_available = isAvailable;

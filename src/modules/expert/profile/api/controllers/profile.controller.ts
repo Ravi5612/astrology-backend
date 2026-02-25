@@ -153,7 +153,7 @@ export class ProfileController {
 
   @Post('upload-file')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('agent')
+  @Roles('expert')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,

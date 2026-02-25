@@ -28,7 +28,7 @@ export class UserRepository extends BaseService<User> {
   async findByEmail(email: string, queryRunner?: QueryRunner): Promise<User | null> {
     return this.getRepo(queryRunner).findOne({
       where: { email },
-      relations: ['roles'],
+      relations: ['roles', 'profile_client', 'profile_expert'],
     });
   }
 
@@ -48,6 +48,8 @@ export class UserRepository extends BaseService<User> {
         roles: true,
         oauth_accounts: all,
         sessions: all,
+        profile_client: true,
+        profile_expert: true,
       },
     });
   }

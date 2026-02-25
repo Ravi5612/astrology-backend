@@ -25,18 +25,35 @@ export class UpdateKycStatusUseCase {
       relations: ['profile_expert'],
     });
 
-    if (!user || !user.profile_expert) {
+    // Map 'active' (from UI) to 'approved' (for DB)
+    const targetStatus = status === 'active' ? 'approved' : status;
+
+    if (!user || (!user.profile_expert && targetStatus !== 'approved')) {
       ProfilePolicy.ensureProfileExists(null);
     }
 
-    const profile = user!.profile_expert!;
-    ProfilePolicy.ensureCanVerifyKyc(profile);
+    let profile = user!.profile_expert;
+
+    // If profile is missing and we are approving, create it
+    if (!profile && targetStatus === 'approved') {
+      this.logger.log(`Creating missing profile for expert ${expertId} during approval`);
+      profile = this.profileRepo.create({
+        user: { id: user!.id } as any,
+        kyc_status: 'approved',
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+    }
+
+    if (!profile) {
+      throw new Error(`Profile not found and cannot be created for status ${status}`);
+    }
 
     // If rejected, do NOT set status to rejected in DB. Reset to pending.
-    if (status === 'rejected') {
+    if (targetStatus === 'rejected') {
       profile.kyc_status = 'pending';
     } else {
-      profile.kyc_status = status;
+      profile.kyc_status = targetStatus;
     }
 
     profile.rejection_reason = reason || null;

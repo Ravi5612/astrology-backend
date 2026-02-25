@@ -15,10 +15,6 @@ export class GetExpertDetailUseCase {
       throw new NotFoundException('User not found');
     }
 
-    if (!user.profile_expert) {
-      throw new NotFoundException('Expert profile not found for this user');
-    }
-
     const profile = user.profile_expert;
     const totalEarnings = await this.walletFacade.getTotalEarnings(user.id);
 
@@ -27,20 +23,20 @@ export class GetExpertDetailUseCase {
       name: user.name,
       email: user.email,
       avatar: user.avatar,
-      gender: profile.gender,
-      dob: profile.date_of_birth ? new Date(profile.date_of_birth).toISOString() : null,
-      phone: profile.phone_number || user.profile_client?.phone || '',
-      languages: profile.languages ? profile.languages.split(',') : [],
-      bio: profile.bio || '',
-      experience: profile.experience_in_years,
-      specialization: profile.specialization || '',
-      rating: profile.rating,
-      consultationCount: profile.consultation_count,
+      gender: profile?.gender || null,
+      dob: profile?.date_of_birth ? new Date(profile.date_of_birth).toISOString() : null,
+      phone: profile?.phone_number || user.profile_client?.phone || '',
+      languages: profile?.languages ? profile.languages.split(',') : [],
+      bio: profile?.bio || '',
+      experience: profile?.experience_in_years || 0,
+      specialization: profile?.specialization || '',
+      rating: profile?.rating || 0,
+      consultationCount: profile?.consultation_count || 0,
       totalEarnings: totalEarnings,
-      intro_video_url: profile.video || (profile.videos && profile.videos.length > 0 ? profile.videos[0] : ''),
-      gallery: profile.gallery || [],
-      documents: profile.documents || [],
-      addresses: profile.addresses?.map(addr => ({
+      intro_video_url: profile?.video || (profile?.videos && profile.videos.length > 0 ? profile.videos[0] : ''),
+      gallery: profile?.gallery || [],
+      documents: profile?.documents || [],
+      addresses: profile?.addresses?.map(addr => ({
         houseNo: addr.house_no || '',
         district: addr.district || '',
         city: addr.city || '',
@@ -49,8 +45,8 @@ export class GetExpertDetailUseCase {
         pincode: addr.pincode || addr.zip_code || ''
       })) || [],
       kyc_details: {
-        status: profile.kyc_status,
-        reason: profile.rejection_reason,
+        status: profile?.kyc_status || 'pending',
+        reason: profile?.rejection_reason || null,
       },
     };
   }

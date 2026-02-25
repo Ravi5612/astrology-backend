@@ -19,7 +19,7 @@ export class IssueAuthTokensUseCase {
   ) {
     const rolesMap: Record<string, string> = {
       client: 'user',
-      expert: 'agent',
+      expert: 'expert',
       admin: 'admin',
     };
     const primaryRole = user.roles?.[0]?.name || 'client';
