@@ -37,7 +37,7 @@ export class GoogleAuthController {
       (authData?.redirect_uri as string | undefined) ||
       (req?.query?.redirect_uri as string | undefined);
 
-    if (!candidate) {
+    if (!candidate || candidate === 'undefined' || candidate.includes('/undefined')) {
       return fallbackUrl;
     }
 
@@ -94,8 +94,20 @@ export class GoogleAuthController {
     // Prioritize redirectUri passed from strategy (which originally came from state/query)
     const finalRedirectBase = authData.redirectUri || state.redirectUrl || state.redirect_uri;
 
-    if (finalRedirectBase) {
-      frontendUrl = finalRedirectBase;
+    if (finalRedirectBase && finalRedirectBase !== 'undefined' && !finalRedirectBase.includes('/undefined')) {
+      // Validate that finalRedirectBase is actually an absolute URL
+      try {
+        if (finalRedirectBase.startsWith('http')) {
+          frontendUrl = finalRedirectBase;
+        } else {
+          // If it's relative, join it with the resolved frontend base
+          const baseMatch = frontendUrl.replace(/\/+$/, '');
+          const relativePath = finalRedirectBase.startsWith('/') ? finalRedirectBase : `/${finalRedirectBase}`;
+          frontendUrl = `${baseMatch}${relativePath}`;
+        }
+      } catch {
+        // Fallback already set in frontendUrl
+      }
     } else {
       // Role-based fallback only if no redirect URI was provided at all
       const roles = authData.user?.roles || [];
