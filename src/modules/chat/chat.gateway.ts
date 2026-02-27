@@ -8,7 +8,7 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger } from '@nestjs/common';
+import { Logger, Inject, forwardRef } from '@nestjs/common';
 import { ChatFacade } from './application/chat.facade';
 import { MessageType } from './infrastructure/persistence/entities/chat-message.entity';
 import { ChatSessionStatus } from './infrastructure/persistence/entities/chat-session.entity';
@@ -29,6 +29,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private expertSockets = new Map<number, string>(); // expertId -> socketId
 
   constructor(
+    @Inject(forwardRef(() => ChatFacade))
     private readonly chatFacade: ChatFacade,
     private readonly walletFacade: WalletFacade,
   ) { }
@@ -350,5 +351,29 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     payload: { sessionId: number; senderName: string; isTyping: boolean },
   ) {
     client.to(`room_${payload.sessionId}`).emit('typing_status', payload);
+  }
+
+  @SubscribeMessage('admin_terminate_session')
+  async handleAdminTerminateSession(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    payload: {
+      sessionId: number;
+      adminId: number;
+      userMessage?: string;
+      expertMessage?: string;
+    },
+  ) {
+    try {
+      const session = await this.chatFacade.adminTerminateSession(
+        payload.sessionId,
+        payload.adminId,
+        payload.userMessage,
+        payload.expertMessage,
+      );
+      return { status: 'success', session };
+    } catch (error) {
+      return { status: 'error', message: error.message };
+    }
   }
 }

@@ -52,6 +52,18 @@ export class ChatSession {
   })
   status: ChatSessionStatus;
 
+  @Column({ type: 'text', nullable: true, name: 'terminated_by' })
+  terminated_by: string | null;
+
+  @Column({ type: 'text', default: 'chat', name: 'session_type' })
+  session_type: string;
+
+  @Column({ type: 'boolean', default: false, name: 'is_recording' })
+  is_recording: boolean;
+
+  @Column({ type: 'text', default: 'excellent', name: 'connection_quality' })
+  connection_quality: string;
+
   @Column({ type: 'boolean', default: false, name: 'is_free' })
   is_free: boolean;
 

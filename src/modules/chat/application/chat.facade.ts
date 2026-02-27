@@ -12,6 +12,8 @@ import { FindClientSessionsUseCase } from './use-cases/find-client-sessions.use-
 import { FindActiveClientSessionUseCase } from './use-cases/find-active-client-session.use-case';
 import { GetTotalSessionsCountUseCase } from './use-cases/get-total-sessions-count.use-case';
 import { CountExpertSessionsUseCase } from './use-cases/count-expert-sessions.use-case';
+import { FindAllSessionsUseCase } from './use-cases/find-all-sessions.use-case';
+import { AdminTerminateSessionUseCase } from './use-cases/admin-terminate-session.use-case';
 import { MessageType } from '../infrastructure/persistence/entities/chat-message.entity';
 import { ChatSessionStatus } from '../infrastructure/persistence/entities/chat-session.entity';
 
@@ -31,6 +33,8 @@ export class ChatFacade {
         private readonly findActiveClientSessionUseCase: FindActiveClientSessionUseCase,
         private readonly getTotalSessionsCountUseCase: GetTotalSessionsCountUseCase,
         private readonly countExpertSessionsUseCase: CountExpertSessionsUseCase,
+        private readonly findAllSessionsUseCase: FindAllSessionsUseCase,
+        private readonly adminTerminateSessionUseCase: AdminTerminateSessionUseCase,
     ) { }
 
     async initiateChat(userId: number, expertId: number) {
@@ -89,5 +93,13 @@ export class ChatFacade {
 
     async getExpertSessionCount(expertId: number, options: { status?: ChatSessionStatus | ChatSessionStatus[], startDate?: Date } = {}) {
         return this.countExpertSessionsUseCase.execute(expertId, options);
+    }
+
+    async findAllSessions(filter?: string) {
+        return this.findAllSessionsUseCase.execute(filter);
+    }
+
+    async adminTerminateSession(sessionId: number, adminId: number, userMessage?: string, expertMessage?: string) {
+        return this.adminTerminateSessionUseCase.execute(sessionId, adminId, userMessage, expertMessage);
     }
 }

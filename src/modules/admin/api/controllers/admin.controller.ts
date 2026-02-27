@@ -1,12 +1,18 @@
-import { Controller, Get, UseGuards, Query, Param, Patch, Body } from '@nestjs/common';
+import { Controller, Get, UseGuards, Query, Param, Patch, Body, Post, ParseIntPipe } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { AdminFacade } from '../../application/admin.facade';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
+import { ChatFacade } from '@/modules/chat/application/chat.facade';
+import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 
-@Controller('admin')
+@Controller({
+  path: 'admin',
+  version: '1',
+})
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin')
 export class AdminController {
@@ -14,6 +20,7 @@ export class AdminController {
     private readonly adminFacade: AdminFacade,
     private readonly usersFacade: UsersFacade,
     private readonly profileFacade: ExpertProfileFacade,
+    private readonly chatFacade: ChatFacade,
   ) { }
 
   @Get('analytics/user-growth')
@@ -73,5 +80,24 @@ export class AdminController {
     @Body() body: { isBlocked: boolean },
   ) {
     return this.usersFacade.update(id, { is_blocked: body.isBlocked });
+  }
+
+  @Get('live-sessions')
+  async getLiveSessions(@Query('type') type?: string) {
+    return this.adminFacade.getLiveSessions(type);
+  }
+
+  @Get('live-sessions/:id/history')
+  async getChatHistory(@Param('id', ParseIntPipe) id: number) {
+    return this.chatFacade.getHistory(id);
+  }
+
+  @Post('live-sessions/:id/terminate')
+  async terminateSession(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() admin: User,
+    @Body() body: { userMessage?: string; expertMessage?: string },
+  ) {
+    return this.adminFacade.terminateSession(id, admin.id, body.userMessage, body.expertMessage);
   }
 }

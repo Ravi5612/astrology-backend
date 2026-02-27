@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { GetAdminDashboardStatsUseCase } from './use-cases/get-admin-dashboard-stats.use-case';
 import { GetAdminUserGrowthStatsUseCase } from './use-cases/get-admin-user-growth-stats.use-case';
 import { GetExpertDetailUseCase } from './use-cases/get-expert-detail.use-case';
+import { ChatFacade } from '@/modules/chat/application/chat.facade';
 
 @Injectable()
 export class AdminFacade {
@@ -9,7 +10,8 @@ export class AdminFacade {
     private readonly getDashboardStatsUseCase: GetAdminDashboardStatsUseCase,
     private readonly getUserGrowthStatsUseCase: GetAdminUserGrowthStatsUseCase,
     private readonly getExpertDetailUseCase: GetExpertDetailUseCase,
-  ) {}
+    private readonly chatFacade: ChatFacade,
+  ) { }
 
   async getDashboardStats() {
     return this.getDashboardStatsUseCase.execute();
@@ -21,5 +23,13 @@ export class AdminFacade {
 
   async getExpertDetail(id: number) {
     return this.getExpertDetailUseCase.execute(id);
+  }
+
+  async getLiveSessions(filter?: string) {
+    return this.chatFacade.findAllSessions(filter);
+  }
+
+  async terminateSession(sessionId: number, adminId: number, userMessage?: string, expertMessage?: string) {
+    return this.chatFacade.adminTerminateSession(sessionId, adminId, userMessage, expertMessage);
   }
 }
