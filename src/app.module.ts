@@ -23,6 +23,7 @@ import { QuotesModule } from '@/modules/quotes/quotes.module';
 import { AdminModule } from '@/modules/admin/admin.module';
 import { SupportModule } from '@/modules/support/support.module';
 import { CallModule } from '@/modules/call/call.module';
+import { LiveDarshanModule } from '@/modules/live-darshan/live-darshan.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { CallModule } from '@/modules/call/call.module';
     AdminModule,
     SupportModule,
     CallModule,
+    LiveDarshanModule,
   ]
 })
 export class AppModule { }

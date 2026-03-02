@@ -70,7 +70,7 @@ export class ChatSession {
   @Column({ type: 'int', default: 0, name: 'free_minutes' })
   free_minutes: number;
 
-  @Column({ type: 'float', name: 'price_per_minute' })
+  @Column({ type: 'float', default: 0, name: 'price_per_minute' })
   price_per_minute: number;
 
   @Column({ type: 'float', default: 0, name: 'total_cost' })
