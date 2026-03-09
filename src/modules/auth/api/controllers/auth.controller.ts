@@ -10,7 +10,7 @@ import {
   Res,
 } from '@nestjs/common';
 
-import { RegisterDto, LoginDto } from '../dto';
+import { RegisterDto, LoginDto, AgentRegisterUserDto } from '../dto';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import {
   ForgotPasswordDto,
@@ -18,6 +18,8 @@ import {
   SendMagicLinkDto,
 } from '../dto/register.dto';
 import { JwtAuthGuard } from '../guards/auth.guard';
+import { RolesGuard } from '../guards/role.guard';
+import { Roles } from '@/common/decorators/roles.decorator';
 import { AuthFacade } from '../../application/auth.facade';
 import { instanceToPlain } from 'class-transformer';
 import { JwtAuthRefreshGuard } from '../guards/auth-refresh.guard';
@@ -140,6 +142,13 @@ export class AuthController {
 
     this.setCookies(res, tokens);
     return instanceToPlain({ user, ...tokens });
+  }
+
+  @Post('agent/register')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('agent')
+  async agentRegister(@Body() dto: AgentRegisterUserDto) {
+    return this.authFacade.agentRegister(dto);
   }
 
   private setCookies(

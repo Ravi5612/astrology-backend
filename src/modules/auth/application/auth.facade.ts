@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { LoginWithEmailUseCase } from './use-cases/login-with-email.usecase';
 import { RegisterUserUseCase } from './use-cases/register-user.usecase';
-import { LoginDto, RegisterDto } from '../api/dto';
+import { AgentRegisterUserUseCase } from './use-cases/agent-register-user.usecase';
+import { LoginDto, RegisterDto, AgentRegisterUserDto } from '../api/dto';
 import { LogoutUserUseCase } from './use-cases/logout-user.usecase';
 import { VerifyEmailUseCase } from './use-cases/verify-email.usecase';
 import { ResendVerificationEmailUseCase } from './use-cases/resend-verification-email.usecase';
@@ -16,6 +17,7 @@ export class AuthFacade {
   constructor(
     private readonly loginWithEmailUseCase: LoginWithEmailUseCase,
     private readonly registerUser: RegisterUserUseCase,
+    private readonly agentRegisterUserUseCase: AgentRegisterUserUseCase,
     private readonly logoutUser: LogoutUserUseCase,
     private readonly verifyEmailForUser: VerifyEmailUseCase,
     private readonly resendVerificationEmailForUser: ResendVerificationEmailUseCase,
@@ -24,7 +26,7 @@ export class AuthFacade {
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
     private readonly sendMagicLinkUseCase: SendMagicLinkUseCase,
     private readonly loginWithMagicLinkUseCase: LoginWithMagicLinkUseCase,
-  ) {}
+  ) { }
 
   async loginWithEmail(dto: LoginDto, ipAddress?: string, userAgent?: string) {
     return this.loginWithEmailUseCase.execute(dto, ipAddress, userAgent);
@@ -65,4 +67,9 @@ export class AuthFacade {
   async loginWithMagicLink(token: string, ip?: string, ua?: string) {
     return this.loginWithMagicLinkUseCase.execute(token, ip, ua);
   }
+
+  async agentRegister(dto: AgentRegisterUserDto) {
+    return this.agentRegisterUserUseCase.execute(dto);
+  }
 }
+

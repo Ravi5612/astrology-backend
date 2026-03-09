@@ -13,6 +13,7 @@ import { UsedTokens } from './infrastructure/persistence/entities/used-tokens.en
 import { AuthFacade } from './application/auth.facade';
 import { LoginWithEmailUseCase } from './application/use-cases/login-with-email.usecase';
 import { RegisterUserUseCase } from './application/use-cases/register-user.usecase';
+import { AgentRegisterUserUseCase } from './application/use-cases/agent-register-user.usecase';
 import { Argon2PasswordHasher } from './infrastructure/hashing/argon2-password.hasher';
 import { IssueAuthTokensUseCase } from './application/use-cases/issue-auth-tokens.usecase';
 import { TokenCryptoService } from './infrastructure/tokens/token-crypto.service';
@@ -80,6 +81,7 @@ import { AuthProfileCreationResolver } from './application/strategies/auth-profi
     AuthFacade,
     // Use case -  start
     RegisterUserUseCase,
+    AgentRegisterUserUseCase,
     LoginWithEmailUseCase,
     LoginWithGoogleUseCase,
     IssueAuthTokensUseCase,

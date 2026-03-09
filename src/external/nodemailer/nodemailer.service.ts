@@ -23,9 +23,9 @@ export class NodeMailerService {
         subject,
         html,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('NodeMailer error:', error);
-      throw new InternalServerErrorException('Failed to send email');
+      throw new InternalServerErrorException(`Failed to send email: ${error.message}`);
     }
   }
 }

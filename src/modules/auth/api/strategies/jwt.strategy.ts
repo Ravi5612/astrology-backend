@@ -28,7 +28,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     return {
       id: payload.userId,
       role: payload.role,
-      roles: [{ name: payload.role }], // For compatibility with RolesGuard
+      roles: Array.isArray(payload.roles)
+        ? payload.roles.map((r: string) => ({ name: r }))
+        : [{ name: payload.role }],
     };
   }
 }

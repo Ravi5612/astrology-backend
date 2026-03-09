@@ -21,13 +21,17 @@ export class IssueAuthTokensUseCase {
       client: 'user',
       expert: 'expert',
       admin: 'admin',
+      agent: 'agent',
     };
-    
-    // Prioritize admin > expert > client
-    const roleNames = user.roles?.map((r) => r.name) || ['client'];
+
+    // Prioritize admin > agent > expert > client
+    const roleNames = user.roles?.map((r) => r.name.toLowerCase()) || ['client'];
     let primaryRole = 'client';
+
     if (roleNames.includes('admin')) {
       primaryRole = 'admin';
+    } else if (roleNames.includes('agent')) {
+      primaryRole = 'agent';
     } else if (roleNames.includes('expert')) {
       primaryRole = 'expert';
     }
@@ -35,6 +39,7 @@ export class IssueAuthTokensUseCase {
     const accessToken = await this.tokenCrypto.createAccessToken({
       userId: user.id,
       role: rolesMap[primaryRole] || primaryRole,
+      roles: roleNames, // include all role names
     });
 
     const { raw, hash } = await this.tokenCrypto.createRefreshToken();

@@ -21,7 +21,7 @@ export const NodemailerProvider: Provider = {
       secure: email.secure,
       auth: {
         user: email.user,
-        pass: email.pass,
+        pass: email.pass.replace(/\s+/g, ''),
       },
     });
   },

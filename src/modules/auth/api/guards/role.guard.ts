@@ -19,11 +19,11 @@ interface JwtUser {
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private reflector: Reflector) { }
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles =
-      this.reflector.getAllAndOverride<DEFAULT_ROLES>(ROLES_KEY, [
+      this.reflector.getAllAndOverride<DEFAULT_ROLES[]>(ROLES_KEY, [
         context.getHandler(),
         context.getClass(),
       ]) || [];
@@ -37,16 +37,26 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('No user found in request');
     }
 
-    const userRole = user.role;
+    const userRole = user.role?.toLowerCase();
     const userRoles = Array.isArray(user.roles)
-      ? user.roles.map((r) => r.name)
+      ? user.roles.map((r) => r.name.toLowerCase())
       : [];
 
+    const normalizedRequiredRoles = requiredRoles.map(r => r.toLowerCase());
+
     const hasRole =
-      (userRole && requiredRoles.includes(userRole as DEFAULT_ROLES)) ||
+      (userRole && normalizedRequiredRoles.includes(userRole)) ||
       userRoles.some((roleName) =>
-        requiredRoles.includes(roleName as DEFAULT_ROLES),
+        normalizedRequiredRoles.includes(roleName),
       );
+
+    console.log('[RolesGuard] Decision:', {
+      userId: user.id,
+      userRole,
+      userRoles,
+      requiredRoles: normalizedRequiredRoles,
+      hasRole
+    });
 
     if (!hasRole) {
       throw new ForbiddenException('Insufficient role');
