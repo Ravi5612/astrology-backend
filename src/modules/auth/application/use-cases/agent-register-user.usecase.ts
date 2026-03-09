@@ -18,7 +18,7 @@ export class AgentRegisterUserUseCase {
         private readonly mailer: NodeMailerService,
     ) { }
 
-    async execute(dto: AgentRegisterUserDto) {
+    async execute(dto: AgentRegisterUserDto, agentId: number) {
         const existingUser = await this.usersFacade.findByEmail(dto.email);
 
         // Ensure email is unique (throws if not)
@@ -42,11 +42,21 @@ export class AgentRegisterUserUseCase {
                     roles: formattedRoles,
                     password: hashedPassword,
                     email_verified_at: new Date(), // verified automatically
+                    referred_by_id: agentId,
                 },
                 queryRunner,
             );
 
             await this.profileCreationResolver.ensureProfile(createdUser, queryRunner);
+
+            // Update agent stats
+            await queryRunner.manager.increment(
+                'AgentProfile',
+                { user_id: agentId },
+                'total_registrations',
+                1
+            );
+
             return createdUser;
         });
 

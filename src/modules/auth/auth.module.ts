@@ -43,6 +43,7 @@ import {
 } from './application/strategies/auth-profile-creation.strategy';
 import { ClientAuthProfileCreationStrategy } from './application/strategies/client-auth-profile-creation.strategy';
 import { ExpertAuthProfileCreationStrategy } from './application/strategies/expert-auth-profile-creation.strategy';
+import { AgentAuthProfileCreationStrategy } from './application/strategies/agent-auth-profile-creation.strategy';
 import { AuthProfileCreationResolver } from './application/strategies/auth-profile-creation.resolver';
 
 @Module({
@@ -65,16 +66,19 @@ import { AuthProfileCreationResolver } from './application/strategies/auth-profi
     GoogleAuthGuard,
     ClientAuthProfileCreationStrategy,
     ExpertAuthProfileCreationStrategy,
+    AgentAuthProfileCreationStrategy,
     AuthProfileCreationResolver,
     {
       provide: AUTH_PROFILE_CREATION_STRATEGIES,
       useFactory: (
         expert: ExpertAuthProfileCreationStrategy,
         client: ClientAuthProfileCreationStrategy,
-      ) => [expert, client],
+        agent: AgentAuthProfileCreationStrategy,
+      ) => [expert, client, agent],
       inject: [
         ExpertAuthProfileCreationStrategy,
         ClientAuthProfileCreationStrategy,
+        AgentAuthProfileCreationStrategy,
       ],
     },
 

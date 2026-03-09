@@ -1,0 +1,47 @@
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    OneToOne,
+    JoinColumn,
+    CreateDateColumn,
+    UpdateDateColumn,
+} from 'typeorm';
+import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
+
+@Entity('agent_profiles')
+export class AgentProfile {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    total_earnings: number;
+
+    @Column({ default: 0 })
+    total_registrations: number;
+
+    @Column({ type: 'decimal', precision: 5, scale: 2, default: 10.00 })
+    commission_rate: number;
+
+    @Column({ nullable: true })
+    bank_name: string;
+
+    @Column({ nullable: true })
+    account_number: string;
+
+    @Column({ nullable: true })
+    ifsc_code: string;
+
+    @OneToOne(() => User, (user) => user.agent_profile)
+    @JoinColumn({ name: 'user_id' })
+    user: User;
+
+    @Column()
+    user_id: number;
+
+    @CreateDateColumn()
+    created_at: Date;
+
+    @UpdateDateColumn()
+    updated_at: Date;
+}

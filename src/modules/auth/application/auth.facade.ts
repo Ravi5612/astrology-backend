@@ -68,8 +68,8 @@ export class AuthFacade {
     return this.loginWithMagicLinkUseCase.execute(token, ip, ua);
   }
 
-  async agentRegister(dto: AgentRegisterUserDto) {
-    return this.agentRegisterUserUseCase.execute(dto);
+  async agentRegister(dto: AgentRegisterUserDto, agentId: number) {
+    return this.agentRegisterUserUseCase.execute(dto, agentId);
   }
 }
 

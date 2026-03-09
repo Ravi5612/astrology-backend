@@ -147,14 +147,17 @@ export class AuthController {
   @Post('agent/register')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('agent')
-  async agentRegister(@Body() dto: AgentRegisterUserDto) {
-    return this.authFacade.agentRegister(dto);
+  async agentRegister(
+    @Body() dto: AgentRegisterUserDto,
+    @CurrentUser('id') agentId: number,
+  ) {
+    return this.authFacade.agentRegister(dto, agentId);
   }
 
   private setCookies(
     res: Response,
     tokens: { accessToken: string; refreshToken: string },
-  ) {
+  ){
     const isProduction = process.env.NODE_ENV === 'production';
 
     const cookieOptions: CookieOptions = {

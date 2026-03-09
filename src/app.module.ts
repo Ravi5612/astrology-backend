@@ -24,6 +24,7 @@ import { AdminModule } from '@/modules/admin/admin.module';
 import { SupportModule } from '@/modules/support/support.module';
 import { CallModule } from '@/modules/call/call.module';
 import { LiveDarshanModule } from '@/modules/live-darshan/live-darshan.module';
+import { AgentModule } from '@/modules/agent/agent.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { LiveDarshanModule } from '@/modules/live-darshan/live-darshan.module';
     SupportModule,
     CallModule,
     LiveDarshanModule,
+    AgentModule,
   ]
 })
 export class AppModule { }

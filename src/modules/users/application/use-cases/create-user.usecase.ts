@@ -19,6 +19,7 @@ export class CreateUserUseCase {
     user.password = dto.password;
     user.name = dto.name;
     user.avatar = dto.avatar;
+    user.referred_by_id = dto.referred_by_id ?? null;
 
     if (dto.roles?.length) {
       const roleNames = dto.roles.map((r) => r.name);

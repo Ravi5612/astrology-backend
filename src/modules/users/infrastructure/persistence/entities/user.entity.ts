@@ -9,6 +9,8 @@ import {
   ManyToMany,
   JoinTable,
   OneToOne,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { OAuthAccount } from '@/modules/auth/infrastructure/persistence/entities/oauth-accounts.entity';
 import { Session } from '@/modules/auth/infrastructure/persistence/entities/session.entity';
@@ -16,6 +18,7 @@ import { Role } from '@/modules/role/entities/roles.entity';
 import { Exclude } from 'class-transformer';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { AgentProfile } from '@/modules/agent/infrastructure/persistence/entities/agent-profile.entity';
 
 @Entity('users')
 export class User {
@@ -72,6 +75,16 @@ export class User {
 
   @OneToOne(() => ProfileExpert, (p) => p.user, { cascade: true })
   profile_expert?: ProfileExpert;
+
+  @Column({ nullable: true })
+  referred_by_id: number | null;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'referred_by_id' })
+  referred_by: User | null;
+
+  @OneToOne(() => AgentProfile, (p) => p.user, { cascade: true })
+  agent_profile?: AgentProfile;
 
   // methods
 
