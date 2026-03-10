@@ -69,24 +69,49 @@ export class AgentController {
     async getListings(
         @CurrentUser() user: User,
         @Query('page') page: number = 1,
-        @Query('limit') limit: number = 10
+        @Query('limit') limit: number = 50,
+        @Query('type') type?: string,
+        @Query('search') search?: string,
     ) {
         const listings = await this.db.transaction(async (queryRunner) => {
-            const [users, total] = await queryRunner.manager.findAndCount(User, {
-                where: { referred_by_id: user.id },
-                take: limit,
-                skip: (page - 1) * limit,
-                order: { created_at: 'DESC' } as any,
-                relations: ['roles', 'profile_expert'] as any
-            });
+            const qb = queryRunner.manager
+                .createQueryBuilder(User, 'u')
+                .leftJoinAndSelect('u.roles', 'role')
+                .leftJoinAndSelect('u.profile_expert', 'pe')
+                .leftJoinAndSelect('u.profile_client', 'pc')
+                .where('u.referred_by_id = :agentId', { agentId: user.id });
+
+            // Filter by role/type
+            if (type === 'astrologer') {
+                qb.andWhere('role.name = :role', { role: 'expert' });
+            } else if (type === 'client') {
+                qb.andWhere('role.name = :role', { role: 'user' });
+            }
+
+            // Search by name / email
+            if (search && search.trim()) {
+                qb.andWhere(
+                    '(LOWER(u.name) LIKE :search OR LOWER(u.email) LIKE :search)',
+                    { search: `%${search.trim().toLowerCase()}%` }
+                );
+            }
+
+            qb.orderBy('u.created_at', 'DESC')
+                .skip((page - 1) * limit)
+                .take(limit);
+
+            const [users, total] = await qb.getManyAndCount();
 
             return {
                 data: users.map(u => ({
                     id: u.id,
                     name: u.name,
+                    email: u.email,
+                    phone: (u as any).profile_client?.phone ?? (u as any).profile_expert?.phone ?? null,
                     status: 'active',
                     type: u.roles.some(r => r.name === 'expert') ? 'astrologer' : 'client',
-                    createdAt: u.created_at
+                    createdAt: u.created_at,
+                    avatar: u.avatar ?? null,
                 })),
                 total,
                 page,
