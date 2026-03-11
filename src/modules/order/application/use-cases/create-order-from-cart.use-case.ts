@@ -12,6 +12,7 @@ import { Product } from '@/modules/product/infrastructure/persistence/entities/p
 import { CreateOrderDto } from '../../api/dto/create-order.dto';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/persistence/entities/transaction.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 
 @Injectable()
 export class CreateOrderFromCartUseCase {
@@ -114,6 +115,26 @@ export class CreateOrderFromCartUseCase {
       });
 
       await queryRunner.manager.save(orderItems);
+
+      // --- NEW: Tracking Logic for Wallet Payments ---
+      if (dto.payment_method === 'wallet') {
+        for (const item of itemsToCreate) {
+          const product = await queryRunner.manager.findOne(Product, { where: { id: item.product_id } });
+          if (product && product.expert_id) {
+            const expertProfile = await queryRunner.manager.findOne(ProfileExpert, {
+              where: { id: product.expert_id },
+              lock: { mode: 'pessimistic_write' },
+            });
+
+            if (expertProfile) {
+              const itemTotal = Number(item.price) * (item.quantity || 1);
+              expertProfile.total_earning = Number(expertProfile.total_earning || 0) + itemTotal;
+              await queryRunner.manager.save(expertProfile);
+            }
+          }
+        }
+      }
+      // ----------------------------------------------
 
       // 5. Clear Cart if it was a cart-based order
       if (!dto.product_id) {

@@ -1,7 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/persistence/entities/order.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { Product } from '@/modules/product/infrastructure/persistence/entities/product.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
@@ -18,18 +21,70 @@ export class UpdateOrderStatusUseCase {
     private notificationFacade: NotificationFacade,
     private notificationGateway: NotificationGateway,
     private emailService: NodeMailerService,
+    private dataSource: DataSource,
   ) { }
 
   async execute(id: number, status: OrderStatus, cancellationReason?: string) {
     const order = await this.orderRepo.findOne({ where: { id } });
     if (!order) throw new NotFoundException('Order not found');
 
+    const oldStatus = order.status;
     order.status = status;
     if (cancellationReason) {
       order.cancellation_reason = cancellationReason;
     }
 
     const updatedOrder = await this.orderRepo.save(order);
+
+    // --- NEW: Tracking Logic for Manual Payment Updates ---
+    if (status === OrderStatus.PAID && oldStatus !== OrderStatus.PAID) {
+      const queryRunner = this.dataSource.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      try {
+        const orderWithItems = await queryRunner.manager.findOne(Order, {
+          where: { id },
+          relations: ['items', 'items.product'],
+        });
+
+        if (orderWithItems) {
+          // 1. Track Client Spending
+          const clientProfile = await queryRunner.manager.findOne(ProfileClient, {
+            where: { user: { id: order.user_id } },
+            lock: { mode: 'pessimistic_write' },
+          });
+
+          if (clientProfile) {
+            clientProfile.total_spending = Number(clientProfile.total_spending || 0) + Number(order.total_amount);
+            await queryRunner.manager.save(clientProfile);
+          }
+
+          // 2. Track Expert Earnings
+          for (const item of orderWithItems.items) {
+            if (item.product && item.product.expert_id) {
+              const expertProfile = await queryRunner.manager.findOne(ProfileExpert, {
+                where: { id: item.product.expert_id },
+                lock: { mode: 'pessimistic_write' },
+              });
+
+              if (expertProfile) {
+                const itemTotal = Number(item.price) * (item.quantity || 1);
+                expertProfile.total_earning = Number(expertProfile.total_earning || 0) + itemTotal;
+                await queryRunner.manager.save(expertProfile);
+              }
+            }
+          }
+        }
+        await queryRunner.commitTransaction();
+      } catch (error) {
+        await queryRunner.rollbackTransaction();
+        console.error('Failed to update tracking for manual payment status update:', error);
+      } finally {
+        await queryRunner.release();
+      }
+    }
+    // ------------------------------------------------------
 
     // Create notification and emit socket event based on status
     let notificationType: NotificationType;
