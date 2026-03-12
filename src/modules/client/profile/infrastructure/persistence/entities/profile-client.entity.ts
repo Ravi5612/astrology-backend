@@ -20,8 +20,11 @@ export class ProfileClient {
   id: number;
 
   @OneToOne(() => User, (user) => user.profile_client)
-  @JoinColumn()
+  @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @Column({ name: 'user_id', nullable: true })
+  user_id: number;
 
   @Column({ nullable: true })
   username?: string;

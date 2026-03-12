@@ -54,14 +54,29 @@ export class CreditUseCase {
 
       // --- NEW: Tracking Logic ---
       if (purpose === TransactionPurpose.CONSULTATION || purpose === TransactionPurpose.PRODUCT_PURCHASE) {
-        const expertProfile = await queryRunner.manager.findOne(ProfileExpert, {
-          where: { user: { id: userId } },
-          lock: { mode: 'pessimistic_write' },
-        });
+        try {
+          // 1. Get or Create Profile
+          let expertProfile = await queryRunner.manager.findOne(ProfileExpert, {
+            where: { user: { id: userId } },
+            select: ['id']
+          });
 
-        if (expertProfile) {
-          expertProfile.total_earning = Number(expertProfile.total_earning || 0) + Number(amount);
-          await queryRunner.manager.save(expertProfile);
+          if (!expertProfile) {
+            expertProfile = queryRunner.manager.create(ProfileExpert, { user: { id: userId } as any, user_id: userId });
+            expertProfile = await queryRunner.manager.save(expertProfile);
+            console.log(`[CREDIT_TRACKING] Created shell profile for expert user ${userId} for earning tracking`);
+          }
+
+          // 2. Atomic Update
+          await queryRunner.manager.createQueryBuilder()
+            .update(ProfileExpert)
+            .set({ total_earning: () => `COALESCE(total_earning, 0) + ${Number(amount)}` })
+            .where('id = :id', { id: expertProfile.id })
+            .execute();
+          
+          console.log(`[CREDIT_TRACKING] Updated total_earning for expert ${expertProfile.id} (user ${userId}) with amount ${amount}`);
+        } catch (trackingError) {
+          console.error('[CREDIT_TRACKING] Failed to track expert earning:', trackingError);
         }
       }
       // ---------------------------

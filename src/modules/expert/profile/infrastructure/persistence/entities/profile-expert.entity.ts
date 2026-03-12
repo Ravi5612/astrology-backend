@@ -23,8 +23,11 @@ export class ProfileExpert {
   id: number;
 
   @OneToOne(() => User, (user) => user.profile_expert)
-  @JoinColumn()
+  @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @Column({ name: 'user_id', nullable: true })
+  user_id: number;
 
   @Column({
     type: 'text',

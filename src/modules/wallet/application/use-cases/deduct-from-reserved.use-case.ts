@@ -39,14 +39,29 @@ export class DeductFromReservedUseCase {
       await queryRunner.manager.save(transaction);
 
       // --- NEW: Tracking Logic ---
-      const clientProfile = await queryRunner.manager.findOne(ProfileClient, {
-        where: { user: { id: userId } },
-        lock: { mode: 'pessimistic_write' },
-      });
+      try {
+        // 1. Get or Create Profile
+        let clientProfile = await queryRunner.manager.findOne(ProfileClient, {
+          where: { user: { id: userId } },
+          select: ['id']
+        });
 
-      if (clientProfile) {
-        clientProfile.total_spending = Number(clientProfile.total_spending || 0) + Number(amount);
-        await queryRunner.manager.save(clientProfile);
+        if (!clientProfile) {
+          clientProfile = queryRunner.manager.create(ProfileClient, { user: { id: userId } as any, user_id: userId });
+          clientProfile = await queryRunner.manager.save(clientProfile);
+          console.log(`[DEDUCT_RESERVED_TRACKING] Created shell profile for user ${userId} for spending tracking`);
+        }
+
+        // 2. Atomic Update
+        await queryRunner.manager.createQueryBuilder()
+          .update(ProfileClient)
+          .set({ total_spending: () => `COALESCE(total_spending, 0) + ${Number(amount)}` })
+          .where('id = :id', { id: clientProfile.id })
+          .execute();
+        
+        console.log(`[DEDUCT_RESERVED_TRACKING] Updated total_spending for client ${clientProfile.id} (user ${userId}) with amount ${amount}`);
+      } catch (trackingError) {
+        console.error('[DEDUCT_RESERVED_TRACKING] Failed to track client spending:', trackingError);
       }
       // ---------------------------
 

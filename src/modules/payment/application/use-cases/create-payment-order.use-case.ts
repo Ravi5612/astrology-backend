@@ -63,9 +63,10 @@ export class CreatePaymentOrderUseCase {
       await this.paymentOrderRepo.save(paymentOrder);
 
       // If it's a product order, link the Razorpay Order ID to the internal order
-      if (type === 'product' && notes?.orderId) {
+      const internalOrderId = notes?.orderId || notes?.order_id;
+      if (type === 'product' && internalOrderId) {
         await this.orderFacade.setRazorpayOrderId(
-          Number(notes.orderId),
+          Number(internalOrderId),
           order.providerOrderId,
         );
       }

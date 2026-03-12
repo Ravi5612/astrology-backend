@@ -121,15 +121,16 @@ export class CreateOrderFromCartUseCase {
         for (const item of itemsToCreate) {
           const product = await queryRunner.manager.findOne(Product, { where: { id: item.product_id } });
           if (product && product.expert_id) {
-            const expertProfile = await queryRunner.manager.findOne(ProfileExpert, {
-              where: { id: product.expert_id },
-              lock: { mode: 'pessimistic_write' },
-            });
-
-            if (expertProfile) {
-              const itemTotal = Number(item.price) * (item.quantity || 1);
-              expertProfile.total_earning = Number(expertProfile.total_earning || 0) + itemTotal;
-              await queryRunner.manager.save(expertProfile);
+            const itemTotal = Number(item.price) * (item.quantity || 1);
+            try {
+              await queryRunner.manager.createQueryBuilder()
+                .update(ProfileExpert)
+                .set({ total_earning: () => `COALESCE(total_earning, 0) + ${Number(itemTotal)}` })
+                .where('id = :id', { id: product.expert_id })
+                .execute();
+              console.log(`[CREATE_ORDER_TRACKING] Updated earnings for expert profile ${product.expert_id} with amount ${itemTotal}`);
+            } catch (e) {
+              console.error('[CREATE_ORDER_TRACKING] Expert earning error:', e);
             }
           }
         }

@@ -34,29 +34,39 @@ export class MarkOrderAsPaidUseCase {
       await queryRunner.manager.save(order);
 
       // 2. Track Client Spending
-      const clientProfile = await queryRunner.manager.findOne(ProfileClient, {
-        where: { user: { id: order.user_id } },
-        lock: { mode: 'pessimistic_write' },
-      });
+      try {
+        let clientProfile = await queryRunner.manager.findOne(ProfileClient, {
+          where: { user: { id: order.user_id } },
+          select: ['id']
+        });
+        if (!clientProfile) {
+          clientProfile = queryRunner.manager.create(ProfileClient, { user: { id: order.user_id } as any, user_id: order.user_id });
+          clientProfile = await queryRunner.manager.save(clientProfile);
+          console.log(`[MARK_AS_PAID_TRACKING] Created shell profile for user ${order.user_id}`);
+        }
 
-      if (clientProfile) {
-        clientProfile.total_spending = Number(clientProfile.total_spending || 0) + Number(order.total_amount);
-        await queryRunner.manager.save(clientProfile);
+        await queryRunner.manager.createQueryBuilder()
+          .update(ProfileClient)
+          .set({ total_spending: () => `COALESCE(total_spending, 0) + ${Number(order.total_amount)}` })
+          .where('id = :id', { id: clientProfile.id })
+          .execute();
+        console.log(`[MARK_AS_PAID_TRACKING] Updated spending for client profile ${clientProfile.id} with amount ${order.total_amount}`);
+      } catch (e) {
+        console.error('[MARK_AS_PAID_TRACKING] Client spending error:', e);
       }
 
       // 3. Track Expert Earnings (Iterate over items)
       for (const item of order.items) {
         if (item.product && item.product.expert_id) {
-          const expertProfile = await queryRunner.manager.findOne(ProfileExpert, {
-            where: { id: item.product.expert_id },
-            lock: { mode: 'pessimistic_write' },
-          });
-
-          if (expertProfile) {
-            const itemTotal = Number(item.price) * (item.quantity || 1);
-            expertProfile.total_earning = Number(expertProfile.total_earning || 0) + itemTotal;
-            await queryRunner.manager.save(expertProfile);
-          }
+          const itemTotal = Number(item.price) * (item.quantity || 1);
+          try {
+            await queryRunner.manager.createQueryBuilder()
+              .update(ProfileExpert)
+              .set({ total_earning: () => `COALESCE(total_earning, 0) + ${Number(itemTotal)}` })
+              .where('id = :id', { id: item.product.expert_id })
+              .execute();
+            console.log(`[MARK_AS_PAID_TRACKING] Updated earnings for expert profile ${item.product.expert_id} with amount ${itemTotal}`);
+          } catch (e) { console.error('[MARK_AS_PAID_TRACKING] Expert earning error:', e); }
         }
       }
 
