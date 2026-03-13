@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -15,9 +15,10 @@ export class EndCallUseCase {
   constructor(
     @InjectRepository(CallSession)
     private readonly sessionRepo: Repository<CallSession>,
+    @Inject(forwardRef(() => CallGateway))
     private readonly callGateway: CallGateway,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async execute(sessionId: number) {
     const session = await this.sessionRepo.findOne({

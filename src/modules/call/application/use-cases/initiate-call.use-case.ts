@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CallSession, CallSessionStatus, CallType } from '../../infrastructure/persistence/entities/call-session.entity';
@@ -21,6 +21,7 @@ export class InitiateCallUseCase {
         private expertRepo: Repository<ProfileExpert>,
         private walletFacade: WalletFacade,
         private twilioService: TwilioService,
+        @Inject(forwardRef(() => CallGateway))
         private callGateway: CallGateway,
         private eventEmitter: EventEmitter2,
     ) { }

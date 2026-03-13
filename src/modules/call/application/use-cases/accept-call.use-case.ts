@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -19,9 +19,10 @@ export class AcceptCallUseCase {
     @InjectRepository(CallSession)
     private readonly sessionRepo: Repository<CallSession>,
     private readonly twilioService: TwilioService,
+    @Inject(forwardRef(() => CallGateway))
     private readonly callGateway: CallGateway,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async execute(expertId: number, sessionId: number) {
     const session = await this.sessionRepo.findOne({
