@@ -1,10 +1,13 @@
-import { Controller, Post, Get, Body, UseGuards, Req, Header } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Req, Header, Param, ParseIntPipe } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CallType } from '../../infrastructure/persistence/entities/call-session.entity';
 import { CallFacade } from '../../application/call.facade';
 import { CallSessionFilter } from '../../application/use-cases/get-expert-sessions.use-case';
 
-@Controller('call')
+@Controller({
+    path: 'call',
+    version: '1',
+})
 @UseGuards(JwtAuthGuard)
 export class CallController {
     constructor(
@@ -43,6 +46,12 @@ export class CallController {
     ) {
         console.log(`[CallController] End call: sessionId=${body.sessionId}`);
         return this.callFacade.end(body.sessionId);
+    }
+
+    @Get('session/:sessionId')
+    @Header('Cache-Control', 'no-store')
+    async getSession(@Param('sessionId', ParseIntPipe) sessionId: number) {
+        return this.callFacade.getSession(sessionId);
     }
 
     @Get('sessions/appointments/pending')
