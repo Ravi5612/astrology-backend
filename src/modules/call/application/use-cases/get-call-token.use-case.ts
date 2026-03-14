@@ -22,7 +22,7 @@ export class GetCallTokenUseCase {
             throw new NotFoundException(`Call session ${sessionId} not found`);
         }
 
-        // Check if user is either the client or the expert
+        // Check if user is either the client or .. the expert
         const isClient = session.user.id === userId;
         const isExpert = session.expert.user_id === userId; // In this project, expert.user_id usually links to User entity
 
