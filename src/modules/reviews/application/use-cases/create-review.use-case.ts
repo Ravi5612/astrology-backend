@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Review } from '../../infrastructure/persistence/entities/review.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { ChatSession } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
+import { CallSession } from '@/modules/call/infrastructure/persistence/entities/call-session.entity';
 import {
   ExpertNotFoundError,
   SessionNotFoundError,
@@ -19,7 +20,9 @@ export class CreateReviewUseCase {
     @InjectRepository(ProfileExpert)
     private readonly expertRepository: Repository<ProfileExpert>,
     @InjectRepository(ChatSession)
-    private readonly sessionRepository: Repository<ChatSession>,
+    private readonly chatSessionRepository: Repository<ChatSession>,
+    @InjectRepository(CallSession)
+    private readonly callSessionRepository: Repository<CallSession>,
   ) { }
 
   async execute(
@@ -39,13 +42,33 @@ export class CreateReviewUseCase {
     }
 
     if (sessionId) {
-      const session = await this.sessionRepository.findOne({
+      let sessionUser: number | null = null;
+      let sessionExpert: number | null = null;
+      
+      const chatSession = await this.chatSessionRepository.findOne({
         where: { id: sessionId },
       });
-      if (!session) {
+      if (chatSession) {
+        sessionUser = chatSession.user_id;
+        sessionExpert = chatSession.expert_id;
+      }
+
+      if (!sessionUser) {
+        const callSession = await this.callSessionRepository.findOne({
+          where: { id: sessionId },
+        });
+        if (callSession) {
+          sessionUser = callSession.user_id;
+          sessionExpert = callSession.expert_id;
+        }
+      }
+
+      if (!sessionUser) {
         throw new SessionNotFoundError(sessionId);
       }
-      if (session.user_id !== userId) {
+      
+      // Ensure that user actually participated in the session that corresponds to the given expert
+      if (sessionUser !== userId || sessionExpert !== expertId) {
         throw new CannotReviewUnparticipatedSessionError();
       }
 
