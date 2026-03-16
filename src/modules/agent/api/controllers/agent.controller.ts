@@ -100,14 +100,17 @@ export class AgentController {
                 const isExpert = (u.roles || []).some(r => r.name.toLowerCase() === 'expert');
                 if (isExpert) {
                     astrologersCount++;
-                    if (u.profile_expert) {
-                        totalAgentCommission += (u.profile_expert.total_earning * expertCommPercent) / 100;
-                    }
                 } else {
                     clientsCount++;
-                    if (u.profile_client) {
-                        totalAgentCommission += (u.profile_client.total_spending * clientCommPercent) / 100;
-                    }
+                }
+
+                // Commission from expert earnings
+                if (u.profile_expert) {
+                    totalAgentCommission += (Number(u.profile_expert.total_earning || 0) * expertCommPercent) / 100;
+                }
+                // Commission from client spending (any user can have a client profile for spending)
+                if (u.profile_client) {
+                    totalAgentCommission += (Number(u.profile_client.total_spending || 0) * clientCommPercent) / 100;
                 }
             });
 
@@ -233,14 +236,12 @@ export class AgentController {
                 userData = users.map(u => {
                     const isExpert = (u.roles || []).some(r => r.name.toLowerCase() === 'expert');
                     let commission = 0;
-                    let baseAmount = 0;
 
-                    if (isExpert && u.profile_expert) {
-                        baseAmount = u.profile_expert.total_earning;
-                        commission = (baseAmount * expertCommPercent) / 100;
-                    } else if (!isExpert && u.profile_client) {
-                        baseAmount = u.profile_client.total_spending;
-                        commission = (baseAmount * clientCommPercent) / 100;
+                    if (u.profile_expert) {
+                        commission += (Number(u.profile_expert.total_earning || 0) * expertCommPercent) / 100;
+                    }
+                    if (u.profile_client) {
+                        commission += (Number(u.profile_client.total_spending || 0) * clientCommPercent) / 100;
                     }
 
                     return {
@@ -252,8 +253,8 @@ export class AgentController {
                         type: isExpert ? 'astrologer' : 'client',
                         createdAt: u.created_at,
                         avatar: u.avatar ?? null,
-                        totalSpending: !isExpert ? baseAmount : null,
-                        totalEarning: isExpert ? baseAmount : null,
+                        totalSpending: u.profile_client?.total_spending || 0,
+                        totalEarning: u.profile_expert?.total_earning || 0,
                         commission: Number(commission.toFixed(2)),
                         commissionPercent: isExpert ? expertCommPercent : clientCommPercent
                     };
