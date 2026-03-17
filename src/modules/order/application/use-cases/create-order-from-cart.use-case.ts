@@ -140,16 +140,24 @@ export class CreateOrderFromCartUseCase {
         if (isWalletPayment && item.expert_id) {
           const itemTotal = Number(item.price) * (item.quantity || 1);
           
-          // IMPORTANT: Product.expert_id in this system matches User.id
-          // Wallet operations use user_id.
-          await this.walletFacade.credit(
-            item.expert_id, // Expert's user_id
-            itemTotal,
-            TransactionPurpose.PRODUCT_PURCHASE,
-            `order_${savedOrder.id}_item_credit`,
-            queryRunner
-          );
-          this.logger.log(`[CREATE_ORDER] Credited ₹${itemTotal} to expert ${item.expert_id}`);
+          // Resolve Expert Profile ID to User ID for wallet operation
+          const expertProfile = await queryRunner.manager.createQueryBuilder(ProfileExpert, 'expert')
+            .select(['expert.user_id'])
+            .where('expert.id = :id', { id: item.expert_id })
+            .getOne();
+
+          if (expertProfile && expertProfile.user_id) {
+            await this.walletFacade.credit(
+              expertProfile.user_id, // Correct User ID for wallet
+              itemTotal,
+              TransactionPurpose.PRODUCT_PURCHASE,
+              `order_${savedOrder.id}_item_credit`,
+              queryRunner
+            );
+            this.logger.log(`[CREATE_ORDER] Credited ₹${itemTotal} to expert ${item.expert_id} (User: ${expertProfile.user_id})`);
+          } else {
+            this.logger.warn(`[CREATE_ORDER] Could not find User ID for expert profile ${item.expert_id}`);
+          }
         }
       }
 

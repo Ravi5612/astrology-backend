@@ -63,10 +63,10 @@ export class MarkOrderAsPaidUseCase {
         if (item.product && item.product.expert_id) {
           const itemTotal = Number(item.price) * (item.quantity || 1);
           try {
-            const expertProfile = await queryRunner.manager.findOne(ProfileExpert, {
-              where: { id: item.product.expert_id },
-              select: ['user_id']
-            });
+            const expertProfile = await queryRunner.manager.createQueryBuilder(ProfileExpert, 'expert')
+              .select(['expert.user_id'])
+              .where('expert.id = :id', { id: item.product.expert_id })
+              .getOne();
 
             if (expertProfile?.user_id) {
               await this.walletFacade.credit(
