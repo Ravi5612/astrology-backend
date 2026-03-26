@@ -38,6 +38,30 @@ export class AgentProfile {
     @Column({ nullable: true })
     ifsc_code: string;
 
+    @Column({ nullable: true })
+    phone: string;
+
+    @Column({ nullable: true })
+    address: string;
+
+    @Column({ nullable: true })
+    city: string;
+
+    @Column({ nullable: true })
+    state: string;
+
+    @Column({ nullable: true })
+    aadhaar_no: string;
+
+    @Column({ nullable: true })
+    pan_no: string;
+
+    @Column({ nullable: true })
+    aadhaar_doc: string;
+
+    @Column({ nullable: true })
+    pan_doc: string;
+
     @OneToOne(() => User, (user) => user.agent_profile)
     @JoinColumn({ name: 'user_id' })
     user: User;

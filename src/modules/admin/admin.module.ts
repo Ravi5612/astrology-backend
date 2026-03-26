@@ -6,6 +6,10 @@ import { GetAdminUserGrowthStatsUseCase } from './application/use-cases/get-admi
 import { GetExpertDetailUseCase } from './application/use-cases/get-expert-detail.use-case';
 import { GetFilteredUsersUseCase } from './application/use-cases/get-filtered-users.use-case';
 import { AssignCouponBulkUseCase } from './application/use-cases/assign-coupon-bulk.use-case';
+import { CreateAgentUseCase } from './application/use-cases/create-agent.use-case';
+import { GetAgentsUseCase } from './application/use-cases/get-agents.use-case';
+import { GetAgentStatsUseCase } from './application/use-cases/get-agent-stats.use-case';
+import { GetAdminListingsUseCase } from './application/use-cases/get-admin-listings.use-case';
 import { UsersModule } from '@/modules/users/users.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { ChatModule } from '@/modules/chat/chat.module';
@@ -17,12 +21,20 @@ import { ChatSession } from '../chat/infrastructure/persistence/entities/chat-se
 import { Order } from '../order/infrastructure/persistence/entities/order.entity';
 import { Coupon } from '../coupon/infrastructure/persistence/entities/coupon.entity';
 import { UserCoupon } from '../coupon/infrastructure/persistence/entities/user-coupon.entity';
+import { RolesModule } from '../role/roles.module';
+import { ExternalModule } from '@/external/external.module';
+import { Role } from '../role/entities/roles.entity';
+import { AgentProfile } from '../agent/infrastructure/persistence/entities/agent-profile.entity';
+import { User } from '../users/infrastructure/persistence/entities/user.entity';
+import { AgentListing } from '../agent/infrastructure/persistence/entities/agent-listing.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AdminAuditLog, ChatSession, Order, Coupon, UserCoupon]),
+    TypeOrmModule.forFeature([AdminAuditLog, ChatSession, Order, Coupon, UserCoupon, Role, AgentProfile, User, AgentListing]),
 
     UsersModule,
+    RolesModule,
+    ExternalModule,
     WalletModule,
     ChatModule,
     ProfileModule,
@@ -36,6 +48,10 @@ import { UserCoupon } from '../coupon/infrastructure/persistence/entities/user-c
     GetExpertDetailUseCase,
     GetFilteredUsersUseCase,
     AssignCouponBulkUseCase,
+    CreateAgentUseCase,
+    GetAgentsUseCase,
+    GetAgentStatsUseCase,
+    GetAdminListingsUseCase,
   ],
 })
 

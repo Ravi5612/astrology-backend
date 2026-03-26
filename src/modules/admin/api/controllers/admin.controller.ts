@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Query, Param, Patch, Body, Post, ParseIntPipe, Delete } from '@nestjs/common';
+import { Controller, Get, Query, Post, Body, UseGuards, Patch, Param, ParseIntPipe, UseInterceptors, UploadedFiles } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { AdminFacade } from '../../application/admin.facade';
@@ -10,6 +10,9 @@ import { CouponFacade } from '@/modules/coupon/application/coupon.facade';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { WithdrawalStatus } from '@/modules/wallet/infrastructure/persistence/entities/withdrawal.entity';
+import { FilterCriteria } from '../../application/use-cases/get-filtered-users.use-case';
+import { CreateAgentDto } from '../../presentation/dto/create-agent.dto';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 @Controller({
   path: 'admin',
@@ -130,11 +133,6 @@ export class AdminController {
     return this.couponFacade.updateCoupon(parseInt(id, 10), data);
   }
 
-  @Delete('coupons/:id')
-  async deleteCoupon(@Param('id') id: string) {
-    return this.couponFacade.deleteCoupon(parseInt(id, 10));
-  }
-
   // Withdrawal Management
   @Get('withdrawals/pending')
   async getPendingWithdrawals(
@@ -171,8 +169,56 @@ export class AdminController {
   }
 
   @Post('coupons/assign-bulk')
-  async assignCouponBulk(@Body() body: { couponCode: string; filters: any }) {
-    return this.adminFacade.assignCouponBulk(body.couponCode, body.filters);
+  async assignCouponBulk(@Body() dto: { couponCode: string; filters: FilterCriteria }) {
+    return this.adminFacade.assignCouponBulk(dto.couponCode, dto.filters);
+  }
+
+  // ── Agents Endpoints ────────────────────────────────────────────────────────
+  @Post('agents')
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'profile_pic', maxCount: 1 },
+    { name: 'aadhaar_doc', maxCount: 1 },
+    { name: 'pan_doc', maxCount: 1 },
+  ]))
+  async createAgent(
+    @Body() dto: CreateAgentDto,
+    @UploadedFiles() files: {
+      profile_pic?: Express.Multer.File[];
+      aadhaar_doc?: Express.Multer.File[];
+      pan_doc?: Express.Multer.File[];
+    },
+  ) {
+    console.log('Creating agent with DTO:', dto);
+    const filesToUpload = {
+      profile_pic: files?.profile_pic?.[0],
+      aadhaar_doc: files?.aadhaar_doc?.[0],
+      pan_doc: files?.pan_doc?.[0],
+    };
+    return this.adminFacade.createAgent(dto, filesToUpload);
+  }
+
+  @Get('agents')
+  async getAgents(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('search') search: string,
+    @Query('status') status: string,
+  ) {
+    return this.adminFacade.getAgents({ page, limit, search, status });
+  }
+
+  @Get('agents/stats')
+  async getAgentStats() {
+    return this.adminFacade.getAgentStats();
+  }
+
+  @Get('listings')
+  async getListings(
+    @Query('type') type?: string,
+    @Query('search') search?: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.adminFacade.getListings({ type, search, page, limit });
   }
 }
-

@@ -4,6 +4,11 @@ import { GetAdminUserGrowthStatsUseCase } from './use-cases/get-admin-user-growt
 import { GetExpertDetailUseCase } from './use-cases/get-expert-detail.use-case';
 import { GetFilteredUsersUseCase, FilterCriteria } from './use-cases/get-filtered-users.use-case';
 import { AssignCouponBulkUseCase } from './use-cases/assign-coupon-bulk.use-case';
+import { CreateAgentUseCase } from './use-cases/create-agent.use-case';
+import { GetAgentsUseCase } from './use-cases/get-agents.use-case';
+import { GetAgentStatsUseCase } from './use-cases/get-agent-stats.use-case';
+import { GetAdminListingsUseCase } from './use-cases/get-admin-listings.use-case';
+import { CreateAgentDto } from '../presentation/dto/create-agent.dto';
 import { ChatFacade } from '@/modules/chat/application/chat.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { WithdrawalStatus } from '@/modules/wallet/infrastructure/persistence/entities/withdrawal.entity';
@@ -16,6 +21,10 @@ export class AdminFacade {
     private readonly getExpertDetailUseCase: GetExpertDetailUseCase,
     private readonly getFilteredUsersUseCase: GetFilteredUsersUseCase,
     private readonly assignCouponBulkUseCase: AssignCouponBulkUseCase,
+    private readonly createAgentUseCase: CreateAgentUseCase,
+    private readonly getAgentsUseCase: GetAgentsUseCase,
+    private readonly getAgentStatsUseCase: GetAgentStatsUseCase,
+    private readonly getAdminListingsUseCase: GetAdminListingsUseCase,
     private readonly chatFacade: ChatFacade,
     private readonly walletFacade: WalletFacade,
   ) { }
@@ -64,6 +73,22 @@ export class AdminFacade {
 
   async assignCouponBulk(couponCode: string, filters: FilterCriteria) {
     return this.assignCouponBulkUseCase.execute(couponCode, filters);
+  }
+
+  async createAgent(dto: CreateAgentDto, files?: any) {
+    return this.createAgentUseCase.execute(dto, files);
+  }
+
+  async getAgents(params: { page?: number; limit?: number; search?: string; status?: string }) {
+    return this.getAgentsUseCase.execute(params);
+  }
+
+  async getAgentStats() {
+    return this.getAgentStatsUseCase.execute();
+  }
+ 
+  async getListings(params?: any) {
+    return this.getAdminListingsUseCase.execute(params);
   }
 }
 
