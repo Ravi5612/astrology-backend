@@ -25,9 +25,9 @@ export class GetAgentsUseCase {
 
     const qb = this.userRepository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.roles', 'role')
+      .leftJoinAndSelect('user.roles', 'agent_role')
       .leftJoinAndSelect('user.agent_profile', 'agent_profile')
-      .where('role.name = :roleName', { roleName: 'agent' });
+      .where('agent_role.name = :roleName', { roleName: 'agent' });
 
     if (params.search) {
       qb.andWhere(
@@ -60,9 +60,9 @@ export class GetAgentsUseCase {
         avatar: u.avatar,
         status: u.is_blocked ? 'blocked' : 'active',
         createdAt: u.created_at,
-        commission_rate: u.agent_profile?.commission_rate || 10.00,
-        total_earned: u.agent_profile?.total_earnings || 0,
-        total_listings: u.agent_profile?.total_registrations || 0,
+        commission_rate: Number(u.agent_profile?.commission_rate) || 10.00,
+        total_earned: Number(u.agent_profile?.total_earnings) || 0,
+        total_listings: Number(u.agent_profile?.total_registrations) || 0,
         pending_payout: 0,
         kyc: {
             aadhaar_no: u.agent_profile?.aadhaar_no,
