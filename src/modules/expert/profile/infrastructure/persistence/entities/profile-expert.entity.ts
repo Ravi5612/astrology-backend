@@ -13,6 +13,7 @@ import {
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { Address } from '@/common/address/address.entity';
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
+import { ExpertPuja } from './expert-puja.entity';
 
 @Entity('profile_experts')
 @Check(`"gender" IN ('male', 'female', 'other')`)
@@ -139,6 +140,11 @@ export class ProfileExpert {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updated_at: Date;
+
+  @OneToMany(() => ExpertPuja, (puja) => puja.expert, {
+    cascade: true,
+  })
+  pujas: ExpertPuja[];
 
   @OneToMany(() => Address, (address) => address.profile_expert, {
     cascade: true,

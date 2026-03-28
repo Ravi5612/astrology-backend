@@ -26,6 +26,7 @@ import { CallModule } from '@/modules/call/call.module';
 import { LiveDarshanModule } from '@/modules/live-darshan/live-darshan.module';
 import { AgentModule } from '@/modules/agent/agent.module';
 import { CouponModule } from '@/modules/coupon/coupon.module';
+import { AstrologyModule } from '@/modules/astrology/astrology.module';
 import { PlacesModule } from '@/modules/places/places.module';
 
 @Module({
@@ -60,6 +61,7 @@ import { PlacesModule } from '@/modules/places/places.module';
     LiveDarshanModule,
     AgentModule,
     CouponModule,
+    AstrologyModule,
     PlacesModule,
   ]
 })
