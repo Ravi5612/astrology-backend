@@ -154,7 +154,7 @@ export class ProfileController {
     @Body() dto: ExpertPujaDto,
     @Query('id') id?: number,
   ) {
-    return this.profileFacade.upsertPuja(user, dto, id);
+    return this.profileFacade.upsertPuja(user, dto, id ? Number(id) : undefined);
   }
 
   @Delete('puja/:id')

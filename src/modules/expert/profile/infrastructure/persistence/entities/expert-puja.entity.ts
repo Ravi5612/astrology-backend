@@ -34,7 +34,10 @@ export class ExpertPuja {
   name: string;
 
   @Column({ type: 'float', default: 0 })
-  duration_hours: number;
+  min_duration_hours: number;
+
+  @Column({ type: 'float', default: 0 })
+  max_duration_hours: number;
 
   @Column({ type: 'float', default: 0 })
   cost: number;

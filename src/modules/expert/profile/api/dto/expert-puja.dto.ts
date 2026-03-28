@@ -23,7 +23,11 @@ export class ExpertPujaDto {
 
   @IsNumber()
   @Min(0)
-  duration_hours: number;
+  min_duration_hours: number;
+
+  @IsNumber()
+  @Min(0)
+  max_duration_hours: number;
 
   @IsNumber()
   @Min(0)

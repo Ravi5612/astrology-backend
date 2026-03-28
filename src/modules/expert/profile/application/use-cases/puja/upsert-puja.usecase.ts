@@ -46,7 +46,8 @@ export class UpsertPujaUseCase {
 
     puja.type = dto.type;
     puja.name = dto.name;
-    puja.duration_hours = dto.duration_hours;
+    puja.min_duration_hours = dto.min_duration_hours;
+    puja.max_duration_hours = dto.max_duration_hours;
     puja.cost = dto.cost;
     puja.description = dto.description ?? null;
     puja.districts = dto.type === 'home_visit' ? (dto.districts ?? []) : null;
