@@ -107,6 +107,12 @@ export class ProfileExpert {
   @Column({ type: 'float', nullable: true })
   horoscope_price?: number;
 
+  @Column({ type: 'float', nullable: true, name: 'online_puja_price' })
+  online_puja_price?: number;
+
+  @Column({ type: 'float', nullable: true, name: 'home_visit_puja_price' })
+  home_visit_puja_price?: number;
+
   @Column({ type: 'json', nullable: true })
   custom_services?: Record<string, any>[];
 
