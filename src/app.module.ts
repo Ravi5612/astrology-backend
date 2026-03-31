@@ -28,6 +28,7 @@ import { AgentModule } from '@/modules/agent/agent.module';
 import { CouponModule } from '@/modules/coupon/coupon.module';
 import { AstrologyModule } from '@/modules/astrology/astrology.module';
 import { PlacesModule } from '@/modules/places/places.module';
+import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { PlacesModule } from '@/modules/places/places.module';
     CouponModule,
     AstrologyModule,
     PlacesModule,
+    PujaAppointmentModule,
   ]
 })
 export class AppModule { }
