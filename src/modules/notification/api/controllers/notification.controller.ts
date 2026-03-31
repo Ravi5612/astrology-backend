@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Delete, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { NotificationFacade } from '../../application/notification.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
@@ -29,5 +29,10 @@ export class NotificationController {
         @Param('id', ParseIntPipe) id: number,
     ) {
         return this.notificationFacade.markAsRead(id, user.id);
+    }
+
+    @Delete('all')
+    async clearAll(@CurrentUser() user: User) {
+        return this.notificationFacade.clearAll(user.id);
     }
 }

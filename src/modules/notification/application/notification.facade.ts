@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateNotificationUseCase } from './use-cases/create-notification.use-case';
 import { GetNotificationsUseCase } from './use-cases/get-notifications.use-case';
 import { MarkAsReadUseCase } from './use-cases/mark-as-read.use-case';
+import { ClearAllNotificationsUseCase } from './use-cases/clear-all-notifications.use-case';
 import { NotificationType } from '../infrastructure/persistence/entities/notification.entity';
 
 @Injectable()
@@ -10,6 +11,7 @@ export class NotificationFacade {
         private readonly createNotificationUseCase: CreateNotificationUseCase,
         private readonly getNotificationsUseCase: GetNotificationsUseCase,
         private readonly markAsReadUseCase: MarkAsReadUseCase,
+        private readonly clearAllNotificationsUseCase: ClearAllNotificationsUseCase,
     ) { }
 
     async create(
@@ -32,5 +34,9 @@ export class NotificationFacade {
 
     async getUnreadCount(userId: number) {
         return this.getNotificationsUseCase.getUnreadCount(userId);
+    }
+
+    async clearAll(userId: number) {
+        return this.clearAllNotificationsUseCase.execute(userId);
     }
 }
