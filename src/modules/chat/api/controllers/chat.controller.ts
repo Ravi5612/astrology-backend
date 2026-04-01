@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Body,
   Param,
   UseGuards,
@@ -114,6 +115,34 @@ export class ChatController {
       );
     }
     return session;
+  }
+
+  @Patch('session/:sessionId/status')
+  async updateStatus(
+    @Param('sessionId', ParseIntPipe) sessionId: number,
+    @Body('status') status: string,
+  ) {
+    console.log(`[ChatController] Expert Updating status of session ${sessionId} to ${status}`);
+    
+    if (status === 'accepted') {
+        const session = await this.chatFacade.activateSession(sessionId);
+        if (session) {
+            this.chatGateway.server.to(`room_${sessionId}`).emit('session_activated', session);
+            this.chatGateway.notifyExpertStatusUpdate(session.expert_id, 'session_activated', session);
+        }
+        return session;
+    }
+
+    if (status === 'rejected' || status === 'cancelled') {
+        const session = await this.chatFacade.expireSession(sessionId); // Or similar logic for manual rejection
+        if (session) {
+            this.chatGateway.server.to(`room_${sessionId}`).emit('session_ended', { status: 'rejected', id: sessionId });
+            this.chatGateway.notifyExpertStatusUpdate(session.expert_id, 'session_ended', { status: 'rejected', id: sessionId });
+        }
+        return session;
+    }
+
+    return { success: false, message: 'Invalid status update for chat' };
   }
 
   @Get('session/:sessionId')

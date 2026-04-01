@@ -1,8 +1,9 @@
-import { Controller, Post, Get, Body, UseGuards, Req, Header, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, UseGuards, Req, Header, Param, ParseIntPipe } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CallType } from '../../infrastructure/persistence/entities/call-session.entity';
 import { CallFacade } from '../../application/call.facade';
 import { CallSessionFilter } from '../../application/use-cases/get-expert-sessions.use-case';
+import { CallGateway } from '../../call.gateway';
 
 @Controller({
     path: 'call',
@@ -12,6 +13,7 @@ import { CallSessionFilter } from '../../application/use-cases/get-expert-sessio
 export class CallController {
     constructor(
         private readonly callFacade: CallFacade,
+        private readonly callGateway: CallGateway,
     ) { }
 
     @Post('initiate')
@@ -46,6 +48,30 @@ export class CallController {
     ) {
         console.log(`[CallController] End call: sessionId=${body.sessionId}`);
         return this.callFacade.end(body.sessionId);
+    }
+
+    @Patch('session/:sessionId/status')
+    async updateStatus(
+        @Req() req: any,
+        @Param('sessionId', ParseIntPipe) sessionId: number,
+        @Body('status') status: string,
+    ) {
+        console.log(`[CallController] Expert Updating status of call session ${sessionId} to ${status}`);
+        
+        if (status === 'accepted') {
+            const res = await this.callFacade.accept(req.user.id, sessionId);
+            // Notifications are handled inside fachada/uses cases for calls usually,
+            // but we'll ensure consistency if needed via gateway.
+            return res;
+        }
+
+        if (status === 'rejected' || status === 'cancelled') {
+            const res = await this.callFacade.end(sessionId); // Calling end for rejection too
+            // Note: specialized end logic might be needed for 'pending' state
+            return res;
+        }
+
+        return { success: false, message: 'Invalid status update for call' };
     }
 
     @Get('session/:sessionId')
