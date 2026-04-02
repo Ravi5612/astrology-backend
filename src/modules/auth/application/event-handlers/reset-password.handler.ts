@@ -19,7 +19,7 @@ export class ResetPasswordEventHandler {
   }
 
   private buildTemplate(event: ResetPasswordEvent) {
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${event.password_reset_token}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?password_reset_token=${event.password_reset_token}`;
     return `
       <p>Hello,</p>
       <p>Click the link below to reset your password:</p>

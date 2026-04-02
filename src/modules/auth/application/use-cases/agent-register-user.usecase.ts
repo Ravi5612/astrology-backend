@@ -119,7 +119,7 @@ export class AgentRegisterUserUseCase {
         const isExpert = dto.roles.includes('expert');
         const configKey = isExpert ? 'email.expertFrontendUrl' : 'email.frontendUrl';
         const frontendUrl = this.configService.get(configKey) || (isExpert ? process.env.ASTROLOGER_FRONTEND_URL : process.env.FRONTEND_URL);
-        const verifyLink = `${frontendUrl}/verify-email?token=${verification_token}`;
+        const verifyLink = `${frontendUrl}/verify-email?verification_token=${verification_token}`;
 
         const roleString = dto.roles.includes('expert') ? 'Astrologer' : 'User';
 

@@ -27,7 +27,7 @@ export class UserRegisteredHandler {
     const configKey = isExpert ? 'email.expertFrontendUrl' : 'email.frontendUrl';
     const frontendUrl =
       this.configService.get(configKey) || (isExpert ? process.env.ASTROLOGER_FRONTEND_URL : process.env.FRONTEND_URL);
-    const verifyLink = `${frontendUrl}/verify-email?token=${event.verification_token}`;
+    const verifyLink = `${frontendUrl}/verify-email?verification_token=${event.verification_token}`;
     
     return `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
