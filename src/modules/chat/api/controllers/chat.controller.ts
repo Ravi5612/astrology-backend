@@ -83,12 +83,20 @@ export class ChatController {
 
   @Post('activate/:sessionId')
   async activateSession(@Param('sessionId', ParseIntPipe) sessionId: number) {
-    const session = await this.chatFacade.activateSession(sessionId);
+    const { session, introCard } = await this.chatFacade.activateSession(sessionId);
     if (session) {
       // Notify the specific chat room
       this.chatGateway.server
         .to(`room_${sessionId}`)
         .emit('session_activated', session);
+      
+      // Notify about intro card if created
+      if (introCard) {
+        this.chatGateway.server
+          .to(`room_${sessionId}`)
+          .emit('new_message', introCard);
+      }
+
       // Notify the expert's dashboard room
       this.chatGateway.notifyExpertStatusUpdate(
         session.expert_id,
@@ -122,12 +130,17 @@ export class ChatController {
     @Param('sessionId', ParseIntPipe) sessionId: number,
     @Body('status') status: string,
   ) {
-    console.log(`[ChatController] Expert Updating status of session ${sessionId} to ${status}`);
+    
     
     if (status === 'accepted') {
-        const session = await this.chatFacade.activateSession(sessionId);
+        const { session, introCard } = await this.chatFacade.activateSession(sessionId);
         if (session) {
             this.chatGateway.server.to(`room_${sessionId}`).emit('session_activated', session);
+            
+            if (introCard) {
+                this.chatGateway.server.to(`room_${sessionId}`).emit('new_message', introCard);
+            }
+
             this.chatGateway.notifyExpertStatusUpdate(session.expert_id, 'session_activated', session);
         }
         return session;

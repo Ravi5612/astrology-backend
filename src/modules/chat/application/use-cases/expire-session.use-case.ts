@@ -18,7 +18,7 @@ export class ExpireSessionUseCase {
         });
         if (!session || session.status !== ChatSessionStatus.PENDING) return;
 
-        console.log(`[ChatService] Expiring session ${sessionId} due to timeout`);
+    
         session.status = ChatSessionStatus.EXPIRED;
         await this.sessionRepo.save(session);
 

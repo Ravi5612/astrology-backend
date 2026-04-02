@@ -15,7 +15,7 @@ export class InitiateChatUseCase {
         private walletFacade: WalletFacade,
     ) { }
 
-    async execute(userId: number, expertId: number) {
+    async execute(userId: number, expertId: number, metadata?: any) {
         // ✅ Check if user already has an ACTIVE or PENDING session
         const existingSession = await this.sessionRepo.findOne({
             where: [
@@ -87,6 +87,7 @@ export class InitiateChatUseCase {
             status: ChatSessionStatus.PENDING,
             is_free: isEligibleForFree,
             free_minutes: freeMins,
+            metadata,
         });
 
         const savedSession = await this.sessionRepo.save(session);

@@ -55,17 +55,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { expertId: number },
   ) {
-    console.log(
-      `[SocketDebug] Registering expert PROFILE ID ${payload.expertId} to socket client ${client.id}`,
-    );
+    
     this.expertSockets.set(payload.expertId, client.id);
     client.join(`expert_${payload.expertId}`); // Join a private notification room
     this.logger.log(
       `Expert ${payload.expertId} registered and joined expert_${payload.expertId}`,
     );
-    console.log(
-      `[SocketDebug] Expert PROFILE ID ${payload.expertId} is now in room expert_${payload.expertId}`,
-    );
+    
     return { status: 'registered' };
   }
 
@@ -78,9 +74,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   notifyExpertNewRequest(expertId: number, session: any) {
-    console.log(
-      `[SocketDebug] Emitting 'new_chat_request' to expert room expert_${expertId}`,
-    );
+    
     this.server.to(`expert_${expertId}`).emit('new_chat_request', session);
     this.logger.log(
       `Notified expert room expert_${expertId} of new session ${session.id}`,
@@ -95,9 +89,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     event: 'session_activated' | 'session_ended',
     data: any,
   ) {
-    console.log(
-      `[SocketDebug] Emitting '${event}' to expert room expert_${expertId}`,
-    );
+    
     this.server.to(`expert_${expertId}`).emit(event, data);
     this.logger.log(
       `Status update ${event} sent to expert room expert_${expertId}`,
@@ -118,9 +110,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       session.status === ChatSessionStatus.COMPLETED ||
       session.status === ChatSessionStatus.EXPIRED
     ) {
-      console.log(
-        `[SocketDebug] Blocked join attempt for session ${payload.sessionId} (Status: ${session.status})`,
-      );
+    
       return {
         status: 'error',
         message: `Session is already ${session.status}`,
@@ -137,7 +127,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { sessionId: number },
   ) {
-    const session = await this.chatFacade.activateSession(payload.sessionId);
+    const { session, introCard } = await this.chatFacade.activateSession(
+      payload.sessionId,
+    );
 
     // Calculate initial timer values for immediate sync
     const userBalance = await this.walletFacade.getBalance(session.user_id);
@@ -168,6 +160,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server
       .to(`room_${payload.sessionId}`)
       .emit('session_activated', dataWithTimers);
+
+    // ✅ Broadcast Intro Card if it exists
+    if (introCard) {
+      this.server.to(`room_${payload.sessionId}`).emit('new_message', introCard);
+    }
 
     // Notify expert dashboard directly
     if (session.expert_id) {
@@ -301,9 +298,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Validation: Only allow messages if session is active
     const session = await this.chatFacade.getSession(payload.sessionId);
     if (!session || session.status !== ChatSessionStatus.ACTIVE) {
-      console.log(
-        `[SocketDebug] Blocked message for session ${payload.sessionId} - Status: ${session?.status}`,
-      );
+      
       return { status: 'error', message: 'Chat is not active' };
     }
 
@@ -324,12 +319,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { sessionId: number },
   ) {
-    console.log(`[Socket] Received end_chat request for session ${payload.sessionId}`);
+    
     const session = await this.chatFacade.endChat(payload.sessionId);
 
     // Broadcast to the room so BOTH User and Expert know immediately
     this.server.to(`room_${payload.sessionId}`).emit('session_ended', session);
-    console.log(`[Socket] Emitted session_ended to room_${payload.sessionId}`);
+    
 
     // Notify expert dashboard directly (if they are in dashboard view)
     if (session && session.expert_id) {

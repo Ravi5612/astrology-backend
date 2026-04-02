@@ -37,8 +37,8 @@ export class ChatFacade {
         private readonly adminTerminateSessionUseCase: AdminTerminateSessionUseCase,
     ) { }
 
-    async initiateChat(userId: number, expertId: number) {
-        return this.initiateChatUseCase.execute(userId, expertId);
+    async initiateChat(userId: number, expertId: number, metadata?: any) {
+        return this.initiateChatUseCase.execute(userId, expertId, metadata);
     }
 
     async activateSession(sessionId: number) {

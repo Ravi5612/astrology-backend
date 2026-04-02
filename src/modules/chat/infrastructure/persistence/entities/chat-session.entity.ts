@@ -76,6 +76,9 @@ export class ChatSession {
   @Column({ type: 'float', default: 0, name: 'total_cost' })
   total_cost: number;
 
+  @Column({ type: 'jsonb', nullable: true, name: 'metadata' })
+  metadata: any;
+
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   created_at: Date;
 
