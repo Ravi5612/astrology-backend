@@ -28,8 +28,8 @@ export class VerifyEmailHandler {
     );
     const configKey = isExpert ? 'email.expertFrontendUrl' : 'email.frontendUrl';
     const frontendUrl =
-      this.configService.get(configKey) || 'http://localhost:3000';
-    const confirmUrl = `${frontendUrl}/verify-email?verification_token=${event.verification_token}`;
+      this.configService.get(configKey) || (isExpert ? process.env.ASTROLOGER_FRONTEND_URL : process.env.FRONTEND_URL);
+    const confirmUrl = `${frontendUrl}/verify-email?token=${event.verification_token}`;
     return `
       <p>Hello,</p>
       <p>Please confirm your email by clicking the link below:</p>
