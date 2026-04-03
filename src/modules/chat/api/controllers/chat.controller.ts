@@ -85,10 +85,12 @@ export class ChatController {
   async activateSession(@Param('sessionId', ParseIntPipe) sessionId: number) {
     const { session, introCard } = await this.chatFacade.activateSession(sessionId);
     if (session) {
+      const enrichedSession = await this.enrichSessionTimers(session);
+
       // Notify the specific chat room
       this.chatGateway.server
         .to(`room_${sessionId}`)
-        .emit('session_activated', session);
+        .emit('session_activated', enrichedSession);
       
       // Notify about intro card if created
       if (introCard) {
@@ -101,8 +103,9 @@ export class ChatController {
       this.chatGateway.notifyExpertStatusUpdate(
         session.expert_id,
         'session_activated',
-        session,
+        enrichedSession,
       );
+      return enrichedSession;
     }
     return session;
   }
@@ -135,13 +138,15 @@ export class ChatController {
     if (status === 'accepted') {
         const { session, introCard } = await this.chatFacade.activateSession(sessionId);
         if (session) {
-            this.chatGateway.server.to(`room_${sessionId}`).emit('session_activated', session);
+            const enrichedSession = await this.enrichSessionTimers(session);
+            this.chatGateway.server.to(`room_${sessionId}`).emit('session_activated', enrichedSession);
             
             if (introCard) {
                 this.chatGateway.server.to(`room_${sessionId}`).emit('new_message', introCard);
             }
 
-            this.chatGateway.notifyExpertStatusUpdate(session.expert_id, 'session_activated', session);
+            this.chatGateway.notifyExpertStatusUpdate(session.expert_id, 'session_activated', enrichedSession);
+            return enrichedSession;
         }
         return session;
     }
@@ -164,56 +169,7 @@ export class ChatController {
     const session = await this.chatFacade.getSession(sessionId);
     if (!session) return null;
 
-    const expiryTimeMs = parseInt(
-      process.env.CHAT_REQUEST_EXPIRY_MS || '120000',
-      10,
-    );
-    const serverTime = new Date();
-    const createdAt = new Date(session.created_at);
-    const expiresAt = new Date(createdAt.getTime() + expiryTimeMs);
-
-    // Timer Logic
-    let remainingSeconds = 0;
-    let elapsedSeconds = 0;
-
-    if (session.status === ChatSessionStatus.PENDING) {
-      remainingSeconds = Math.max(
-        0,
-        Math.floor((expiresAt.getTime() - serverTime.getTime()) / 1000),
-      );
-    } else if (
-      session.status === ChatSessionStatus.ACTIVE &&
-      session.start_time
-    ) {
-      const startTime = new Date(session.start_time);
-      elapsedSeconds = Math.max(
-        0,
-        Math.floor((serverTime.getTime() - startTime.getTime()) / 1000),
-      );
-
-      // CRITICAL: Get full potential balance (current + reserved for this session)
-      const wallet = await this.chatGateway.getWallet(session.user_id);
-      const totalAffordableBalance =
-        Number(wallet.balance) + Number(wallet.reserved_balance);
-      const price = session.price_per_minute || 0;
-
-      const maxMinutes = session.is_free
-        ? session.free_minutes
-        : price > 0
-          ? Math.floor(totalAffordableBalance / price)
-          : 0;
-
-      const totalAllowedSeconds = maxMinutes * 60;
-      remainingSeconds = Math.max(0, totalAllowedSeconds - elapsedSeconds);
-    }
-
-    return {
-      ...session,
-      expiresAt,
-      serverTime, // Sending server time for client sync
-      remainingSeconds,
-      elapsedSeconds,
-    };
+    return this.enrichSessionTimers(session);
   }
 
   @Get('history/:sessionId')
@@ -231,11 +187,6 @@ export class ChatController {
     @Param('expertId', ParseIntPipe) expertId: number,
     @Query('sessionId') sessionIdStr?: string,
   ) {
-    const expiryTimeMs = parseInt(
-      process.env.CHAT_REQUEST_EXPIRY_MS || '120000',
-      10,
-    );
-
     let session: any;
 
     if (sessionIdStr) {
@@ -247,36 +198,7 @@ export class ChatController {
       throw new NotFoundException('Chat session not found');
     }
 
-    const serverTime = new Date();
-    const createdAt = new Date(session.created_at);
-    const expiresAt = new Date(createdAt.getTime() + expiryTimeMs);
-
-    let remainingSeconds = 0;
-    let elapsedSeconds = 0;
-
-    if (session.status === ChatSessionStatus.PENDING) {
-      remainingSeconds = Math.max(
-        0,
-        Math.floor((expiresAt.getTime() - serverTime.getTime()) / 1000),
-      );
-    } else if (session.status === ChatSessionStatus.ACTIVE && session.start_time) {
-      const startTime = new Date(session.start_time);
-      elapsedSeconds = Math.max(
-        0,
-        Math.floor((serverTime.getTime() - startTime.getTime()) / 1000),
-      );
-
-      const wallet = await this.chatGateway.getWallet(session.user_id);
-      const totalAffordableBalance =
-        Number(wallet.balance) + Number(wallet.reserved_balance);
-      const price = session.price_per_minute || 0;
-      const maxMinutes = session.is_free
-        ? session.free_minutes
-        : price > 0
-          ? Math.floor(totalAffordableBalance / price)
-          : 0;
-      remainingSeconds = Math.max(0, maxMinutes * 60 - elapsedSeconds);
-    }
+    const enrichedSession = await this.enrichSessionTimers(session);
 
     // Build the expert object in the shape the frontend Astrologer type expects
     const expert = session.expert
@@ -297,17 +219,17 @@ export class ChatController {
 
     // Build session object in the shape the frontend expects
     const sessionData = {
-      id: session.id,
-      status: session.status,
-      isFree: session.is_free,
-      freeMinutes: session.free_minutes,
+      id: enrichedSession.id,
+      status: enrichedSession.status,
+      isFree: enrichedSession.is_free,
+      freeMinutes: enrichedSession.free_minutes,
       messages: [],  // Will be populated via socket events
-      expiresAt,
-      startedAt: session.start_time,
-      expires_at: expiresAt,
-      started_at: session.start_time,
-      remainingSeconds,
-      elapsedSeconds,
+      expiresAt: enrichedSession.expiresAt,
+      startedAt: enrichedSession.startedAt,
+      expires_at: enrichedSession.expiresAt,
+      started_at: enrichedSession.startedAt,
+      remainingSeconds: enrichedSession.remainingSeconds,
+      elapsedSeconds: enrichedSession.elapsedSeconds,
     };
 
     return {
@@ -487,17 +409,23 @@ export class ChatController {
     const session = await this.chatFacade.getActiveClientSession(user.id);
     if (!session) return null;
 
+    return this.enrichSessionTimers(session);
+  }
+
+  private async enrichSessionTimers(session: any): Promise<any> {
+    if (!session) return session;
+
     const expiryTimeMs = parseInt(
       process.env.CHAT_REQUEST_EXPIRY_MS || '120000',
       10,
     );
     const serverTime = new Date();
+    const createdAt = new Date(session.created_at);
+    let expiresAt = new Date(createdAt.getTime() + expiryTimeMs);
+    let startedAt = session.start_time ? new Date(session.start_time) : null;
 
     let remainingSeconds = 0;
     let elapsedSeconds = 0;
-    const expiresAt = new Date(
-      new Date(session.created_at).getTime() + expiryTimeMs,
-    );
 
     if (session.status === ChatSessionStatus.PENDING) {
       remainingSeconds = Math.max(
@@ -514,7 +442,6 @@ export class ChatController {
         Math.floor((serverTime.getTime() - startTime.getTime()) / 1000),
       );
 
-      // CRITICAL: Get full potential balance (current + reserved for this session)
       const wallet = await this.chatGateway.getWallet(session.user_id);
       const totalAffordableBalance =
         Number(wallet.balance) + Number(wallet.reserved_balance);
@@ -528,11 +455,16 @@ export class ChatController {
 
       const totalAllowedSeconds = maxMinutes * 60;
       remainingSeconds = Math.max(0, totalAllowedSeconds - elapsedSeconds);
+      
+      expiresAt = new Date(startTime.getTime() + totalAllowedSeconds * 1000);
+      startedAt = startTime;
     }
 
+    const sessionObj = typeof session.toJSON === 'function' ? session.toJSON() : session;
     return {
-      ...session,
+      ...sessionObj,
       expiresAt,
+      startedAt,
       serverTime,
       remainingSeconds,
       elapsedSeconds,

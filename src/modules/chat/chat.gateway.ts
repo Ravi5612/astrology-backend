@@ -132,13 +132,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
 
     // Calculate initial timer values for immediate sync
-    const userBalance = await this.walletFacade.getBalance(session.user_id);
+    const wallet = await this.walletFacade.getWallet(session.user_id);
+    const totalAffordableBalance = Number(wallet.balance) + Number(wallet.reserved_balance);
     const price = session.price_per_minute || 0;
 
     const maxMinutes = session.is_free
       ? session.free_minutes
       : price > 0
-        ? Math.floor(userBalance / price)
+        ? Math.floor(totalAffordableBalance / price)
         : 0;
 
     const serverTime = new Date();
@@ -150,10 +151,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       Math.floor((serverTime.getTime() - startTime.getTime()) / 1000),
     );
 
+    const totalAllowedSeconds = maxMinutes * 60;
+
     const dataWithTimers = {
       ...session,
+      startedAt: startTime,
+      expiresAt: new Date(startTime.getTime() + totalAllowedSeconds * 1000),
       serverTime,
-      remainingSeconds: Math.max(0, maxMinutes * 60 - currentElapsed),
+      remainingSeconds: Math.max(0, totalAllowedSeconds - currentElapsed),
       elapsedSeconds: currentElapsed,
     };
 
