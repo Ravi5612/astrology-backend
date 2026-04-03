@@ -8,6 +8,9 @@ import { CreateAgentUseCase } from './use-cases/create-agent.use-case';
 import { GetAgentsUseCase } from './use-cases/get-agents.use-case';
 import { GetAgentStatsUseCase } from './use-cases/get-agent-stats.use-case';
 import { GetAdminListingsUseCase } from './use-cases/get-admin-listings.use-case';
+import { GetAdminRevenueTrendUseCase } from './use-cases/get-admin-revenue-trend.use-case';
+import { GetAdminEarningsBreakdownUseCase } from './use-cases/get-admin-earnings-breakdown.use-case';
+import { GetAdminTopExpertsUseCase } from './use-cases/get-admin-top-experts.use-case';
 import { CreateAgentDto } from '../presentation/dto/create-agent.dto';
 import { ChatFacade } from '@/modules/chat/application/chat.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
@@ -25,6 +28,9 @@ export class AdminFacade {
     private readonly getAgentsUseCase: GetAgentsUseCase,
     private readonly getAgentStatsUseCase: GetAgentStatsUseCase,
     private readonly getAdminListingsUseCase: GetAdminListingsUseCase,
+    private readonly getRevenueTrendUseCase: GetAdminRevenueTrendUseCase,
+    private readonly getEarningsBreakdownUseCase: GetAdminEarningsBreakdownUseCase,
+    private readonly getTopExpertsUseCase: GetAdminTopExpertsUseCase,
     private readonly chatFacade: ChatFacade,
     private readonly walletFacade: WalletFacade,
   ) { }
@@ -89,6 +95,18 @@ export class AdminFacade {
  
   async getListings(params?: any) {
     return this.getAdminListingsUseCase.execute(params);
+  }
+
+  async getRevenueTrend(days: number = 7) {
+    return this.getRevenueTrendUseCase.execute(days);
+  }
+
+  async getEarningsBreakdown(days: number = 7) {
+    return this.getEarningsBreakdownUseCase.execute(days);
+  }
+
+  async getTopExperts(limit: number = 5) {
+    return this.getTopExpertsUseCase.execute(limit);
   }
 }
 

@@ -16,8 +16,10 @@ export class GetUserExpertGrowthStatsUseCase {
 
     const stats = await this.userRepository
       .createQueryBuilder('user')
+      .leftJoin('user.roles', 'role')
       .select("DATE(user.created_at)", "date")
-      .addSelect("COUNT(*)", "count")
+      .addSelect("COUNT(DISTINCT CASE WHEN role.name = 'client' THEN user.id END)", "userCount")
+      .addSelect("COUNT(DISTINCT CASE WHEN role.name = 'expert' THEN user.id END)", "expertCount")
       .where('user.created_at >= :date', { date: dateLimit })
       .groupBy("DATE(user.created_at)")
       .orderBy("date", "ASC")
@@ -25,7 +27,8 @@ export class GetUserExpertGrowthStatsUseCase {
 
     return stats.map(s => ({
       date: s.date,
-      count: parseInt(s.count, 10),
+      users: parseInt(s.userCount, 10) || 0,
+      experts: parseInt(s.expertCount, 10) || 0,
     }));
   }
 }
