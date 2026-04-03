@@ -74,6 +74,21 @@ export class AdminController {
     return this.adminFacade.getDashboardStats();
   }
 
+  @Get('analytics/revenue-trend')
+  async getRevenueTrend(@Query('days') days: number = 7) {
+    return this.adminFacade.getRevenueTrend(days);
+  }
+
+  @Get('analytics/earnings-breakdown')
+  async getEarningsBreakdown(@Query('days') days: number = 7) {
+    return this.adminFacade.getEarningsBreakdown(days);
+  }
+
+  @Get('analytics/top-experts')
+  async getTopExperts(@Query('limit') limit: number = 5) {
+    return this.adminFacade.getTopExperts(limit);
+  }
+
   @Get('experts/stats')
   async getExpertsStats() {
     return this.usersFacade.getExpertStats();

@@ -10,6 +10,10 @@ import { CreateAgentUseCase } from './application/use-cases/create-agent.use-cas
 import { GetAgentsUseCase } from './application/use-cases/get-agents.use-case';
 import { GetAgentStatsUseCase } from './application/use-cases/get-agent-stats.use-case';
 import { GetAdminListingsUseCase } from './application/use-cases/get-admin-listings.use-case';
+import { GetAdminRevenueTrendUseCase } from './application/use-cases/get-admin-revenue-trend.use-case';
+import { GetAdminEarningsBreakdownUseCase } from './application/use-cases/get-admin-earnings-breakdown.use-case';
+import { GetAdminTopExpertsUseCase } from './application/use-cases/get-admin-top-experts.use-case';
+
 import { UsersModule } from '@/modules/users/users.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { ChatModule } from '@/modules/chat/chat.module';
@@ -28,10 +32,30 @@ import { AgentProfile } from '../agent/infrastructure/persistence/entities/agent
 import { User } from '../users/infrastructure/persistence/entities/user.entity';
 import { AgentListing } from '../agent/infrastructure/persistence/entities/agent-listing.entity';
 import { ReviewsModule } from '@/modules/reviews/reviews.module';
+import { Transaction } from '../wallet/infrastructure/persistence/entities/transaction.entity';
+import { CallSession } from '../call/infrastructure/persistence/entities/call-session.entity';
+import { PujaAppointment } from '../puja-appointment/infrastructure/persistence/entities/puja-appointment.entity';
+import { OrderItem } from '../order/infrastructure/persistence/entities/order-item.entity';
+import { Product } from '../product/infrastructure/persistence/entities/product.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AdminAuditLog, ChatSession, Order, Coupon, UserCoupon, Role, AgentProfile, User, AgentListing]),
+    TypeOrmModule.forFeature([
+      AdminAuditLog, 
+      ChatSession, 
+      Order, 
+      OrderItem,
+      Product,
+      Coupon, 
+      UserCoupon, 
+      Role, 
+      AgentProfile, 
+      User, 
+      AgentListing,
+      Transaction,
+      CallSession,
+      PujaAppointment
+    ]),
 
     UsersModule,
     RolesModule,
@@ -54,7 +78,9 @@ import { ReviewsModule } from '@/modules/reviews/reviews.module';
     GetAgentsUseCase,
     GetAgentStatsUseCase,
     GetAdminListingsUseCase,
+    GetAdminRevenueTrendUseCase,
+    GetAdminEarningsBreakdownUseCase,
+    GetAdminTopExpertsUseCase,
   ],
 })
-
 export class AdminModule { }
