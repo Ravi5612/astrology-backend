@@ -53,6 +53,9 @@ export class Dispute {
     @Column({ name: 'order_id', nullable: true })
     order_id?: number;
 
+    @Column({ name: 'puja_id', nullable: true })
+    puja_id?: number;
+
     @Column({ type: 'json', nullable: true })
     item_details?: any;
 
