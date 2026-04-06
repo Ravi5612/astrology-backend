@@ -32,6 +32,7 @@ import { AstrologyModule } from '@/modules/astrology/astrology.module';
 import { CalendarModule } from '@/modules/calendar/calendar.module';
 import { PlacesModule } from '@/modules/places/places.module';
 import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
+import { MerchantModule } from './modules/merchant/merchant.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointme
     PlacesModule,
     CalendarModule,
     PujaAppointmentModule,
+    MerchantModule,
   ]
 })
 export class AppModule { }

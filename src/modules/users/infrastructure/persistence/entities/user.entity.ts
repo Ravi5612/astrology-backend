@@ -19,6 +19,7 @@ import { Exclude } from 'class-transformer';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/persistence/entities/profile-client.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { AgentProfile } from '@/modules/agent/infrastructure/persistence/entities/agent-profile.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
 
 @Entity('users')
 export class User {
@@ -85,6 +86,9 @@ export class User {
 
   @OneToOne(() => AgentProfile, (p) => p.user, { cascade: true })
   agent_profile?: AgentProfile;
+
+  @OneToOne(() => ProfileMerchant, (p) => p.user, { cascade: true })
+  profile_merchant?: ProfileMerchant;
 
   // methods
 

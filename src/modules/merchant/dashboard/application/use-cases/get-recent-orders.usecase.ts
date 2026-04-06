@@ -1,0 +1,31 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { OrderItem } from '@/modules/order/infrastructure/persistence/entities/order-item.entity';
+
+@Injectable()
+export class GetRecentOrdersUseCase {
+  constructor(
+    @InjectRepository(OrderItem)
+    private readonly orderItemRepo: Repository<OrderItem>,
+  ) {}
+
+  async execute(userId: number) {
+    const recentOrderItems = await this.orderItemRepo.find({
+      where: { product: { merchant_id: userId } },
+      relations: ['order', 'order.user', 'product'],
+      order: { created_at: 'DESC' },
+      take: 10,
+    });
+
+    // Map to the requested format, grouping by order naturally via the join
+    return recentOrderItems.map((item) => ({
+      id: item.order.id.toString(),
+      customerName: item.order.user?.name || 'Guest',
+      amount: Number(item.price) * item.quantity,
+      status: item.order.status,
+      date: item.order.created_at.toISOString(),
+      productName: item.product.name,
+    }));
+  }
+}

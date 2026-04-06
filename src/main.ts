@@ -20,9 +20,11 @@ async function bootstrap() {
         process.env.ADMIN_FRONTEND_URL,
         process.env.ASTROLOGER_FRONTEND_URL,
         process.env.AGENT_FRONTEND_URL,
+        process.env.MERCHANT_FRONTEND_URL,
         'http://localhost:3000',
         'http://localhost:3001',
         'http://localhost:3003',
+        'http://localhost:3004', // Merchant Hub
         'http://localhost:8000',
         'https://astrology-in-bharat-app-frontend-ad.vercel.app', // Added the reported origin
       ].filter(Boolean);

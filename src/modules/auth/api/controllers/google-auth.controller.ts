@@ -115,6 +115,8 @@ export class GoogleAuthController {
         frontendUrl = this.config.get<string>('ASTROLOGER_FRONTEND_URL') || 'http://localhost:3003';
       } else if (roles.some((r: any) => r.name === 'admin')) {
         frontendUrl = this.config.get<string>('ADMIN_FRONTEND_URL') || 'http://localhost:3001';
+      } else if (roles.some((r: any) => r.name === 'merchant')) {
+        frontendUrl = this.config.get<string>('MERCHANT_FRONTEND_URL') || 'http://localhost:3004';
       }
     }
 

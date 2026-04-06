@@ -15,6 +15,12 @@ export class Product {
   @Column()
   name: string;
 
+  @Column({ name: 'sku', nullable: true, unique: true })
+  sku: string;
+
+  @Column({ name: 'category', nullable: true })
+  category: string;
+
   @Column({ type: 'text' })
   description: string;
 
@@ -41,6 +47,9 @@ export class Product {
 
   @Column({ name: 'expert_id', nullable: true })
   expert_id: number;
+
+  @Column({ name: 'merchant_id', nullable: true })
+  merchant_id: number;
 
   @Column({ default: true, name: 'is_active' })
   is_active: boolean;

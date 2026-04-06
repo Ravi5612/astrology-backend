@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthController } from './api/controllers/auth.controller';
+import { MerchantAuthController } from './api/controllers/merchant-auth.controller';
 import { UsersModule } from '@/modules/users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
@@ -9,12 +10,14 @@ import { OAuthAccount } from './infrastructure/persistence/entities/oauth-accoun
 import { JwtStrategy } from './api/strategies/jwt.strategy';
 import { DatabaseModule } from 'src/core/database/database.module';
 import { AgentProfile } from '../agent/infrastructure/persistence/entities/agent-profile.entity';
+import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
 
 import { UsedTokens } from './infrastructure/persistence/entities/used-tokens.entity';
 import { AuthFacade } from './application/auth.facade';
 import { LoginWithEmailUseCase } from './application/use-cases/login-with-email.usecase';
 import { RegisterUserUseCase } from './application/use-cases/register-user.usecase';
 import { AgentRegisterUserUseCase } from './application/use-cases/agent-register-user.usecase';
+import { MerchantRegisterUserUseCase } from './application/use-cases/merchant-register-user.usecase';
 import { Argon2PasswordHasher } from './infrastructure/hashing/argon2-password.hasher';
 import { IssueAuthTokensUseCase } from './application/use-cases/issue-auth-tokens.usecase';
 import { TokenCryptoService } from './infrastructure/tokens/token-crypto.service';
@@ -38,6 +41,7 @@ import { JwtRefreshStrategy } from './api/strategies/jwt-refresh.strategy';
 import { SendMagicLinkEventHandler } from './application/event-handlers/send-magic-link.handler';
 import { SendMagicLinkUseCase } from './application/use-cases/send-magic-link.usecase';
 import { LoginWithMagicLinkUseCase } from './application/use-cases/login-with-magic-link.usecase';
+import { GetMerchantProfileUseCase } from './application/use-cases/get-merchant-profile.usecase';
 import { ExternalModule } from '@/external/external.module';
 import {
   AUTH_PROFILE_CREATION_STRATEGIES,
@@ -45,6 +49,7 @@ import {
 import { ClientAuthProfileCreationStrategy } from './application/strategies/client-auth-profile-creation.strategy';
 import { ExpertAuthProfileCreationStrategy } from './application/strategies/expert-auth-profile-creation.strategy';
 import { AgentAuthProfileCreationStrategy } from './application/strategies/agent-auth-profile-creation.strategy';
+import { MerchantAuthProfileCreationStrategy } from './application/strategies/merchant-auth-profile-creation.strategy';
 import { AuthProfileCreationResolver } from './application/strategies/auth-profile-creation.resolver';
 
 @Module({
@@ -55,6 +60,7 @@ import { AuthProfileCreationResolver } from './application/strategies/auth-profi
     ExternalModule,
     ClientProfileModule,
     ExpertProfileModule,
+    MerchantProfileModule,
   ],
   providers: [
     // AuthService,
@@ -68,6 +74,7 @@ import { AuthProfileCreationResolver } from './application/strategies/auth-profi
     ClientAuthProfileCreationStrategy,
     ExpertAuthProfileCreationStrategy,
     AgentAuthProfileCreationStrategy,
+    MerchantAuthProfileCreationStrategy,
     AuthProfileCreationResolver,
     {
       provide: AUTH_PROFILE_CREATION_STRATEGIES,
@@ -75,11 +82,13 @@ import { AuthProfileCreationResolver } from './application/strategies/auth-profi
         expert: ExpertAuthProfileCreationStrategy,
         client: ClientAuthProfileCreationStrategy,
         agent: AgentAuthProfileCreationStrategy,
-      ) => [expert, client, agent],
+        merchant: MerchantAuthProfileCreationStrategy,
+      ) => [expert, client, agent, merchant],
       inject: [
         ExpertAuthProfileCreationStrategy,
         ClientAuthProfileCreationStrategy,
         AgentAuthProfileCreationStrategy,
+        MerchantAuthProfileCreationStrategy,
       ],
     },
 
@@ -87,6 +96,7 @@ import { AuthProfileCreationResolver } from './application/strategies/auth-profi
     // Use case -  start
     RegisterUserUseCase,
     AgentRegisterUserUseCase,
+    MerchantRegisterUserUseCase,
     LoginWithEmailUseCase,
     LoginWithGoogleUseCase,
     IssueAuthTokensUseCase,
@@ -98,6 +108,7 @@ import { AuthProfileCreationResolver } from './application/strategies/auth-profi
     RefreshTokenUseCase,
     SendMagicLinkUseCase,
     LoginWithMagicLinkUseCase,
+    GetMerchantProfileUseCase,
     // Use case - end
 
     Argon2PasswordHasher,
@@ -108,7 +119,7 @@ import { AuthProfileCreationResolver } from './application/strategies/auth-profi
     VerifyEmailHandler,
     SendMagicLinkEventHandler,
   ],
-  controllers: [AuthController, GoogleAuthController],
+  controllers: [AuthController, MerchantAuthController, GoogleAuthController],
   // exports: [TokenService, OAuthService],
 })
 export class AuthModule { }
