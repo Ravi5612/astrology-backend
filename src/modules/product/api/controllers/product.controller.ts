@@ -11,6 +11,9 @@ import {
   UploadedFiles,
   UseInterceptors,
   InternalServerErrorException,
+  Query,
+  DefaultValuePipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ProductFacade } from '../../application/product.facade';
 import { CreateProductDto } from '../dto/create-product.dto';
@@ -75,8 +78,18 @@ export class ProductController {
   }
 
   @Get()
-  findAll() {
-    return this.productFacade.findAll();
+  findAll(
+    @Query('merchantId') merchantId?: string,
+    @Query('expertId') expertId?: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+  ) {
+    return this.productFacade.findAll({
+      merchantId: merchantId ? +merchantId : undefined,
+      expertId: expertId ? +expertId : undefined,
+      page,
+      limit,
+    });
   }
 
   @Get(':id')

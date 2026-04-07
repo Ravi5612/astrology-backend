@@ -23,8 +23,8 @@ export class ProductFacade {
     return this.createProductUseCase.execute(dto);
   }
 
-  findAll() {
-    return this.findAllProductsUseCase.execute();
+  findAll(filters: { merchantId?: number; expertId?: number; page?: number; limit?: number } = {}) {
+    return this.findAllProductsUseCase.execute(filters);
   }
 
   findByExpert(expertId: number) {

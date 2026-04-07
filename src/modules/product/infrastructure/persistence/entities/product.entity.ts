@@ -39,6 +39,9 @@ export class Product {
   @Column({ name: 'image_url', nullable: true, default: '' })
   image_url: string;
 
+  @Column({ type: 'json', nullable: true })
+  gallery?: string[];
+
   @Column({ name: 'short_description', nullable: true, type: 'text' })
   short_description: string;
 

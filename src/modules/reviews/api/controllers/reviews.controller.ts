@@ -43,4 +43,13 @@ export class ReviewsController {
   async getStats(@Param('expertId', ParseIntPipe) expertId: number) {
     return this.reviewsFacade.getReviewsStats(expertId);
   }
+
+  @Get('merchant/:merchantId')
+  async getMerchantReviews(
+    @Param('merchantId', ParseIntPipe) merchantId: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    return this.reviewsFacade.getMerchantReviews(merchantId, page, limit);
+  }
 }

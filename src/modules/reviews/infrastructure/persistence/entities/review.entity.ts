@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
+import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
 import { ChatSession } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
 import { CallSession } from '@/modules/call/infrastructure/persistence/entities/call-session.entity';
 
@@ -23,12 +24,19 @@ export class Review {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ type: 'int', name: 'expert_id' })
-  expert_id: number;
+  @Column({ type: 'int', name: 'expert_id', nullable: true })
+  expert_id: number | null;
 
   @ManyToOne(() => ProfileExpert)
   @JoinColumn({ name: 'expert_id' })
   expert: ProfileExpert;
+
+  @Column({ type: 'int', name: 'merchant_id', nullable: true })
+  merchant_id: number | null;
+
+  @ManyToOne(() => ProfileMerchant)
+  @JoinColumn({ name: 'merchant_id' })
+  merchant: ProfileMerchant;
 
   @Column({ type: 'int', nullable: true, name: 'session_id' })
   session_id: number | null;

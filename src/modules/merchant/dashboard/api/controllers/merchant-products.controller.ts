@@ -12,6 +12,7 @@ import {
   HttpCode,
   HttpStatus,
   ParseIntPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
@@ -31,8 +32,8 @@ export class MerchantProductsController {
     @CurrentUser('id') userId: number,
     @Query('status') status?: string,
     @Query('search') search?: string,
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number = 20,
   ) {
     return this.merchantProducts.findAll(userId, { status, search, page, limit });
   }

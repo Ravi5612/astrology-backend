@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateReviewUseCase } from './use-cases/create-review.use-case';
 import { GetExpertReviewsUseCase } from './use-cases/get-expert-reviews.use-case';
+import { GetMerchantReviewsUseCase } from './use-cases/get-merchant-reviews.use-case';
 import { GetReviewsStatsUseCase } from './use-cases/get-reviews-stats.use-case';
 import { GetAdminReviewsUseCase } from './use-cases/get-admin-reviews.use-case';
 import { GetAdminReviewsStatsUseCase } from './use-cases/get-admin-reviews-stats.use-case';
@@ -14,6 +15,7 @@ export class ReviewsFacade {
   constructor(
     private readonly createReviewUseCase: CreateReviewUseCase,
     private readonly getExpertReviewsUseCase: GetExpertReviewsUseCase,
+    private readonly getMerchantReviewsUseCase: GetMerchantReviewsUseCase,
     private readonly getReviewsStatsUseCase: GetReviewsStatsUseCase,
     private readonly getAdminReviewsUseCase: GetAdminReviewsUseCase,
     private readonly getAdminReviewsStatsUseCase: GetAdminReviewsStatsUseCase,
@@ -28,6 +30,10 @@ export class ReviewsFacade {
 
   async getExpertReviews(expertId: number, page: number = 1, limit: number = 20) {
     return this.getExpertReviewsUseCase.execute(expertId, page, limit);
+  }
+
+  async getMerchantReviews(merchantId: number, page: number = 1, limit: number = 20) {
+    return this.getMerchantReviewsUseCase.execute(merchantId, page, limit);
   }
 
   async getReviewsStats(expertId: number) {
