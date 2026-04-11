@@ -56,7 +56,7 @@ export class ChatController {
     const sessionWithExpiry = { ...session, expiresAt, maxMinutes };
 
     // Notify expert with the full session object (including expiresAt and maxMinutes)
-    this.chatGateway.notifyExpertNewRequest(expertId, sessionWithExpiry);
+    this.chatGateway.notifyExpertNewRequest(dto.expertId, sessionWithExpiry);
 
     setTimeout(async () => {
       const expiredSession = await this.chatFacade.expireSession(session.id);
