@@ -229,6 +229,25 @@ export class AdminController {
     return this.adminFacade.assignCouponBulk(dto.couponCode, dto.filters);
   }
 
+
+  @Get('merchants')
+  async getAllMerchants(
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.adminFacade.getAllMerchants({ search, status, page, limit });
+  }
+
+  @Patch('merchants/:id/status')
+  async updateMerchantStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { status: string },
+  ) {
+    return this.adminFacade.updateMerchantStatus(id, body);
+  }
+
   // ── Agents Endpoints ────────────────────────────────────────────────────────
   @Post('agents')
   @UseInterceptors(FileFieldsInterceptor([

@@ -15,11 +15,6 @@ export enum MerchantStatus {
   SUSPENDED = 'suspended',
 }
 
-export enum KycStatus {
-  PENDING = 'pending',
-  ACTIVE = 'active',
-  REJECTED = 'rejected',
-}
 
 @Entity('profile_merchants')
 export class ProfileMerchant {
@@ -64,12 +59,6 @@ export class ProfileMerchant {
   })
   status: MerchantStatus;
 
-  @Column({
-    type: 'enum',
-    enum: KycStatus,
-    default: KycStatus.PENDING,
-  })
-  kycStatus: KycStatus;
 
   @Column({ type: 'decimal', precision: 3, scale: 1, default: 0 })
   rating: number;
@@ -91,6 +80,60 @@ export class ProfileMerchant {
 
   @Column({ type: 'json', nullable: true })
   features?: string[];
+
+  @Column({ name: 'is_online', default: true })
+  isOnline: boolean;
+
+  @Column({ nullable: true })
+  gstin?: string;
+
+  @Column({ nullable: true })
+  pan?: string;
+
+  @Column({ name: 'is_gst_exempt', default: false })
+  isGstExempt: boolean;
+
+  @Column({ name: 'bank_name', nullable: true })
+  bankName?: string;
+
+  @Column({ name: 'account_holder', nullable: true })
+  accountHolder?: string;
+
+  @Column({ name: 'account_number', nullable: true })
+  accountNumber?: string;
+
+  @Column({ nullable: true })
+  ifsc?: string;
+
+  @Column({ name: 'gst_certificate', nullable: true })
+  gstCertificate?: string;
+
+  @Column({ name: 'pan_front', nullable: true })
+  panFront?: string;
+
+  @Column({ name: 'pan_back', nullable: true })
+  panBack?: string;
+
+  @Column({ name: 'aadhar_front', nullable: true })
+  aadharFront?: string;
+
+  @Column({ name: 'aadhar_back', nullable: true })
+  aadharBack?: string;
+
+  @Column({ name: 'is_verified', default: false })
+  isVerified: boolean;
+
+  @Column({ name: 'operational_hours', nullable: true, default: '10:00 AM - 08:30 PM' })
+  operationalHours?: string;
+
+  @Column({ name: 'trust_score', nullable: true, default: '99.8' })
+  trustScore?: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  latitude?: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  longitude?: number;
 
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;

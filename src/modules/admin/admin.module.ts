@@ -13,6 +13,8 @@ import { GetAdminListingsUseCase } from './application/use-cases/get-admin-listi
 import { GetAdminRevenueTrendUseCase } from './application/use-cases/get-admin-revenue-trend.use-case';
 import { GetAdminEarningsBreakdownUseCase } from './application/use-cases/get-admin-earnings-breakdown.use-case';
 import { GetAdminTopExpertsUseCase } from './application/use-cases/get-admin-top-experts.use-case';
+import { GetAdminMerchantsUseCase } from './application/use-cases/get-admin-merchants.use-case';
+import { UpdateMerchantStatusAdminUseCase } from './application/use-cases/update-merchant-status-admin.use-case';
 
 import { UsersModule } from '@/modules/users/users.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
@@ -38,6 +40,8 @@ import { CallSession } from '../call/infrastructure/persistence/entities/call-se
 import { PujaAppointment } from '../puja-appointment/infrastructure/persistence/entities/puja-appointment.entity';
 import { OrderItem } from '../order/infrastructure/persistence/entities/order-item.entity';
 import { Product } from '../product/infrastructure/persistence/entities/product.entity';
+import { ProfileMerchant } from '../merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
+import { MerchantModule } from '../merchant/merchant.module';
 
 import { SystemSetting } from './infrastructure/persistence/entities/system-setting.entity';
 import { SettingsController } from './api/controllers/settings.controller';
@@ -61,6 +65,7 @@ import { GetSupportSettingsUseCase } from './application/use-cases/get-support-s
       CallSession,
       PujaAppointment,
       SystemSetting,
+      ProfileMerchant,
     ]),
 
     UsersModule,
@@ -69,6 +74,7 @@ import { GetSupportSettingsUseCase } from './application/use-cases/get-support-s
     WalletModule,
     ChatModule,
     ProfileModule,
+    MerchantModule,
     CouponModule,
     ReviewsModule,
     SupportModule,
@@ -89,6 +95,8 @@ import { GetSupportSettingsUseCase } from './application/use-cases/get-support-s
     GetAdminEarningsBreakdownUseCase,
     GetAdminTopExpertsUseCase,
     GetSupportSettingsUseCase,
+    GetAdminMerchantsUseCase,
+    UpdateMerchantStatusAdminUseCase,
   ],
 })
 export class AdminModule { }

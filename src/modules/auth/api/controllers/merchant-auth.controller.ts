@@ -84,7 +84,6 @@ export class MerchantAuthController {
           shopName: user.profile_merchant?.shopName || user.name,
           email: user.email,
           role: 'merchant',
-          kycStatus: user.profile_merchant?.kycStatus || 'pending',
         },
       };
     } catch (error) {

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'; // Triggering rebuild
+import { Module } from '@nestjs/common'; // Triggering DB re-sync
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
 

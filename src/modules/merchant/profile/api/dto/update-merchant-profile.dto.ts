@@ -1,4 +1,4 @@
-import { IsString, IsOptional, Matches, IsNotEmpty } from 'class-validator';
+import { IsString, IsOptional, Matches, IsNotEmpty, IsBoolean } from 'class-validator';
 
 export class UpdateMerchantProfileDto {
   @IsString({ message: 'Store name must be a string' })
@@ -31,4 +31,52 @@ export class UpdateMerchantProfileDto {
   @IsOptional()
   @Matches(/^[0-9]{6}$/, { message: 'Pincode should be exactly 6 digits' })
   pincode?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isOnline?: boolean;
+
+  @IsOptional()
+  @IsString()
+  operationalHours?: string;
+
+  @IsOptional()
+  @IsString()
+  trustScore?: string;
+
+  @IsOptional()
+  latitude?: string | number;
+
+  @IsOptional()
+  longitude?: string | number;
+
+  @IsOptional()
+  @IsString()
+  gstin?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i, { message: 'Invalid PAN card format' })
+  pan?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isGstExempt?: boolean;
+
+  @IsOptional()
+  @IsString()
+  bankName?: string;
+
+  @IsOptional()
+  @IsString()
+  accountHolder?: string;
+
+  @IsOptional()
+  @IsString()
+  accountNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^[A-Z]{4}0[A-Z0-9]{6}$/, { message: 'Invalid IFSC code format' })
+  ifsc?: string;
 }

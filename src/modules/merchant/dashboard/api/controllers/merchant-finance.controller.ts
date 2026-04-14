@@ -1,8 +1,9 @@
-import { Controller, Get, UseGuards, HttpCode, HttpStatus, Query, DefaultValuePipe, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseGuards, HttpCode, HttpStatus, Query, DefaultValuePipe, ParseIntPipe } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { GetMerchantFinanceStatsUseCase } from '../../application/use-cases/get-merchant-finance-stats.usecase';
 import { GetMerchantTransactionsUseCase } from '../../application/use-cases/get-merchant-transactions.usecase';
+import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
 @Controller({
   path: 'merchant/finance',
@@ -13,6 +14,7 @@ export class MerchantFinanceController {
   constructor(
     private readonly getStats: GetMerchantFinanceStatsUseCase,
     private readonly getTransactions: GetMerchantTransactionsUseCase,
+    private readonly walletFacade: WalletFacade,
   ) {}
 
   @Get('stats')
@@ -30,5 +32,16 @@ export class MerchantFinanceController {
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
   ) {
     return this.getTransactions.execute(userId, { search, page, limit });
+  }
+
+  @Post('withdraw')
+  @HttpCode(HttpStatus.OK)
+  async withdraw(@CurrentUser('id') userId: number, @Body('amount') amount: number) {
+    const withdrawal = await this.walletFacade.requestWithdrawal(userId, amount);
+    return {
+      success: true,
+      message: 'Withdrawal request submitted successfully',
+      data: withdrawal,
+    };
   }
 }

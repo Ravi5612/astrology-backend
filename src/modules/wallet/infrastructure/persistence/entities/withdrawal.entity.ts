@@ -38,8 +38,20 @@ export class Withdrawal {
     @JoinColumn({ name: 'bank_account_id' })
     bankAccount: BankAccount;
 
-    @Column({ type: 'int', name: 'bank_account_id' })
+    @Column({ type: 'int', name: 'bank_account_id', nullable: true })
     bank_account_id: number;
+
+    @Column({ name: 'merchant_bank_name', nullable: true })
+    merchant_bank_name?: string;
+
+    @Column({ name: 'merchant_account_number', nullable: true })
+    merchant_account_number?: string;
+
+    @Column({ name: 'merchant_ifsc', nullable: true })
+    merchant_ifsc?: string;
+
+    @Column({ name: 'merchant_account_holder', nullable: true })
+    merchant_account_holder?: string;
 
     @Column({
         type: 'enum',

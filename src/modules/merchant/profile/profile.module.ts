@@ -14,6 +14,8 @@ import { UpdateMerchantProfileUseCase } from './application/use-cases/update-mer
 
 import { MerchantPublicController } from './api/controllers/merchant-public.controller';
 import { MerchantProfileController } from './api/controllers/merchant-profile.controller';
+import { MerchantGateway } from './api/gateways/merchant.gateway';
+import { EncryptionService } from '@/common/services/encryption.service';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { MerchantProfileController } from './api/controllers/merchant-profile.co
     GetUniqueMerchantCitiesUseCase,
     GetMerchantProfileUseCase,
     UpdateMerchantProfileUseCase,
+    MerchantGateway,
+    EncryptionService,
   ],
   exports: [
     TypeOrmModule,
@@ -36,6 +40,7 @@ import { MerchantProfileController } from './api/controllers/merchant-profile.co
     GetUniqueMerchantCitiesUseCase,
     GetMerchantProfileUseCase,
     UpdateMerchantProfileUseCase,
+    EncryptionService,
   ],
 })
 export class ProfileModule { }

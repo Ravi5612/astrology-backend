@@ -41,7 +41,6 @@ export class GetMerchantProfileUseCase {
       shopName: fullUser.profile_merchant?.shopName || fullUser.name,
       email: fullUser.email,
       role: 'merchant',
-      kycStatus: fullUser.profile_merchant?.kycStatus || 'pending',
       status: fullUser.profile_merchant?.status || 'pending_verification',
     };
   }

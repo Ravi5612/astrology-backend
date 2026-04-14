@@ -93,7 +93,7 @@ export class WalletFacade {
     return this.getWithdrawalsStatusUseCase.execute(userId);
   }
 
-  async requestWithdrawal(userId: number, amount: number, bank_account_id: number) {
+  async requestWithdrawal(userId: number, amount: number, bank_account_id?: number) {
     return this.requestWithdrawalUseCase.execute(userId, amount, bank_account_id);
   }
 

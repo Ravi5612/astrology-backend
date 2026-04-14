@@ -39,12 +39,26 @@ export class MerchantProfileController {
     FileFieldsInterceptor([
       { name: 'image', maxCount: 1 },
       { name: 'video', maxCount: 1 },
+      { name: 'gstCertificate', maxCount: 1 },
+      { name: 'panFront', maxCount: 1 },
+      { name: 'panBack', maxCount: 1 },
+      { name: 'aadharFront', maxCount: 1 },
+      { name: 'aadharBack', maxCount: 1 },
     ]),
   )
   async update(
     @CurrentUser('id') userId: number,
     @Body() dto: UpdateMerchantProfileDto,
-    @UploadedFiles() files: { image?: Express.Multer.File[]; video?: Express.Multer.File[] },
+    @UploadedFiles()
+    files: {
+      image?: Express.Multer.File[];
+      video?: Express.Multer.File[];
+      gstCertificate?: Express.Multer.File[];
+      panFront?: Express.Multer.File[];
+      panBack?: Express.Multer.File[];
+      aadharFront?: Express.Multer.File[];
+      aadharBack?: Express.Multer.File[];
+    },
   ) {
     return this.updateProfile.execute(userId, dto, files);
   }

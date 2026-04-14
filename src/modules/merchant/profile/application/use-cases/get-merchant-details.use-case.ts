@@ -78,6 +78,11 @@ export class GetMerchantDetailsUseCase {
       popularProducts: popularProducts,
       isLiked: isLiked,
       likesCount: likesCount,
+      isOnline: merchant.isOnline,
+      operationalHours: merchant.operationalHours,
+      trustScore: merchant.trustScore,
+      latitude: merchant.latitude,
+      longitude: merchant.longitude,
     };
   }
 }

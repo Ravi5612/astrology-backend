@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { AuthProfileCreationStrategy } from './auth-profile-creation.strategy';
 import { User } from '@/modules/users/infrastructure/persistence/entities/user.entity';
 import { QueryRunner } from 'typeorm';
-import { ProfileMerchant, MerchantStatus, KycStatus } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
+import { ProfileMerchant, MerchantStatus } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
 
 @Injectable()
 export class MerchantAuthProfileCreationStrategy implements AuthProfileCreationStrategy {
@@ -27,7 +27,6 @@ export class MerchantAuthProfileCreationStrategy implements AuthProfileCreationS
         user_id: user.id,
         shopName: user.name, // Will be populated with Google Name if Google Auth is used
         status: MerchantStatus.PENDING_VERIFICATION,
-        kycStatus: KycStatus.PENDING,
       });
       await manager.save(ProfileMerchant, newProfile);
     }

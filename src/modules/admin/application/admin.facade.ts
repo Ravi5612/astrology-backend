@@ -11,6 +11,8 @@ import { GetAdminListingsUseCase } from './use-cases/get-admin-listings.use-case
 import { GetAdminRevenueTrendUseCase } from './use-cases/get-admin-revenue-trend.use-case';
 import { GetAdminEarningsBreakdownUseCase } from './use-cases/get-admin-earnings-breakdown.use-case';
 import { GetAdminTopExpertsUseCase } from './use-cases/get-admin-top-experts.use-case';
+import { GetAdminMerchantsUseCase } from './use-cases/get-admin-merchants.use-case';
+import { UpdateMerchantStatusAdminUseCase } from './use-cases/update-merchant-status-admin.use-case';
 import { CreateAgentDto } from '../presentation/dto/create-agent.dto';
 import { ChatFacade } from '@/modules/chat/application/chat.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
@@ -32,6 +34,8 @@ export class AdminFacade {
     private readonly getRevenueTrendUseCase: GetAdminRevenueTrendUseCase,
     private readonly getEarningsBreakdownUseCase: GetAdminEarningsBreakdownUseCase,
     private readonly getTopExpertsUseCase: GetAdminTopExpertsUseCase,
+    private readonly getAdminMerchantsUseCase: GetAdminMerchantsUseCase,
+    private readonly updateMerchantStatusAdminUseCase: UpdateMerchantStatusAdminUseCase,
     private readonly chatFacade: ChatFacade,
     private readonly walletFacade: WalletFacade,
     private readonly supportFacade: SupportFacade,
@@ -130,6 +134,14 @@ export class AdminFacade {
 
   async sendDisputeMessage(disputeId: number, adminId: number, data: { message: string }) {
     return this.supportFacade.sendAdminMessage(adminId, disputeId, data);
+  }
+
+  async getAllMerchants(params: { search?: string; status?: string; page?: number; limit?: number }) {
+    return this.getAdminMerchantsUseCase.execute(params);
+  }
+
+  async updateMerchantStatus(id: number, data: { status: string; kycStatus?: string }) {
+    return this.updateMerchantStatusAdminUseCase.execute(id, data);
   }
 }
 

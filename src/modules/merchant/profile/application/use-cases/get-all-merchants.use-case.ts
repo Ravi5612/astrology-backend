@@ -39,6 +39,12 @@ export class GetAllMerchantsUseCase {
       .take(limit)
       .getManyAndCount();
 
+    if (merchants.length === 0) {
+      return {
+        merchants: [],
+      };
+    }
+
     // Fetch top 4 active product image URLs per merchant using user_id mapping
     const userIdToProfileId = new Map<number, number>();
     const userIds = merchants
@@ -120,6 +126,11 @@ export class GetAllMerchantsUseCase {
       popularProducts: productMap.get(m.id) ?? [],
       isLiked: likedMerchantIds.has(m.id),
       likesCount: likesCountMap.get(m.id) ?? 0,
+      isOnline: m.isOnline,
+      operationalHours: m.operationalHours,
+      trustScore: m.trustScore,
+      latitude: m.latitude,
+      longitude: m.longitude,
     }));
 
     return {

@@ -14,7 +14,7 @@ export class RequestWithdrawalUseCase {
   async execute(
     userId: number,
     amount: number,
-    bank_account_id: number,
+    bank_account_id?: number,
   ) {
     if (amount < 500)
       throw new BadRequestException('Minimum withdrawal amount is ₹500');
@@ -38,7 +38,7 @@ export class RequestWithdrawalUseCase {
       throw new BadRequestException(`Daily withdrawal limit of ₹${DAILY_LIMIT} exceeded. You have already requested ₹${currentTotal} today.`);
     }
 
-    // Check monthly request limit (max 2 per month)
+    // Check monthly request limit (max 2 per month) - Optional, keep for now
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
@@ -57,6 +57,30 @@ export class RequestWithdrawalUseCase {
     const wallet = await this.getWalletUseCase.execute(userId);
     if (Number(wallet.balance) < amount) {
       throw new BadRequestException('Insufficient balance for withdrawal');
+    }
+
+    // --- SNAPSHOT LOGIC ---
+    let merchantSnapshot: any = {};
+    if (!bank_account_id) {
+      const { ProfileMerchant } = await import('@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity');
+      const profile = await this.dataSource.getRepository(ProfileMerchant).findOne({
+        where: { user_id: userId }
+      });
+
+      if (!profile) {
+        throw new BadRequestException('Merchant profile not found');
+      }
+
+      if (!profile.bankName || !profile.accountNumber || !profile.ifsc) {
+        throw new BadRequestException('Please complete your bank details in profile settings before requesting withdrawal');
+      }
+
+      merchantSnapshot = {
+        merchant_bank_name: profile.bankName,
+        merchant_account_number: profile.accountNumber,
+        merchant_ifsc: profile.ifsc,
+        merchant_account_holder: profile.accountHolder || 'N/A'
+      };
     }
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -81,8 +105,9 @@ export class RequestWithdrawalUseCase {
       const withdrawal = queryRunner.manager.create(Withdrawal, {
         user_id: userId,
         amount,
-        bank_account_id: bank_account_id,
+        bank_account_id: bank_account_id || null,
         status: WithdrawalStatus.PENDING,
+        ...merchantSnapshot,
       });
       await queryRunner.manager.save(withdrawal);
 
