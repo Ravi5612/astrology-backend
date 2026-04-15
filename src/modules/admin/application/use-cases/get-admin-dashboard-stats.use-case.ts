@@ -62,6 +62,7 @@ export class GetAdminDashboardStatsUseCase {
       totalExperts: expertStats.totalExperts,
       totalUsers: userStats.totalUsers,
       totalEarnings: totalEarnings,
+      adminEarnings: 0, // Placeholder for admin's commission
       trends: expertStats.trends,
       activities: activities,
     };
