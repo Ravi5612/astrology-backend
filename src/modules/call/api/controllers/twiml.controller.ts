@@ -26,7 +26,7 @@ export class TwimlController {
     @Public()
     @Post('twiml')
     @Get('twiml') 
-    twiml(@Req() req: any, @Res() res: Response) {
+    async twiml(@Req() req: any, @Res() res: Response) {
         try {
             // Extract SessionId from various possible locations in the request
             const sessionId = req.body?.sessionId || 
