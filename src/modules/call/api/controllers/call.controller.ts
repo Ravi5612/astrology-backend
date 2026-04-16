@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Patch, Body, UseGuards, Req, Header, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, UseGuards, Req, Header, Param, ParseIntPipe, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CallType } from '../../infrastructure/persistence/entities/call-session.entity';
 import { CallFacade } from '../../application/call.facade';
