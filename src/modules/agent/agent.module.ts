@@ -5,10 +5,14 @@ import { AgentListing } from './infrastructure/persistence/entities/agent-listin
 import { AgentController } from './api/controllers/agent.controller';
 import { DatabaseModule } from '@/core/database/database.module';
 import { WalletModule } from '../wallet/wallet.module';
+import { CallSession } from '../call/infrastructure/persistence/entities/call-session.entity';
+import { ChatSession } from '../chat/infrastructure/persistence/entities/chat-session.entity';
+import { PujaAppointment } from '../puja-appointment/infrastructure/persistence/entities/puja-appointment.entity';
+import { Order } from '../order/infrastructure/persistence/entities/order.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([AgentProfile, AgentListing]),
+        TypeOrmModule.forFeature([AgentProfile, AgentListing, CallSession, ChatSession, PujaAppointment, Order]),
         DatabaseModule,
         WalletModule,
     ],

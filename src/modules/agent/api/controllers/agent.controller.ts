@@ -12,6 +12,10 @@ import { In } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { SystemSetting } from '@/modules/admin/infrastructure/persistence/entities/system-setting.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { CallSession } from '@/modules/call/infrastructure/persistence/entities/call-session.entity';
+import { ChatSession } from '@/modules/chat/infrastructure/persistence/entities/chat-session.entity';
+import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/persistence/entities/puja-appointment.entity';
+import { Order } from '@/modules/order/infrastructure/persistence/entities/order.entity';
 
 @Controller({
     path: 'agent',
@@ -384,14 +388,65 @@ export class AgentController {
         @Query('limit') limit: number = 10,
     ) {
         const result = await this.walletFacade.getTransactions(user.id, page, limit, 'all', 'agent_commission');
+
+        const resolvedData = await this.db.transaction(async (queryRunner) => {
+            return await Promise.all(result.items.map(async (t) => {
+                let listing = 'Unknown';
+                let type: string = t.purpose || 'commission';
+                const refId = t.reference_id || '';
+
+                try {
+                    if (refId.startsWith('call_')) {
+                        const callId = parseInt(refId.replace('call_', ''));
+                        const call = await queryRunner.manager.findOne(CallSession, {
+                            where: { id: callId },
+                            relations: ['expert', 'expert.user']
+                        });
+                        if (call) {
+                            listing = call.expert?.user?.name || 'Expert';
+                            type = call.type === 'video' ? 'video_call' : 'audio_call';
+                        }
+                    } else if (refId.startsWith('chat_')) {
+                        const chatId = parseInt(refId.replace('chat_', ''));
+                        const chat = await queryRunner.manager.findOne(ChatSession, {
+                            where: { id: chatId },
+                            relations: ['expert', 'expert.user']
+                        });
+                        if (chat) {
+                            listing = chat.expert?.user?.name || 'Expert';
+                            type = 'chat';
+                        }
+                    } else if (refId.startsWith('puja_')) {
+                        const pujaId = parseInt(refId.replace('puja_', ''));
+                        const puja = await queryRunner.manager.findOne(PujaAppointment, {
+                            where: { id: pujaId },
+                            relations: ['expert', 'expert.user', 'puja']
+                        });
+                        if (puja) {
+                            listing = puja.expert?.user?.name || 'Expert';
+                            type = 'puja_service';
+                        }
+                    } else if (refId.startsWith('order_')) {
+                        // For product orders, we might need to find which shop/merchant it belongs to
+                        // This usually requires checking order items or a direct relation
+                        type = 'puja_shop';
+                    }
+                } catch (err) {
+                    console.error('Error resolving commission detail:', err);
+                }
+
+                return {
+                    ...t,
+                    listing,
+                    type,
+                    date: t.created_at,
+                    status: (t as any).status === 'completed' ? 'paid' : (t as any).status || 'paid'
+                };
+            }));
+        });
+
         return {
-            data: result.items.map(t => ({
-                ...t,
-                date: t.created_at,
-                // Status is already included by GetTransactionsUseCase if it's a withdrawal, 
-                // for others it defaults to 'completed' which maps to 'paid' in UI logic
-                status: (t as any).status === 'completed' ? 'paid' : (t as any).status || 'paid'
-            })),
+            data: resolvedData,
             total: result.total,
             page: result.page,
             limit: result.limit
