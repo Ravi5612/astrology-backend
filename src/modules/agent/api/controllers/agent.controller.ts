@@ -465,7 +465,8 @@ export class AgentController {
     // ── Wallet / Payouts ──────────────────────────────────────────────────
     @Get('wallet/balance')
     async getBalance(@CurrentUser() user: User) {
-        return this.walletFacade.getBalance(user.id);
+        const balance = await this.walletFacade.getBalance(user.id);
+        return { balance }; // Return object as expected by frontend
     }
 
     @Get('wallet/withdrawals')
@@ -479,11 +480,94 @@ export class AgentController {
         @CurrentUser() user: User,
         @Body('amount') amount: number,
     ) {
-        // Find agent profile to get bank details if needed
-        // RequestWithdrawalUseCase already handles fetching bank details from ProfileMerchant, 
-        // but agents have AgentProfile. 
-        // We might need to update RequestWithdrawalUseCase to support AgentProfile too.
         return this.walletFacade.requestWithdrawal(user.id, amount);
+    }
+
+    @Post('wallet/settle')
+    async settleCommissions(@CurrentUser() user: User) {
+        return this.db.transaction(async (queryRunner) => {
+            const profile = await queryRunner.manager.findOne(AgentProfile, {
+                where: { user_id: user.id }
+            });
+
+            if (!profile) throw new BadRequestException('Agent profile not found');
+
+            const registeredUserIds = (profile.registered_user_ids || []).filter(id => id && typeof id === 'number');
+            const registeredAstrologerIds = (profile.registered_astrologer_ids || []).filter(id => id && typeof id === 'number');
+            const allRegisteredIds = Array.from(new Set([...registeredUserIds, ...registeredAstrologerIds]));
+
+            const qbUsers = queryRunner.manager
+                .createQueryBuilder(User, 'u')
+                .leftJoinAndSelect('u.profile_expert', 'pe')
+                .leftJoinAndSelect('u.profile_client', 'pc')
+                .leftJoinAndSelect('u.roles', 'role')
+                .where('u.referred_by_id = :agentId', { agentId: user.id });
+
+            if (allRegisteredIds.length > 0) {
+                qbUsers.orWhere('u.id IN (:...ids)', { ids: allRegisteredIds });
+            }
+
+            const usersForStats = await qbUsers.getMany();
+
+            const settings = await queryRunner.manager.find(SystemSetting, {
+                where: {
+                    key: In(['COMMISSION_FROM_CLIENT', 'COMMISSION_FROM_ASTROLOGER', 'COMMISSION_FROM_PUJA_SHOP', 'COMMISION_FROM_CLIENT', 'COMMISION_FROM_ASTROLOGER', 'COMMISION_FROM_PUJA_SHOP'])
+                }
+            });
+
+            const getSettingValue = (keys: string[], defaultValue: number) => {
+                const setting = settings.find(s => keys.includes(s.key));
+                return setting ? parseFloat(setting.value) : defaultValue;
+            };
+
+            const clientCommPercent = getSettingValue(['COMMISSION_FROM_CLIENT', 'COMMISION_FROM_CLIENT'], 3);
+            const expertCommPercent = getSettingValue(['COMMISSION_FROM_ASTROLOGER', 'COMMISION_FROM_ASTROLOGER'], 3);
+
+            let totalAgentCommissionCalculated = 0;
+            usersForStats.forEach(u => {
+                if (u.profile_expert) {
+                    const earning = Number(u.profile_expert.total_earning || 0);
+                    totalAgentCommissionCalculated += (earning * expertCommPercent) / 100;
+                }
+                if (u.profile_client) {
+                    const spending = Number(u.profile_client.total_spending || 0);
+                    totalAgentCommissionCalculated += (spending * clientCommPercent) / 100;
+                }
+            });
+
+            const currentBalance = await this.walletFacade.getBalance(user.id);
+            const withdrawalStats = await this.walletFacade.getWithdrawalsStatus(user.id);
+            
+            // Total money already settled = current balance + total withdrawn + pending withdrawals
+            const totalAlreadyPaidOut = (Number(currentBalance) || 0) + 
+                                       (Number(withdrawalStats.totalWithdrawn) || 0) + 
+                                       (Number(withdrawalStats.pendingWithdrawals) || 0);
+
+            const amountToSettle = parseFloat((totalAgentCommissionCalculated - totalAlreadyPaidOut).toFixed(2));
+
+            if (amountToSettle <= 0) {
+                return { success: true, message: 'All commissions already settled', settledAmount: 0 };
+            }
+
+            // Credit the agent's wallet
+            await this.walletFacade.credit(
+                user.id,
+                amountToSettle,
+                'agent_commission' as any,
+                'manual_settlement',
+                queryRunner
+            );
+
+            // Update profile's total_earnings
+            profile.total_earnings = Number(profile.total_earnings || 0) + amountToSettle;
+            await queryRunner.manager.save(AgentProfile, profile);
+
+            return {
+                success: true,
+                message: `Successfully settled ₹${amountToSettle} into your wallet`,
+                settledAmount: amountToSettle
+            };
+        });
     }
 }
 
