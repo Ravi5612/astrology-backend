@@ -59,7 +59,7 @@ src/modules/auth/api/controllers/auth.controller.ts
 src/modules/auth/api/controllers/google-auth.controller.ts
 src/modules/auth/api/dto/index.ts
 src/modules/auth/api/dto/login.dto.ts
-src/modules/auth/api/dto/oauth-user.dto.ts
+src/modules/auth/api/dto/oauth-user.dto.ts 
 src/modules/auth/api/dto/refresh.dto.ts
 src/modules/auth/api/dto/register.dto.ts
 src/modules/auth/api/guards/auth-refresh.guard.ts
