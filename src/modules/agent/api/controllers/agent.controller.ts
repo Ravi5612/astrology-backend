@@ -38,7 +38,16 @@ export class AgentController {
                 relations: ['user'] as any
             });
         });
-        return profile;
+
+        if (!profile) return null;
+
+        // Flatten user details into the profile for easier frontend consumption
+        return {
+            ...profile,
+            name: profile.user?.name,
+            email: profile.user?.email,
+            agent_id: profile.user?.uid,
+        };
     }
 
     @Patch('profile')
