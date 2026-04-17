@@ -13,6 +13,7 @@ export class RejectChatUseCase {
     ) { }
 
     async execute(sessionId: number) {
+        console.log(`[RejectChatUseCase] Rejecting chat sessionId: ${sessionId}`);
         const session = await this.sessionRepo.findOne({
             where: { id: sessionId },
         });

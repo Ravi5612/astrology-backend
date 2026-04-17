@@ -31,6 +31,8 @@ export class EndCallUseCase {
   ) { }
 
   async execute(sessionId: number, terminatedBy?: string, reason?: string) {
+    console.log(`[EndCallUseCase] sessionId: ${sessionId}, terminatedBy: ${terminatedBy}, reason: ${reason}`);
+
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId },
     });

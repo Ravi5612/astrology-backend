@@ -16,6 +16,7 @@ export class RejectCallUseCase {
     ) { }
 
     async execute(sessionId: number) {
+        console.log(`[RejectCallUseCase] Rejecting sessionId: ${sessionId}`);
         const session = await this.sessionRepo.findOne({
             where: { id: sessionId },
         });
