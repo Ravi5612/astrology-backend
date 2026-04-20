@@ -24,6 +24,7 @@ export class UpdateWithdrawalStatusUseCase {
 
         // Only allow status updates if pending, OR if moving from COMPLETED to FAILED (e.g. via webhook)
         const isCurrentlyFinal = withdrawal.status === WithdrawalStatus.COMPLETED ||
+            withdrawal.status === WithdrawalStatus.APPROVED ||
             withdrawal.status === WithdrawalStatus.REJECTED ||
             withdrawal.status === WithdrawalStatus.FAILED ||
             withdrawal.status === WithdrawalStatus.CANCELLED;

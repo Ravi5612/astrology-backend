@@ -54,11 +54,18 @@ export class CreateOrderFromCartUseCase {
       if (dto.product_id) {
         // 1. Handle Single Product Order (Buy Now)
         const product = await queryRunner.manager.findOne(Product, { where: { id: dto.product_id } });
+        
         if (!product) {
           throw new NotFoundException('Product not found');
         }
 
-        const quantity = dto.quantity || 1;
+        const quantity = Number(dto.quantity) || 1;
+        this.logger.log(`[CREATE_ORDER] Single product order: ${product.name} (ID: ${product.id}), Qty: ${quantity}`);
+        
+        if (product.stock < quantity) {
+          throw new BadRequestException(`Insufficient stock for ${product.name}. Available: ${product.stock}`);
+        }
+
         const price = Number(product.price) || 0;
         totalAmount = price * quantity;
         
@@ -68,6 +75,10 @@ export class CreateOrderFromCartUseCase {
           price: price,
           merchant_id: product.merchant_id,
         });
+
+        // Deduct stock safely & atomically
+        await queryRunner.manager.decrement(Product, { id: product.id }, 'stock', quantity);
+        this.logger.log(`[CREATE_ORDER] Decremented stock by ${quantity} for product ${product.id}`);
       } else {
         // 2. Handle Cart-based Order
         const cart = (await this.cartFacade.getCart(userId)) as Cart;
@@ -75,18 +86,28 @@ export class CreateOrderFromCartUseCase {
           throw new BadRequestException('Cart is empty');
         }
 
-        cart.items.forEach((item) => {
-          const price = Number(item.product.price) || 0;
-          const qty = item.quantity || 1;
+        for (const item of cart.items) {
+          const product = item.product;
+          const qty = Number(item.quantity) || 1;
+          
+          if (product.stock < qty) {
+            throw new BadRequestException(`Insufficient stock for ${product.name}. Available: ${product.stock}`);
+          }
+
+          const price = Number(product.price) || 0;
           totalAmount += price * qty;
           
           itemsToCreate.push({
-            product_id: item.product.id,
+            product_id: product.id,
             quantity: qty,
             price: price,
-            merchant_id: item.product.merchant_id,
+            merchant_id: product.merchant_id,
           });
-        });
+
+          // Deduct stock safely & atomically
+          await queryRunner.manager.decrement(Product, { id: product.id }, 'stock', qty);
+          this.logger.log(`[CREATE_ORDER] Decremented stock by ${qty} for product ${product.id}`);
+        }
       }
 
       if (isNaN(totalAmount) || totalAmount <= 0) {

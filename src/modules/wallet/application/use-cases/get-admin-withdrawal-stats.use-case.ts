@@ -16,7 +16,7 @@ export class GetAdminWithdrawalStatsUseCase {
                 where: { status: In([WithdrawalStatus.PENDING, WithdrawalStatus.PROCESSING]) }
             }),
             this.withdrawalRepository.count({
-                where: { status: WithdrawalStatus.COMPLETED }
+                where: { status: In([WithdrawalStatus.COMPLETED, WithdrawalStatus.APPROVED]) }
             }),
             this.withdrawalRepository.count({
                 where: { status: WithdrawalStatus.REJECTED }
@@ -31,7 +31,7 @@ export class GetAdminWithdrawalStatsUseCase {
 
         const approvedAmountResult = await this.withdrawalRepository
             .createQueryBuilder('w')
-            .where('w.status = :status', { status: WithdrawalStatus.COMPLETED })
+            .where('w.status IN (:...status)', { status: [WithdrawalStatus.COMPLETED, WithdrawalStatus.APPROVED] })
             .select('SUM(w.amount)', 'sum')
             .getRawOne();
 

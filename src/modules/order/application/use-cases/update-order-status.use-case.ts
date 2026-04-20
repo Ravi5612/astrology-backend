@@ -84,6 +84,38 @@ export class UpdateOrderStatusUseCase {
         await queryRunner.release();
       }
     }
+
+    // --- NEW: Stock Restoration Logic for Cancelled Orders ---
+    if (status === OrderStatus.CANCELLED && oldStatus !== OrderStatus.CANCELLED) {
+      const queryRunner = this.dataSource.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      try {
+        const orderWithItems = await queryRunner.manager.findOne(Order, {
+          where: { id },
+          relations: ['items', 'items.product'],
+        });
+
+        if (orderWithItems) {
+          for (const item of orderWithItems.items) {
+            if (item.product) {
+              const product = item.product;
+              product.stock += item.quantity;
+              await queryRunner.manager.save(Product, product);
+              console.log(`[ORDER_CANCELLED_STOCK] Restored ${item.quantity} to stock of product ${product.id}`);
+            }
+          }
+        }
+        await queryRunner.commitTransaction();
+      } catch (error) {
+        await queryRunner.rollbackTransaction();
+        console.error('Failed to restore stock for cancelled order:', error);
+      } finally {
+        await queryRunner.release();
+      }
+    }
+    // ---------------------------------------------------------
     // ------------------------------------------------------
 
     // Create notification and emit socket event based on status

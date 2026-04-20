@@ -14,6 +14,7 @@ export enum WithdrawalStatus {
     PENDING = 'pending',
     PROCESSING = 'processing',
     COMPLETED = 'completed',
+    APPROVED = 'approved',
     REJECTED = 'rejected',
     FAILED = 'failed',
     CANCELLED = 'cancelled',
