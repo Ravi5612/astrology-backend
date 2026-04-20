@@ -18,6 +18,8 @@ export enum WithdrawalStatus {
     REJECTED = 'rejected',
     FAILED = 'failed',
     CANCELLED = 'cancelled',
+    SUCCESS = 'success',
+    REVERSED = 'reversed',
 }
 
 @Entity('withdrawals')

@@ -17,13 +17,13 @@ export class GetWithdrawalsStatusUseCase {
 
     const pendingResult = await query
       .clone()
-      .andWhere('w.status IN (:...status)', { status: ['pending', 'processing'] })
+      .andWhere('w.status IN (:...status)', { status: ['pending', 'processing', 'approved'] })
       .select('SUM(w.amount)', 'sum')
       .getRawOne();
 
     const totalWithdrawnResult = await query
       .clone()
-      .andWhere('w.status = :status', { status: 'completed' })
+      .andWhere('w.status IN (:...status)', { status: ['completed', 'success'] })
       .select('SUM(w.amount)', 'sum')
       .getRawOne();
 
