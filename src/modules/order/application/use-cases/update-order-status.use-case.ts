@@ -139,32 +139,43 @@ export class UpdateOrderStatusUseCase {
     let notificationType: NotificationType;
     let title: string;
     let message: string;
+    let emailSubject: string;
 
     switch (status) {
       case OrderStatus.PACKED:
         notificationType = NotificationType.ORDER_PACKED;
         title = 'Order Packed';
-        message = `Your order #${id} has been packed and is ready for shipment`;
+        message = `Your order #${id} has been packed and is ready for shipment.`;
+        emailSubject = `Order Packed - #${id}`;
         break;
       case OrderStatus.SHIPPED:
         notificationType = NotificationType.ORDER_SHIPPED;
         title = 'Order Shipped';
         message = `Your order #${id} has been shipped. Use OTP ${order.delivery_otp} for delivery verification.`;
+        emailSubject = `Order Shipped - #${id}`;
         break;
       case OrderStatus.DELIVERED:
         notificationType = NotificationType.ORDER_DELIVERED;
         title = 'Order Delivered';
-        message = `Your order #${id} has been delivered`;
+        message = `Good news! Your order #${id} has been successfully delivered.`;
+        emailSubject = `Order Delivered - #${id}`;
         break;
       case OrderStatus.CANCELLED:
         notificationType = NotificationType.ORDER_CANCELLED;
         title = 'Order Cancelled';
         message = cancellationReason
-          ? `Your order #${id} has been cancelled. Reason: ${cancellationReason}`
-          : `Your order #${id} has been cancelled`;
+          ? `Apologies, your order #${id} has been cancelled. Reason: ${cancellationReason}`
+          : `Apologies, your order #${id} has been cancelled by the merchant.`;
+        emailSubject = `Order Cancelled - #${id}`;
+        break;
+      case OrderStatus.PROCESSING:
+        notificationType = NotificationType.ORDER_PLACED; // Reusing placed/processing
+        title = 'Order Processing';
+        message = `Your order #${id} is now being processed by the merchant.`;
+        emailSubject = `Order Update - Processing #${id}`;
         break;
       default:
-        return updatedOrder; // No notification for other statuses
+        return updatedOrder;
     }
 
     // Save notification to DB via facade
@@ -189,30 +200,47 @@ export class UpdateOrderStatusUseCase {
     try {
       const user = await this.userRepo.findOne({ where: { id: order.user_id } });
       if (user?.email) {
-        let otpMessage = '';
+        let otpSection = '';
         if (status === OrderStatus.SHIPPED && order.delivery_otp) {
-          otpMessage = `
-            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; border-left: 5px solid #007bff;">
-              <p style="margin: 0; color: #333;"><strong>Delivery Verification OTP:</strong></p>
-              <h1 style="margin: 5px 0; color: #007bff; letter-spacing: 5px;">${order.delivery_otp}</h1>
-              <p style="margin: 0; font-size: 0.9em; color: #666;">Please share this OTP with the delivery partner only at the time of delivery.</p>
+          otpSection = `
+            <div style="background-color: #f0f7ff; padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid #cce3ff; text-align: center;">
+              <p style="margin: 0; color: #0056b3; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Delivery Verification OTP</p>
+              <h1 style="margin: 10px 0; color: #007bff; letter-spacing: 10px; font-size: 32px;">${order.delivery_otp}</h1>
+              <p style="margin: 0; font-size: 12px; color: #666;">Please share this code with our delivery partner at your doorstep.</p>
             </div>
           `;
         }
 
+        const isCancelled = status === OrderStatus.CANCELLED;
+        
         const emailHtml = `
-          <h2>${title}</h2>
-          <p>Dear ${user.name || 'Customer'},</p>
-          <p>${message}</p>
-          ${otpMessage}
-          <p><strong>Order ID:</strong> #${id}</p>
-          <p><strong>New Status:</strong> ${status}</p>
-          ${cancellationReason ? `<p><strong>Reason:</strong> ${cancellationReason}</p>` : ''}
-          <p>Thank you for choosing Astrology in Bharat!</p>
+          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6;">
+            <div style="background-color: ${isCancelled ? '#fff5f5' : '#fffcf9'}; padding: 40px; border-radius: 20px; border: 1px solid ${isCancelled ? '#ffe3e3' : '#fff0e0'};">
+              <h1 style="color: ${isCancelled ? '#e03131' : '#fd6410'}; margin-top: 0; font-size: 24px;">${title}</h1>
+              <p style="font-size: 16px;">Dear ${user.name || 'Customer'},</p>
+              <p style="font-size: 15px; color: #555;">${message}</p>
+              
+              ${otpSection}
+
+              <div style="background-color: #ffffff; padding: 20px; border-radius: 12px; margin-top: 25px; border: 1px solid #eee;">
+                <p style="margin: 0; font-size: 13px; color: #999; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Order Details</p>
+                <div style="margin-top: 10px; display: flex; justify-content: space-between;">
+                   <p style="margin: 0; font-weight: bold;">Order ID: <span style="color: #fd6410;">#${id}</span></p>
+                   <p style="margin: 0; font-weight: bold;">Status: <span style="text-transform: capitalize;">${status}</span></p>
+                </div>
+                ${cancellationReason ? `<p style="margin-top: 15px; font-size: 14px; padding: 10px; background-color: #f8f9fa; border-radius: 8px; color: #c92a2a;"><strong>Reason for Cancellation:</strong> ${cancellationReason}</p>` : ''}
+              </div>
+
+              <p style="margin-top: 30px; font-size: 14px; color: #888;">If you have any questions, please reply to this email or visit our support center.</p>
+              <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
+              <p style="font-size: 12px; color: #aaa; text-align: center;">© 2026 Astrology in Bharat. All rights reserved.</p>
+            </div>
+          </div>
         `;
+        
         await this.emailService.sendEmail(
           user.email,
-          `Order Update - ${title}`,
+          emailSubject,
           emailHtml,
         );
       }
