@@ -26,6 +26,7 @@ import { GetMerchantActivityUseCase } from '../../application/use-cases/get-merc
 import { GetMerchantPerformanceUseCase } from '../../application/use-cases/get-merchant-performance.usecase';
 import { GetMerchantAnalyticsUseCase } from '../../application/use-cases/get-merchant-analytics.usecase';
 import { GetMerchantTransactionsUseCase } from '../../application/use-cases/get-merchant-transactions.usecase';
+import { SendOrderOtpUseCase } from '../../application/use-cases/send-order-otp.usecase';
 import { VerifyOrderOtpUseCase } from '../../application/use-cases/verify-order-otp.usecase';
 import { OrderFacade } from '@/modules/order/application/order.facade';
 import { OrderStatus } from '@/modules/order/infrastructure/persistence/entities/order.entity';
@@ -48,6 +49,7 @@ export class MerchantDashboardController {
     private readonly getPerformance: GetMerchantPerformanceUseCase,
     private readonly getAnalytics: GetMerchantAnalyticsUseCase,
     private readonly getTransactions: GetMerchantTransactionsUseCase,
+    private readonly sendOtp: SendOrderOtpUseCase,
     private readonly verifyOtp: VerifyOrderOtpUseCase,
     private readonly orderFacade: OrderFacade,
     private readonly getProfile: GetMerchantProfileUseCase,
@@ -101,6 +103,15 @@ export class MerchantDashboardController {
   async analytics(@CurrentUser('id') userId: number) {
     const analytics = await this.getAnalytics.execute(userId);
     return { success: true, data: analytics };
+  }
+
+  @Post('orders/:id/send-otp')
+  @HttpCode(HttpStatus.OK)
+  async sendOrderOtp(
+    @CurrentUser('id') userId: number,
+    @Param('id', ParseIntPipe) orderId: number,
+  ) {
+    return this.sendOtp.execute(userId, orderId);
   }
 
   @Post('orders/:id/verify-otp')

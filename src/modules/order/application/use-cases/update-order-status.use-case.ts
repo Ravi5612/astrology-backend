@@ -49,6 +49,12 @@ export class UpdateOrderStatusUseCase {
       order.cancellation_reason = cancellationReason;
     }
 
+    // --- NEW: Generate Delivery OTP when status becomes SHIPPED ---
+    if (status === OrderStatus.SHIPPED && !order.delivery_otp) {
+        order.delivery_otp = Math.floor(100000 + Math.random() * 900000).toString();
+        console.log(`[ORDER_OTP] Generated OTP ${order.delivery_otp} for order #${id}`);
+    }
+
     const updatedOrder = await this.orderRepo.save(order);
 
     // --- NEW: Tracking Logic for Manual Payment Updates ---

@@ -14,6 +14,7 @@ import { MerchantProductsUseCase } from './application/use-cases/merchant-produc
 import { VerifyOrderOtpUseCase } from './application/use-cases/verify-order-otp.usecase';
 import { GetMerchantFinanceStatsUseCase } from './application/use-cases/get-merchant-finance-stats.usecase';
 import { GetMerchantTransactionsUseCase } from './application/use-cases/get-merchant-transactions.usecase';
+import { SendOrderOtpUseCase } from './application/use-cases/send-order-otp.usecase';
 import { MerchantProductsController } from './api/controllers/merchant-products.controller';
 import { MerchantFinanceController } from './api/controllers/merchant-finance.controller';
 import { Order } from '@/modules/order/infrastructure/persistence/entities/order.entity';
@@ -24,6 +25,8 @@ import { Wallet } from '@/modules/wallet/infrastructure/persistence/entities/wal
 import { Withdrawal } from '@/modules/wallet/infrastructure/persistence/entities/withdrawal.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/persistence/entities/profile-merchant.entity';
 import { ProfileModule } from '../profile/profile.module';
+import { NotificationModule } from '@/modules/notification/notification.module';
+import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
 
 @Module({
   imports: [
@@ -40,6 +43,8 @@ import { ProfileModule } from '../profile/profile.module';
     WalletModule,
     OrderModule,
     ProfileModule,
+    NotificationModule,
+    NodemailerModule,
   ],
   controllers: [
     MerchantDashboardController,
@@ -57,6 +62,7 @@ import { ProfileModule } from '../profile/profile.module';
     VerifyOrderOtpUseCase,
     GetMerchantFinanceStatsUseCase,
     GetMerchantTransactionsUseCase,
+    SendOrderOtpUseCase,
   ],
 })
 export class MerchantDashboardModule {}
