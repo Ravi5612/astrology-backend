@@ -10,6 +10,7 @@ import { User } from '@/modules/users/infrastructure/persistence/entities/user.e
 
 export enum NotificationType {
     ORDER_CREATED = 'order_created',
+    ORDER_PLACED = 'order_placed',
     ORDER_PACKED = 'order_packed',
     ORDER_SHIPPED = 'order_shipped',
     ORDER_DELIVERED = 'order_delivered',

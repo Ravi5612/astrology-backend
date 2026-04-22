@@ -110,8 +110,8 @@ export class WalletFacade {
     return this.requestWithdrawalUseCase.execute(userId, amount, bank_account_id, idempotencyKey, securityMetadata);
   }
 
-  async getPendingWithdrawals(page?: number, limit?: number) {
-    return this.getPendingWithdrawalsUseCase.execute(page, limit);
+  async getPendingWithdrawals(page?: number, limit?: number, status?: string) {
+    return this.getPendingWithdrawalsUseCase.execute(page, limit, status);
   }
 
   async updateWithdrawalStatus(id: number, status: WithdrawalStatus, adminId: number, remark?: string) {

@@ -190,12 +190,13 @@ export class AdminController {
   }
 
   // Withdrawal Management
-  @Get('withdrawals/pending')
-  async getPendingWithdrawals(
+  @Get('withdrawals')
+  async getWithdrawals(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
+    @Query('status') status?: string,
   ) {
-    return this.adminFacade.getPendingWithdrawals(page, limit);
+    return this.adminFacade.getWithdrawals(page, limit, status);
   }
 
   @Get('withdrawals/stats')

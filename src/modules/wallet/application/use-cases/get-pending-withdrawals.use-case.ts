@@ -10,9 +10,16 @@ export class GetPendingWithdrawalsUseCase {
         private readonly withdrawalRepository: Repository<Withdrawal>,
     ) { }
 
-    async execute(page = 1, limit = 10) {
+    async execute(page = 1, limit = 10, status?: string) {
+        const where: any = {};
+        if (status && status !== 'all') {
+            where.status = status;
+        } else if (!status) {
+            where.status = WithdrawalStatus.PENDING;
+        }
+
         const [items, total] = await this.withdrawalRepository.findAndCount({
-            where: { status: WithdrawalStatus.PENDING },
+            where,
             relations: ['user', 'bankAccount'],
             order: { created_at: 'DESC' },
             skip: (page - 1) * limit,
@@ -24,6 +31,7 @@ export class GetPendingWithdrawalsUseCase {
                 id: item.id,
                 amount: Number(item.amount),
                 status: item.status,
+                remark: item.remark,
                 date: item.created_at,
                 expertName: item.user?.name || 'Unknown',
                 bankAccount: item.bankAccount ? {
