@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { LoginDto } from '../../api/dto';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { Argon2PasswordHasher } from '../../infrastructure/hashing/argon2-password.hasher';
@@ -18,10 +18,26 @@ export class LoginWithEmailUseCase {
   async execute(dto: LoginDto, ip?: string, userAgent?: string) {
     const user = await this.usersFacade.findByEmailWithPassword(dto.email);
 
+    if (!user) {
+      throw new UnauthorizedException('User not found with this email. Please sign up first.');
+    }
+
     const isValidPassword = await this.validatePassword(dto, user);
 
-    if (!user || !user.password || !isValidPassword) {
-      throw new InvalidCredentialsError();
+    if (!isValidPassword) {
+      throw new UnauthorizedException('Invalid password. Please try again.');
+    }
+
+    // Role Check: If user only has expert role and is trying to login to the main app
+    const hasClientRole = user.roles?.some(role => 
+      ['client', 'user', 'customer'].includes(role.name.toLowerCase())
+    );
+    const hasExpertRole = user.roles?.some(role => 
+      ['expert', 'astrologer'].includes(role.name.toLowerCase())
+    );
+
+    if (hasExpertRole && !hasClientRole) {
+      throw new ForbiddenException('Aap ek Expert hain. Kripya Expert Dashboard se login karein.');
     }
 
     AuthPolicy.ensureCanLogin(user);
