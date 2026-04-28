@@ -94,6 +94,9 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const wasAlreadyOnline = socketIds.size > 0;
     socketIds.add(client.id);
 
+    // Join room for private notifications
+    client.join(`expert_${userId}`);
+
     this.logger.log(
       `[Socket] 🟢 Expert ${userId} is online via socket ${client.id} (Total sessions: ${socketIds.size})`,
     );
@@ -183,6 +186,11 @@ export class ExpertGateway implements OnGatewayConnection, OnGatewayDisconnect {
       reason,
       timestamp: new Date().toISOString()
     });
+  }
+
+  notifyNewPujaBooking(userId: number, session: any) {
+    this.server.to(`expert_${userId}`).emit('new_puja_request', session);
+    this.logger.log(`[Socket] 📢 Emitted new_puja_request to expert_${userId}`);
   }
 
   // Method to check if an expert is online

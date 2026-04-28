@@ -47,99 +47,106 @@ export class UpdatePujaAppointmentStatusUseCase {
 
         // Rules for client update
         if (isClient && !isExpert) {
-            if (dto.status !== PujaAppointmentStatus.CONFIRMED) {
-                throw new BadRequestException('As a client, you can only confirm the appointment after payment.');
-            }
-            if (appointment.status !== PujaAppointmentStatus.ACCEPTED) {
-                throw new BadRequestException('Appointment must be accepted by the expert before you can confirm and pay.');
-            }
-            
-            // --- PAYMENT LOGIC WITH ATOMIC TRANSACTION ---
-            const totalAmount = appointment.price;
-
-            // Fetch all required commission percentages
-            const agentFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_ASTROLOGER');
-            const platformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_CLIENT');
-            const gstRate = await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
-
-            // Fetch Expert's full user profile for referral check
-            const expertUser = await qr.manager.findOne(User, {
-                where: { id: appointment.expert.user_id },
-                relations: ['profile_expert']
-            });
-
-            let agent_commission = 0;
-            let agent_id: number | undefined = undefined;
-
-            const now = new Date();
-            // Check if Agent Commission is applicable (Referred AND within 30 days)
-            if (expertUser?.referred_by_id && expertUser?.profile_expert?.created_at) {
-                const diffTime = Math.abs(now.getTime() - expertUser.profile_expert.created_at.getTime());
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                if (diffDays <= 30) {
-                    agent_id = expertUser.referred_by_id;
-                    const effectiveAgentRate = expertUser.profile_expert.agent_commission_rate ?? agentFeeRate;
-                    agent_commission = Number((totalAmount * (effectiveAgentRate / 100)).toFixed(2));
+            if (dto.status === PujaAppointmentStatus.ACCEPTED) {
+                if (appointment.status !== PujaAppointmentStatus.ON_HOLD) {
+                    throw new BadRequestException('You can only accept an appointment that has been rescheduled (ON_HOLD) by the expert.');
                 }
+            } else if (dto.status !== PujaAppointmentStatus.CONFIRMED && dto.status !== PujaAppointmentStatus.CANCELLED) {
+                throw new BadRequestException('As a client, you can only confirm (pay), accept reschedule, or cancel the appointment.');
             }
 
-            const platformFee = Number((totalAmount * (platformFeeRate / 100)).toFixed(2));
-            const gst = Number((platformFee * (gstRate / 100)).toFixed(2));
-            
-            // Expert Net = Total - Platform - GST - Agent
-            const expertNetShare = Number((totalAmount - platformFee - gst - agent_commission).toFixed(2));
+            if (dto.status === PujaAppointmentStatus.CONFIRMED) {
+                if (appointment.status !== PujaAppointmentStatus.ACCEPTED && appointment.status !== PujaAppointmentStatus.ON_HOLD) {
+                    throw new BadRequestException('Appointment must be accepted or rescheduled by the expert before you can confirm and pay.');
+                }
+                
+                // --- PAYMENT LOGIC WITH ATOMIC TRANSACTION ---
+                const totalAmount = appointment.price;
 
-            // 1. Debit User
-            await this.walletFacade.debit(
-                appointment.user_id, 
-                totalAmount, 
-                TransactionPurpose.PUJA_CONFIRMATION, 
-                `puja_appt_${appointment.id}`,
-                qr
-            );
-            
-            // 2. Credit Expert (Net Share)
-            await this.walletFacade.credit(
-                appointment.expert.user_id, 
-                expertNetShare, 
-                TransactionPurpose.CONSULTATION, 
-                `puja_appt_${appointment.id}`,
-                qr
-            );
+                // Fetch all required commission percentages
+                const agentFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_ASTROLOGER');
+                const platformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_CLIENT');
+                const gstRate = await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
 
-            // 3. Credit Agent (if applicable)
-            if (agent_commission > 0 && agent_id) {
-                await this.walletFacade.credit(
-                    agent_id,
-                    agent_commission,
-                    'agent_commission' as any,
+                // Fetch Expert's full user profile for referral check
+                const expertUser = await qr.manager.findOne(User, {
+                    where: { id: appointment.expert.user_id },
+                    relations: ['profile_expert']
+                });
+
+                let agent_commission = 0;
+                let agent_id: number | undefined = undefined;
+
+                const now = new Date();
+                // Check if Agent Commission is applicable (Referred AND within 30 days)
+                if (expertUser?.referred_by_id && expertUser?.profile_expert?.created_at) {
+                    const diffTime = Math.abs(now.getTime() - expertUser.profile_expert.created_at.getTime());
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays <= 30) {
+                        agent_id = expertUser.referred_by_id;
+                        const effectiveAgentRate = expertUser.profile_expert.agent_commission_rate ?? agentFeeRate;
+                        agent_commission = Number((totalAmount * (effectiveAgentRate / 100)).toFixed(2));
+                    }
+                }
+
+                const platformFee = Number((totalAmount * (platformFeeRate / 100)).toFixed(2));
+                const gst = Number((platformFee * (gstRate / 100)).toFixed(2));
+                
+                // Expert Net = Total - Platform - GST - Agent
+                const expertNetShare = Number((totalAmount - platformFee - gst - agent_commission).toFixed(2));
+
+                // 1. Debit User
+                await this.walletFacade.debit(
+                    appointment.user_id, 
+                    totalAmount, 
+                    TransactionPurpose.PUJA_CONFIRMATION, 
                     `puja_appt_${appointment.id}`,
                     qr
                 );
-            }
-
-            // 3. Create Todo for Expert
-            try {
-                // Not strictly part of financial transaction, but good to have
-                await this.todosFacade.create(appointment.expert.user_id, {
-                    text: `Confirmed Puja: ${appointment.puja?.name} with ${appointment.user?.name || 'Client'} on ${appointment.scheduled_date} at ${appointment.scheduled_time}`
-                });
-            } catch (err) {
-                console.error('Failed to create todo for expert:', err);
-            }
-
-            // 4. Notify Expert
-            try {
-                await this.notificationFacade.create(
-                    appointment.expert.user_id,
-                    NotificationType.GENERAL,
-                    'Puja Confirmed! (Paid)',
-                    `User ${appointment.user?.name || 'Client'} has paid for the ${appointment.puja?.name || 'Puja'} Ritual scheduled for ${appointment.scheduled_date}.`,
-                    { appointment_id: appointment.id, type: 'PUJA_CONFIRMED' }
+                
+                // 2. Credit Expert (Net Share)
+                await this.walletFacade.credit(
+                    appointment.expert.user_id, 
+                    expertNetShare, 
+                    TransactionPurpose.CONSULTATION, 
+                    `puja_appt_${appointment.id}`,
+                    qr
                 );
-            } catch (err) {
-                console.error('Failed to notify expert of confirmation:', err);
+
+                // 3. Credit Agent (if applicable)
+                if (agent_commission > 0 && agent_id) {
+                    await this.walletFacade.credit(
+                        agent_id,
+                        agent_commission,
+                        'agent_commission' as any,
+                        `puja_appt_${appointment.id}`,
+                        qr
+                    );
+                }
+
+                // 3. Create Todo for Expert
+                try {
+                    // Not strictly part of financial transaction, but good to have
+                    await this.todosFacade.create(appointment.expert.user_id, {
+                        text: `Confirmed Puja: ${appointment.puja?.name} with ${appointment.user?.name || 'Client'} on ${appointment.scheduled_date} at ${appointment.scheduled_time}`
+                    });
+                } catch (err) {
+                    console.error('Failed to create todo for expert:', err);
+                }
+
+                // 4. Notify Expert
+                try {
+                    await this.notificationFacade.create(
+                        appointment.expert.user_id,
+                        NotificationType.GENERAL,
+                        'Puja Confirmed! (Paid)',
+                        `User ${appointment.user?.name || 'Client'} has paid for the ${appointment.puja?.name || 'Puja'} Ritual scheduled for ${appointment.scheduled_date}.`,
+                        { appointment_id: appointment.id, type: 'PUJA_CONFIRMED' }
+                    );
+                } catch (err) {
+                    console.error('Failed to notify expert of confirmation:', err);
+                }
             }
         }
 
@@ -147,7 +154,11 @@ export class UpdatePujaAppointmentStatusUseCase {
         if (dto.status) {
             if (isClient && !isExpert) {
                 // Client restricted statuses
-                const allowedClientStatuses = [PujaAppointmentStatus.CONFIRMED, PujaAppointmentStatus.CANCELLED];
+                const allowedClientStatuses = [
+                    PujaAppointmentStatus.CONFIRMED, 
+                    PujaAppointmentStatus.CANCELLED,
+                    PujaAppointmentStatus.ACCEPTED
+                ];
                 if (!allowedClientStatuses.includes(dto.status)) {
                     throw new BadRequestException(`As a client, you cannot set status to ${dto.status}`);
                 }
@@ -203,6 +214,21 @@ export class UpdatePujaAppointmentStatusUseCase {
                 );
             } catch (error) {
                 console.error('Failed to send status update notification to user:', error);
+            }
+        }
+
+        // Notify Expert (if update was by client)
+        if (isClient && !isExpert && dto.status === PujaAppointmentStatus.ACCEPTED) {
+            try {
+                await this.notificationFacade.create(
+                    appointment.expert.user_id,
+                    NotificationType.GENERAL,
+                    'Reschedule Accepted!',
+                    `User ${appointment.user?.name || 'Client'} has accepted your proposed time for ${appointment.puja?.name || 'Puja'}.`,
+                    { appointment_id: saved.id, type: 'PUJA_RESCHEDULE_ACCEPTED' }
+                );
+            } catch (error) {
+                console.error('Failed to send status update notification to expert:', error);
             }
         }
 

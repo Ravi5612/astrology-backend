@@ -7,6 +7,7 @@ import { ExpertPuja } from '@/modules/expert/profile/infrastructure/persistence/
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/persistence/entities/profile-expert.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/persistence/entities/notification.entity';
+import { ExpertGateway } from '@/modules/expert/profile/api/gateways/expert.gateway';
 
 @Injectable()
 export class CreatePujaAppointmentUseCase {
@@ -18,6 +19,7 @@ export class CreatePujaAppointmentUseCase {
     @InjectRepository(ProfileExpert)
     private profileExpertRepository: Repository<ProfileExpert>,
     private notificationFacade: NotificationFacade,
+    private expertGateway: ExpertGateway,
   ) {}
 
   async execute(userId: number, dto: CreatePujaAppointmentDto): Promise<PujaAppointment> {
@@ -74,6 +76,13 @@ export class CreatePujaAppointmentUseCase {
                 `You have received a new booking request for ${puja.name}.`,
                 { appointment_id: saved.id, type: 'PUJA_BOOKING' }
             );
+
+            // Real-time socket notification
+            this.expertGateway.notifyNewPujaBooking(expertProfile.user_id, {
+                ...saved,
+                user: saved.user || (await this.pujaAppointmentRepository.findOne({ where: { id: saved.id }, relations: ['user'] }))?.user,
+                puja: puja
+            });
         } catch (error) {
             console.error('Failed to send notification to expert:', error);
             // Non-blocking error
