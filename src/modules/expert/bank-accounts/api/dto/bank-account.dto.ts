@@ -56,11 +56,14 @@ export class UpdateBankAccountDto {
     id?: any;
 
     @IsOptional()
-    expertId?: any;
+    expert_id?: any;
 
     @IsOptional()
-    createdAt?: any;
+    created_at?: any;
 
     @IsOptional()
-    updatedAt?: any;
+    updated_at?: any;
+
+    @IsOptional()
+    razorpay_fund_account_id?: any;
 }
