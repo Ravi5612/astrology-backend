@@ -52,10 +52,19 @@ export class GetExpertStatsUseCase {
       .andWhere('user.created_at >= :today', { today })
       .getCount();
 
+    const rejectedExperts = await this.userRepository
+      .createQueryBuilder('user')
+      .innerJoin('user.roles', 'role')
+      .leftJoin('user.profile_expert', 'profile')
+      .where('role.name = :role', { role: 'expert' })
+      .andWhere('profile.kyc_status = :status', { status: 'rejected' })
+      .getCount();
+
     return {
       totalExperts,
       activeExperts,
       pendingExperts,
+      rejectedExperts,
       blockedExperts,
       recentExperts,
       trends: {

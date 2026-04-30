@@ -24,8 +24,10 @@ export class FindUsersByRoleUseCase {
       });
     }
 
-    if (status && role === 'expert') {
-      query.andWhere('profile_expert.kyc_status = :status', { status });
+    if (role === 'expert') {
+      if (status && status !== 'all' && status !== '') {
+        query.andWhere('profile_expert.kyc_status = :status', { status });
+      }
     }
 
     const [items, total] = await query
