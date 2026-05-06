@@ -158,7 +158,7 @@ export class EndCallUseCase {
         }
     }
 
-    const initialReservation = session.price_per_minute * 5; 
+    const initialReservation = session.price_per_minute * 1; 
 
     this.callGateway.server
       .to(`call_room_${sessionId}`)

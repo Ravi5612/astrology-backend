@@ -129,7 +129,7 @@ export class EndChatUseCase {
                 );
             }
 
-            const initialReservation = session.price_per_minute * 5; 
+            const initialReservation = session.price_per_minute * 1; 
 
             if (total_cost <= initialReservation) {
                 if (total_cost > 0) {
