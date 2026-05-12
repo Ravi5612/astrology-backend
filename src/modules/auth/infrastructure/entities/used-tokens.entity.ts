@@ -11,7 +11,9 @@ import {
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { createHash } from 'crypto';
 
-@Entity()
+@Entity({
+  schema: 'auth'
+})
 @Unique(['user', 'token'])
 export class UsedTokens {
   @PrimaryGeneratedColumn()

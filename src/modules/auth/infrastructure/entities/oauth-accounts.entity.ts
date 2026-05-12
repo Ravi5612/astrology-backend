@@ -8,7 +8,10 @@ import {
 } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
-@Entity('oauth_accounts')
+@Entity({
+  schema: 'auth',
+  name: 'oauth_accounts'
+})
 export class OAuthAccount {
   @PrimaryGeneratedColumn()
   id!: number;

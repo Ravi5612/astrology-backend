@@ -11,7 +11,10 @@ import {
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { uuidv7 } from 'uuidv7';
 
-@Entity('sessions')
+@Entity({
+  schema: 'auth',
+  name: 'sessions'
+})
 export class Session {
   @PrimaryGeneratedColumn('uuid')
   id!: string; 
