@@ -49,7 +49,7 @@ export class AgentRegisterUserUseCase {
                 const hashedPassword = await this.hasher.hash(generatedPassword);
 
                 // roles is an array in DTO. Format map to match DB expected roles [{name: 'role'}]
-                const formattedRoles = dto.roles.map((r) => ({ name: r }));
+                const formattedRoles = dto.roles.map((r) => ({ name: r}));
 
                 const isMerchant = dto.roles.includes('merchant');
 

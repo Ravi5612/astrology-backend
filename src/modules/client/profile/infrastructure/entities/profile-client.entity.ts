@@ -17,68 +17,68 @@ import { ColumnNumericTransformer } from '@/common/transformers/numeric.transfor
 @Check(`"gender" IN ('male', 'female', 'other')`)
 export class ProfileClient {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @OneToOne(() => User, (user) => user.profile_client)
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   @Column({ name: 'user_id', nullable: true })
-  user_id: number;
+  user_id!: number | null;
 
-  @Column({ nullable: true })
-  username?: string;
+  @Column({ type: 'text', nullable: true })
+  username!: string | null;
 
   @Column({
     type: 'timestamptz',
     nullable: true,
   })
-  date_of_birth: Date | null;
+  date_of_birth!: Date | null;
 
   @Column({
     type: 'text',
     default: 'other',
   })
-  gender: 'male' | 'female' | 'other';
+  gender!: 'male' | 'female' | 'other';
 
-  @Column({ nullable: true })
-  phone?: string;
+  @Column({ type: 'text', nullable: true })
+  phone!: string | null;
 
   @Column({
     type: 'timestamptz',
     nullable: true,
   })
-  phone_verified_at?: Date | null;
-
-  @Column({ nullable: true })
-  preferences?: string;
-
-  @Column({ nullable: true })
-  language_preference?: string;
-
-  @Column({ nullable: true })
-  time_of_birth?: string;
-
-  @Column({ nullable: true })
-  place_of_birth?: string;
-
-  @Column({ nullable: true })
-  profile_picture?: string;
-
-  @Column({ nullable: true })
-  marital_status?: string;
-
-  @Column({ nullable: true })
-  occupation?: string;
+  phone_verified_at!: Date | null;
 
   @Column({ type: 'text', nullable: true })
-  about_me?: string;
+  preferences!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  language_preference!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  time_of_birth!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  place_of_birth!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  profile_picture!: string | null;
+
+  @Column({type: 'text', nullable: true })
+  marital_status!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  occupation!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  about_me!: string | null;
 
   @OneToMany(() => Address, (address) => address.profile_client, {
     cascade: true,
     eager: true,
   })
-  addresses: Address[];
+  addresses!: Address[];
 
   @Column({
     type: 'decimal',
@@ -88,11 +88,11 @@ export class ProfileClient {
     name: 'total_spending',
     transformer: new ColumnNumericTransformer(),
   })
-  total_spending: number;
+  total_spending!: number;
 
-  @CreateDateColumn()
-  created_at: Date;
+  @CreateDateColumn({type: 'timestamptz'})
+  created_at!: Date;
 
-  @UpdateDateColumn()
-  updated_at: Date;
+  @UpdateDateColumn({type: 'timestamptz'})
+  updated_at!: Date;
 }

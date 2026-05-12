@@ -11,23 +11,23 @@ import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/
 @Entity('expert_todos')
 export class Todo {
     @PrimaryGeneratedColumn()
-    id: number;
+    id!: number;
 
-    @Column()
-    text: string;
+    @Column({type: 'text'})
+    text!: string;
 
-    @Column({ default: false })
-    completed: boolean;
+    @Column({ type: 'bool', default: false })
+    completed!: boolean;
 
     @ManyToOne(() => ProfileExpert, { onDelete: 'CASCADE' })
-    expert: ProfileExpert;
+    expert!: ProfileExpert;
 
-    @Column({ name: 'expert_id' })
-    expert_id: number;
+    @Column({ type: 'int', name: 'expert_id' })
+    expert_id!: number;
 
-    @CreateDateColumn({ name: 'created_at' })
-    created_at: Date;
+    @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+    created_at!: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
-    updated_at: Date;
+    @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+    updated_at!: Date;
 }

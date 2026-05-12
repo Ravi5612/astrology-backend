@@ -85,7 +85,7 @@ export class UpdateMerchantProfileUseCase {
       // Update basic details
       if (dto.name || dto.shopName) {
         const newName = dto.name || dto.shopName;
-        profile.shopName = newName;
+        profile.shopName = newName ?? null;
         // Also update the user entity name for consistency across the platform
         await this.usersFacade.update(userId, { name: newName });
       }
@@ -115,7 +115,7 @@ export class UpdateMerchantProfileUseCase {
       // Handle new verification fields
       if (dto.gstin) profile.gstin = dto.gstin;
       if (dto.pan && this.encryptionService) {
-        profile.pan = this.encryptionService.encrypt(dto.pan);
+        profile.pan = this.encryptionService.encrypt(dto.pan!) || null;
       }
       if (dto.isGstExempt !== undefined) {
         profile.isGstExempt = dto.isGstExempt === true || (dto.isGstExempt as any) === 'true';
@@ -123,7 +123,7 @@ export class UpdateMerchantProfileUseCase {
       if (dto.bankName) profile.bankName = dto.bankName;
       if (dto.accountHolder) profile.accountHolder = dto.accountHolder;
       if (dto.accountNumber && this.encryptionService) {
-        profile.accountNumber = this.encryptionService.encrypt(dto.accountNumber);
+        profile.accountNumber = this.encryptionService.encrypt(dto.accountNumber) || null;
       }
       if (dto.ifsc) profile.ifsc = dto.ifsc;
       

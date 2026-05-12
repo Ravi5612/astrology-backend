@@ -7,11 +7,11 @@ export class Role {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ unique: true })
+  @Column({ type: 'varchar', length: 255, unique: true, nullable: false })
   name!: string; // e.g. "admin", "client", "expert"
 
-  @Column({ nullable: true })
-  description?: string;
+  @Column({ type: 'text', nullable: true })
+  description!: string | null;
 
   @ManyToMany(() => User, (u) => u.roles)
   users!: User[];

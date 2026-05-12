@@ -9,22 +9,23 @@ import {
 
 @Entity('calendar_cache')
 @Index(['type', 'cacheKey'], { unique: true })
+
 export class CalendarCache {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
-  @Column()
-  type: string; // 'monthly', 'daily', 'festivals'
+  @Column({type: 'character varying', length: 100})
+  type!: string; // 'monthly', 'daily', 'festivals'
 
-  @Column()
-  cacheKey: string; // Composite key (date-location-lang)
+  @Column({type: 'text'})
+  cacheKey!: string; // Composite key (date-location-lang)
 
   @Column({ type: 'json' })
   response: any; // The full JSON payload from Prokerala
 
-  @CreateDateColumn()
-  created_at: Date;
+  @CreateDateColumn({type: 'timestamptz'})
+  created_at!: Date;
 
-  @UpdateDateColumn()
-  last_synced: Date;
+  @UpdateDateColumn({type: 'timestamptz'})
+  last_synced!: Date;
 }

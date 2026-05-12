@@ -23,14 +23,14 @@ export enum NotificationType {
 @Entity('notifications')
 export class Notification {
     @PrimaryGeneratedColumn()
-    id: number;
+    id!: number;
 
     @ManyToOne(() => User)
     @JoinColumn({ name: 'user_id' })
-    user: User;
+    user!: User;
 
-    @Column({ name: 'user_id' })
-    user_id: number;
+    @Column({ name: 'user_id', type: 'int' })
+    user_id!: number;
 
     @Column({
         type: 'enum',
@@ -38,20 +38,20 @@ export class Notification {
         default: NotificationType.GENERAL,
         nullable: true,
     })
-    type: NotificationType;
+    type!: NotificationType | null;
 
-    @Column()
-    title: string;
+    @Column({type: 'character varying', length: 255})
+    title!: string;
 
     @Column({ type: 'text' })
-    message: string;
+    message!: string;
 
     @Column({ name: 'is_read', default: false })
-    is_read: boolean;
+    is_read!: boolean;
 
     @Column({ type: 'json', nullable: true })
     metadata: any; // orderId, etc.
 
-    @CreateDateColumn({ name: 'created_at' })
-    created_at: Date;
+    @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+    created_at!: Date;
 }

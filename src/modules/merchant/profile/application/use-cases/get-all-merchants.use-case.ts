@@ -93,7 +93,12 @@ export class GetAllMerchantsUseCase {
         where: { user: { id: currentUserId }, merchant: { id: In(merchants.map(m => m.id)) } },
         relations: ['merchant'],
       });
-      likedMerchantIds = new Set(likes.map(l => l.merchant.id));
+
+      const likeWithMerchants = likes.filter((l) => l.merchant != null);
+
+      likedMerchantIds = new Set(
+        likeWithMerchants.map((l) => l.merchant!.id ),
+      );
     }
 
     // Fetch likesCount for each merchant using QueryBuilder with property names for safe mapping

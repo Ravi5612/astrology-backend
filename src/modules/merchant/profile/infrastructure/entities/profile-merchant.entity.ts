@@ -19,131 +19,131 @@ export enum MerchantStatus {
 @Entity('profile_merchants')
 export class ProfileMerchant {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @OneToOne(() => User, (user) => user.profile_merchant)
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
-  @Column({ name: 'user_id', unique: true, nullable: true })
-  user_id: number;
+  @Column({ name: 'user_id', type: 'int', unique: true, nullable: true })
+  user_id!: number;
 
-  @Column({ name: 'shopName', nullable: true })
-  shopName?: string;
+  @Column({ name: 'shopName', type: 'text', nullable: true })
+  shopName!: string | null;
 
-  @Column({ name: 'manager_name', nullable: true })
-  managerName?: string;
+  @Column({ name: 'manager_name', type: 'text', nullable: true })
+  managerName!: string | null;
 
-  @Column({ name: 'phone', nullable: true })
-  phone?: string;
+  @Column({ name: 'phone', type: 'text', nullable: true })
+  phone!: string | null;
 
   @Column({ name: 'address', nullable: true, type: 'text' })
-  address?: string;
+  address!: string | null;
 
-  @Column({ name: 'city', nullable: true })
-  city?: string;
+  @Column({ name: 'city',  type: 'text', nullable: true })
+  city!: string | null;
 
-  @Column({ name: 'pincode', nullable: true })
-  pincode?: string;
+  @Column({ name: 'pincode',  type: 'text', nullable: true })
+  pincode!: string | null;
 
-  @Column({ name: 'image', nullable: true })
-  image?: string;
+  @Column({ name: 'image',  type: 'text', nullable: true })
+  image!: string | null;
 
-  @Column({ name: 'video', nullable: true })
-  video?: string;
+  @Column({ name: 'video',  type: 'text', nullable: true })
+  video!: string | null;
 
   @Column({
     type: 'enum',
     enum: MerchantStatus,
     default: MerchantStatus.PENDING_VERIFICATION,
   })
-  status: MerchantStatus;
+  status!: MerchantStatus;
 
 
   @Column({ type: 'decimal', precision: 3, scale: 1, default: 0 })
-  rating: number;
+  rating!: number;
 
-  @Column({ name: 'review_count', default: 0 })
-  reviewCount: number;
-
-  @Column({ nullable: true })
-  established?: string;
+  @Column({ name: 'review_count', type: 'int', default: 0 })
+  reviewCount!: number;
 
   @Column({ type: 'text', nullable: true })
-  description?: string;
+  established!: string | null;
 
-  @Column({ name: 'is_trusted', default: false })
-  isTrusted: boolean;
+  @Column({ type: 'text', nullable: true })
+  description!: string | null;
+
+  @Column({ name: 'is_trusted', type: 'bool', default: false })
+  isTrusted!: boolean;
 
   @Column({ type: 'json', nullable: true })
-  gallery?: string[];
+  gallery!: string[] | null;
 
   @Column({ type: 'json', nullable: true })
-  features?: string[];
+  features!: string[] | null;
 
-  @Column({ name: 'is_online', default: true })
-  isOnline: boolean;
+  @Column({ name: 'is_online', type: 'bool', default: true })
+  isOnline!: boolean;
 
-  @Column({ nullable: true })
-  gstin?: string;
+  @Column({ type: 'text', nullable: true })
+  gstin!: string | null;
 
-  @Column({ nullable: true })
-  pan?: string;
+  @Column({  type: 'text', nullable: true })
+  pan!: string | null;
 
-  @Column({ name: 'is_gst_exempt', default: false })
-  isGstExempt: boolean;
+  @Column({ name: 'is_gst_exempt', type: 'bool', default: false })
+  isGstExempt!: boolean;
 
-  @Column({ name: 'bank_name', nullable: true })
-  bankName?: string;
+  @Column({ name: 'bank_name',  type: 'text', nullable: true })
+  bankName!: string | null;
 
-  @Column({ name: 'account_holder', nullable: true })
-  accountHolder?: string;
+  @Column({ name: 'account_holder',  type: 'text', nullable: true })
+  accountHolder!: string | null; 
 
-  @Column({ name: 'account_number', nullable: true })
-  accountNumber?: string;
+  @Column({ name: 'account_number',  type: 'text', nullable: true })
+  accountNumber!: string | null;
 
-  @Column({ nullable: true })
-  ifsc?: string;
+  @Column({  type: 'text', nullable: true })
+  ifsc!: string | null;
 
-  @Column({ name: 'gst_certificate', nullable: true })
-  gstCertificate?: string;
+  @Column({ name: 'gst_certificate',  type: 'text', nullable: true })
+  gstCertificate!: string | null;
 
-  @Column({ name: 'pan_front', nullable: true })
-  panFront?: string;
+  @Column({ name: 'pan_front',  type: 'text', nullable: true })
+  panFront!: string | null;
 
-  @Column({ name: 'pan_back', nullable: true })
-  panBack?: string;
+  @Column({ name: 'pan_back',  type: 'text', nullable: true })
+  panBack!: string | null;
 
-  @Column({ name: 'aadhar_front', nullable: true })
-  aadharFront?: string;
+  @Column({ name: 'aadhar_front',  type: 'text', nullable: true })
+  aadharFront!: string | null; 
 
-  @Column({ name: 'aadhar_back', nullable: true })
-  aadharBack?: string;
+  @Column({ name: 'aadhar_back',  type: 'text', nullable: true })
+  aadharBack!: string | null;
 
-  @Column({ name: 'is_verified', default: false })
-  isVerified: boolean;
+  @Column({ name: 'is_verified',  type: 'text', default: false })
+  isVerified!: boolean | null;
 
-  @Column({ name: 'operational_hours', nullable: true, default: '10:00 AM - 08:30 PM' })
-  operationalHours?: string;
+  @Column({ name: 'operational_hours',  type: 'text', nullable: true, default: '10:00 AM - 08:30 PM' })
+  operationalHours!: string | null;
 
-  @Column({ name: 'trust_score', nullable: true, default: '99.8' })
-  trustScore?: string;
-
-  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
-  latitude?: number;
+  @Column({ name: 'trust_score',  type: 'text', nullable: true, default: '99.8' })
+  trustScore!: string | null;
 
   @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
-  longitude?: number;
+  latitude!: number | null;
 
-  @CreateDateColumn({ name: 'created_at' })
-  created_at: Date;
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  longitude!: number | null;
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updated_at: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  created_at!: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updated_at!: Date;
 
   @Column({ type: 'float', nullable: true, name: 'agent_commission_rate' })
-  agent_commission_rate?: number;
+  agent_commission_rate!: number | null; 
 
   @Column({ type: 'json', nullable: true, name: 'bank_accounts' })
-  bank_accounts?: any[];
+  bank_accounts!: any[];
 }

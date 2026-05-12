@@ -101,7 +101,7 @@ export class MerchantRegisterUserUseCase {
             new UserRegisteredEvent(
                 user.id,
                 user.email,
-                user.name,
+                user.name || 'user',
                 verification_token,
                 user.roles.map((r) => r.name),
             ),

@@ -12,35 +12,35 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 @Entity('support_dispute_messages')
 export class DisputeMessage {
     @PrimaryGeneratedColumn()
-    id: number;
+    id!: number;
 
     @ManyToOne(() => Dispute)
     @JoinColumn({ name: 'dispute_id' })
-    dispute: Dispute;
+    dispute!: Dispute;
 
-    @Column({ name: 'dispute_id' })
-    dispute_id: number;
+    @Column({ name: 'dispute_id', type: 'int' })
+    dispute_id!: number;
 
     @ManyToOne(() => User)
     @JoinColumn({ name: 'sender_id' })
-    sender: User;
+    sender!: User;
 
-    @Column({ name: 'sender_id' })
-    sender_id: number;
+    @Column({ name: 'sender_id', type: 'int' })
+    sender_id!: number;
 
     @Column({
         type: 'enum',
         enum: ['user', 'admin'],
         default: 'user'
     })
-    sender_type: 'user' | 'admin';
+    sender_type!: 'user' | 'admin';
 
     @Column({ type: 'text' })
-    message: string;
+    message!: string;
 
     @Column({ type: 'boolean', default: false })
-    is_read: boolean;
+    is_read!: boolean;
 
-    @CreateDateColumn({ name: 'created_at' })
-    created_at: Date;
+    @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+    created_at!: Date;
 }

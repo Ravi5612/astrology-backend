@@ -15,22 +15,22 @@ import { createHash } from 'crypto';
 @Unique(['user', 'token'])
 export class UsedTokens {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   @Column('text')
-  token: string;
+  token!: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  purpose: string | null;
+  purpose!: string | null;
 
   @CreateDateColumn({
     type: 'timestamptz',
   })
-  used_at: Date;
+  used_at!: Date;
 
   @BeforeInsert()
   hashToken() {

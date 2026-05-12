@@ -8,7 +8,7 @@ import { GetExpertStatsUseCase } from './use-cases/get-expert-stats.usecase';
 import { GetUserStatsUseCase } from './use-cases/get-user-stats.usecase';
 import { GetUserExpertGrowthStatsUseCase } from './use-cases/get-user-expert-growth-stats.usecase';
 import { FindUsersByRoleUseCase } from './use-cases/find-users-by-role.usecase';
-import { CreateUserDto } from '../presentation/dto/user.dto';
+import { CreateUserDto } from '../api/dto/user.dto';
 import { User } from '../infrastructure/entities/user.entity';
 
 import { QueryRunner } from 'typeorm';

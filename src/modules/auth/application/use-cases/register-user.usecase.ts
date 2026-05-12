@@ -89,7 +89,7 @@ export class RegisterUserUseCase {
       new UserRegisteredEvent(
         user.id,
         user.email,
-        user.name,
+        user.name || 'user',
         verification_token,
         roleNames,
       ),

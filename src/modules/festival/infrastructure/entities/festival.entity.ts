@@ -9,26 +9,26 @@ import {
 @Entity('festivals')
 export class Festival {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
-  @Column()
-  name: string;
+  @Column({type: 'character varying', length: '255'})
+  name!: string;
 
   @Column({ type: 'text', nullable: true })
-  description: string;
+  description!: string | null;
 
   @Column({ type: 'timestamptz' })
-  date: Date;
+  date!: Date;
 
-  @Column({ default: 'festival' }) // e.g., 'festival', 'holiday', 'event'
-  type: string;
+  @Column({ type: 'character varying', length: 255, default: 'festival' }) // e.g., 'festival', 'holiday', 'event'
+  type!: string;
 
-  @Column({ nullable: true })
-  image_url: string;
+  @Column({ type: 'text', nullable: true })
+  image_url!: string | null;
 
-  @CreateDateColumn({ name: 'created_at' })
-  created_at: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  created_at!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updated_at: Date;
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updated_at!: Date;
 }

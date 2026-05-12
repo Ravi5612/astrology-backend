@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from '../../presentation/dto/user.dto';
+import { CreateUserDto } from '../../api/dto/user.dto';
 import { User } from '../../infrastructure/entities/user.entity';
 import { RolesService } from '@/modules/role/roles.service';
 import { QueryRunner } from 'typeorm';
@@ -16,9 +16,9 @@ export class CreateUserUseCase {
   async execute(dto: CreateUserDto, queryRunner?: QueryRunner): Promise<User> {
     const user = new User();
     user.email = dto.email;
-    user.password = dto.password;
-    user.name = dto.name;
-    user.avatar = dto.avatar;
+    user.password = dto.password ?? null;
+    user.name = dto.name ?? null;
+    user.avatar = dto.avatar ?? null;
     user.referred_by_id = dto.referred_by_id ?? null;
 
     if (dto.roles?.length) {

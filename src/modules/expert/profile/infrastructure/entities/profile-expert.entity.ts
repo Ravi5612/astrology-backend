@@ -21,136 +21,136 @@ import { ExpertPuja } from './expert-puja.entity';
 @Check(`"kyc_status" IN ('pending', 'approved', 'rejected')`)
 export class ProfileExpert {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @OneToOne(() => User, (user) => user.profile_expert)
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
-  @Column({ name: 'user_id', nullable: true })
-  user_id: number;
+  @Column({ name: 'user_id'})
+  user_id!: number;
 
   @Column({
     type: 'text',
     nullable: true,
   })
-  gender: 'male' | 'female' | 'other';
+  gender!: 'male' | 'female' | 'other';
 
   @Column({
     type: 'timestamptz',
     nullable: true,
   })
-  date_of_birth: Date | null;
+  date_of_birth!: Date | null;
 
   @Column({
     type: 'text',
     nullable: true,
   })
-  specialization: string;
+  specialization!: string;
 
   @Column({ type: 'text', nullable: true })
-  bio?: string;
+  bio!: string | null;
 
   @Column({
     type: 'int',
     default: 0,
   })
-  experience_in_years: number;
+  experience_in_years!: number;
 
   @Column({
     type: 'int',
     default: 0,
   })
-  total_likes: number;
+  total_likes!: number;
 
   @Column({
     type: 'int',
     default: 0,
     name: 'total_reviews'
   })
-  total_reviews: number;
+  total_reviews!: number;
 
   //   @Column({ type: 'decimal', nullable: true })
   //   hourlyRate?: number;
   @Column({ type: 'float', default: 0 })
-  rating: number;
+  rating!: number;
 
   @Column({ default: 'pending', name: 'kyc_status' }) // pending, approved, rejected
-  kyc_status: string;
+  kyc_status!: string;
 
   @Column({ type: 'text', nullable: true, name: 'rejection_reason' })
   rejection_reason?: string | null;
 
   @Column({ type: 'int', default: 0, name: 'consultation_count' })
-  consultation_count: number;
+  consultation_count!: number;
 
   @Column({ type: 'text', nullable: true })
-  languages?: string;
+  languages!: string | null;
 
   @Column({ type: 'text', nullable: true, name: 'phone_number' })
-  phone_number?: string;
+  phone_number!: string | null;
 
   @Column({ type: 'float', nullable: true })
-  price?: number;
+  price!: number | null;
 
   @Column({ type: 'float', nullable: true })
-  chat_price?: number;
+  chat_price!: number | null;
 
   @Column({ type: 'float', nullable: true })
-  call_price?: number;
+  call_price!: number | null;
 
   @Column({ type: 'float', nullable: true })
-  video_call_price?: number;
+  video_call_price!: number | null;
 
   @Column({ type: 'float', nullable: true })
-  report_price?: number;
+  report_price!: number | null;
 
   @Column({ type: 'float', nullable: true })
-  horoscope_price?: number;
+  horoscope_price!: number | null;
 
   @Column({ type: 'json', nullable: true })
-  custom_services?: Record<string, any>[];
+  custom_services!: Record<string, any>[] | null;
 
   @Column({ type: 'text', nullable: true })
-  bank_details?: string;
+  bank_details!: string | null;
 
   @Column({ type: 'json', nullable: true })
-  documents?: Record<string, any>[];
+  documents!: Record<string, any>[] | null;
 
   @Column({ type: 'simple-array', nullable: true })
-  gallery?: string[];
+  gallery!: string[] | null;
 
   @Column({ type: 'simple-array', nullable: true })
-  videos?: string[];
+  videos!: string[] | null;
 
   @Column({ type: 'simple-array', nullable: true })
-  certificates?: string[];
+  certificates!: string[] | null;
 
   @Column({ type: 'text', nullable: true })
-  video?: string;
+  video!: string | null;
 
   @Column({ type: 'json', nullable: true })
-  detailed_experience?: Record<string, any>[];
+  detailed_experience!: Record<string, any>[] | null;
 
   @Column({ type: 'boolean', default: false })
-  is_available: boolean;
+  is_available!: boolean;
 
-  @CreateDateColumn({ name: 'created_at' })
-  created_at: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  created_at!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updated_at: Date;
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updated_at!: Date;
 
   @OneToMany(() => ExpertPuja, (puja) => puja.expert, {
     cascade: true,
   })
-  pujas: ExpertPuja[];
+  pujas!: ExpertPuja[];
 
   @OneToMany(() => Address, (address) => address.profile_expert, {
     cascade: true,
     eager: true,
   })
-  addresses: Address[];
+  addresses!: Address[];
 
   @Column({
     type: 'decimal',
@@ -160,11 +160,11 @@ export class ProfileExpert {
     name: 'total_earning',
     transformer: new ColumnNumericTransformer(),
   })
-  total_earning: number;
+  total_earning!: number;
 
   @Column({ type: 'text', nullable: true, name: 'razorpay_contact_id' })
-  razorpay_contact_id?: string;
+  razorpay_contact_id!: string | null; 
 
   @Column({ type: 'float', nullable: true, name: 'agent_commission_rate' })
-  agent_commission_rate?: number;
+  agent_commission_rate!: number | null;
 }

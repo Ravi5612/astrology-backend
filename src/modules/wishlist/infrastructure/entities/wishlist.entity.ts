@@ -20,15 +20,15 @@ import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entit
 
 export class Wishlist {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE', eager: true, nullable: true })
   @JoinColumn({ name: 'expert_id' })
-  expert: User;
+  expert!: User | null;
 
   @ManyToOne(() => Product, {
     onDelete: 'CASCADE',
@@ -36,7 +36,7 @@ export class Wishlist {
     nullable: true,
   })
   @JoinColumn({ name: 'product_id' })
-  product: Product;
+  product!: Product | null;
 
   @ManyToOne(() => ExpertPuja, {
     onDelete: 'CASCADE',
@@ -44,7 +44,7 @@ export class Wishlist {
     nullable: true,
   })
   @JoinColumn({ name: 'puja_id' })
-  puja: ExpertPuja;
+  puja!: ExpertPuja;
 
   @ManyToOne(() => ProfileMerchant, {
     onDelete: 'CASCADE',
@@ -52,9 +52,9 @@ export class Wishlist {
     nullable: true,
   })
   @JoinColumn({ name: 'merchant_id' })
-  merchant: ProfileMerchant;
+  merchant!: ProfileMerchant | null;
 
 
-  @CreateDateColumn({ name: 'created_at' })
-  created_at: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  created_at!: Date;
 }

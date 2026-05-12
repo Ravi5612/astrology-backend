@@ -9,23 +9,23 @@ import {
 @Entity('quotes')
 export class Quote {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ type: 'text' })
-  text: string;
+  text!: string;
 
-  @Column({ nullable: true })
-  author?: string;
+  @Column({ type: 'text', nullable: true })
+  author!: string | null;
 
-  @Column({ nullable: true })
-  source?: string;
+  @Column({ type: 'text', nullable: true })
+  source!: string | null;
 
-  @Column({ nullable: true })
-  meaning?: string;
+  @Column({ type: 'text', nullable: true })
+  meaning!: string | null;
 
-  @CreateDateColumn({ name: 'created_at' })
-  created_at: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  created_at!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updated_at: Date;
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updated_at!: Date;
 }

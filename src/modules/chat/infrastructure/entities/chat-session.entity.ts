@@ -26,86 +26,86 @@ import { ColumnNumericTransformer } from '@/common/transformers/numeric.transfor
 @Entity('chat_sessions')
 export class ChatSession {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   @Column({ type: 'int', name: 'user_id' })
-  user_id: number;
+  user_id!: number;
 
   @ManyToOne(() => ProfileExpert)
   @JoinColumn({ name: 'expert_id' })
-  expert: ProfileExpert;
+  expert!: ProfileExpert;
 
   @Column({ type: 'int', name: 'expert_id' })
-  expert_id: number;
+  expert_id!: number;
 
   @Column({ type: 'timestamptz', nullable: true, name: 'start_time' })
-  start_time: Date;
+  start_time!: Date;
 
   @Column({ type: 'timestamptz', nullable: true, name: 'end_time' })
-  end_time: Date;
+  end_time!: Date;
 
   @Column({
     type: 'enum',
     enum: ChatSessionStatus,
     default: ChatSessionStatus.PENDING,
   })
-  status: ChatSessionStatus;
+  status!: ChatSessionStatus;
 
   @Column({ type: 'text', nullable: true, name: 'terminated_by' })
-  terminated_by: string | null;
+  terminated_by!: string | null;
 
   @Column({ type: 'text', nullable: true, name: 'terminated_reason' })
-  terminated_reason: string | null;
+  terminated_reason!: string | null;
 
   @Column({ type: 'text', default: 'chat', name: 'session_type' })
-  session_type: string;
+  session_type!: string;
 
   @Column({ type: 'boolean', default: false, name: 'is_recording' })
-  is_recording: boolean;
+  is_recording!: boolean;
 
   @Column({ type: 'text', default: 'excellent', name: 'connection_quality' })
-  connection_quality: string;
+  connection_quality!: string;
 
   @Column({ type: 'boolean', default: false, name: 'is_free' })
-  is_free: boolean;
+  is_free!: boolean;
 
   @Column({ type: 'int', default: 0, name: 'free_minutes' })
-  free_minutes: number;
+  free_minutes!: number;
 
   @Column({ type: 'float', default: 0, name: 'price_per_minute' })
-  price_per_minute: number;
+  price_per_minute!: number;
 
   @Column({ type: 'float', default: 0, name: 'total_cost' })
-  total_cost: number;
+  total_cost!: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, name: 'expert_earning', transformer: new ColumnNumericTransformer() })
-  expert_earning: number;
+  expert_earning!: number;
 
   @Column({ type: 'int', nullable: true, name: 'agent_id' })
   agent_id?: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, name: 'agent_commission', transformer: new ColumnNumericTransformer() })
-  agent_commission: number;
+  agent_commission!: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, name: 'platform_fee', transformer: new ColumnNumericTransformer() })
-  platform_fee: number;
+  platform_fee!: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, name: 'gst', transformer: new ColumnNumericTransformer() })
-  gst: number;
+  gst!: number;
 
   @Column({ type: 'jsonb', nullable: true, name: 'metadata' })
   metadata: any;
 
   @Column({ type: 'int', default: 0, name: 'max_duration_seconds' })
-  max_duration_seconds: number;
+  max_duration_seconds!: number;
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
-  created_at: Date;
+  created_at!: Date;
 
   @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
-  updated_at: Date;
+  updated_at!: Date;
 }

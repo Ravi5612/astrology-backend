@@ -16,65 +16,65 @@ import { Order } from '@/modules/order/infrastructure/entities/order.entity';
 @Entity('reviews')
 export class Review {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ type: 'int', name: 'user_id' })
-  user_id: number;
+  user_id!: number;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   @Column({ type: 'int', name: 'order_id', nullable: true })
-  order_id: number | null;
+  order_id!: number | null;
 
   @ManyToOne(() => Order, { nullable: true })
   @JoinColumn({ name: 'order_id' })
-  order: Order | null;
+  order!: Order | null;
 
   @Column({ type: 'int', name: 'expert_id', nullable: true })
-  expert_id: number | null;
+  expert_id!: number | null;
 
   @ManyToOne(() => ProfileExpert)
   @JoinColumn({ name: 'expert_id' })
-  expert: ProfileExpert;
+  expert: ProfileExpert = new ProfileExpert;
 
   @Column({ type: 'int', name: 'merchant_id', nullable: true })
-  merchant_id: number | null;
+  merchant_id!: number | null;
 
   @ManyToOne(() => ProfileMerchant)
   @JoinColumn({ name: 'merchant_id' })
-  merchant: ProfileMerchant;
+  merchant!: ProfileMerchant;
 
   @Column({ type: 'int', nullable: true, name: 'session_id' })
-  session_id: number | null;
+  session_id!: number | null;
 
   @ManyToOne(() => ChatSession, { nullable: true })
   @JoinColumn({ name: 'session_id' })
-  session: ChatSession;
+  session!: ChatSession;
 
   @Column({ type: 'int', nullable: true, name: 'call_session_id' })
-  call_session_id: number | null;
+  call_session_id!: number | null;
 
   @ManyToOne(() => CallSession, { nullable: true })
   @JoinColumn({ name: 'call_session_id' })
-  callSession: CallSession;
+  callSession!: CallSession;
 
   @Column({ type: 'float' })
-  rating: number;
+  rating!: number;
 
   @Column({ type: 'text', nullable: true })
-  comment: string;
+  comment!: string;
   
   @Column({ type: 'varchar', length: 20, default: 'pending' })
-  status: string;
+  status!: string;
 
   @Column({ type: 'varchar', length: 20, default: 'expert', name: 'review_type' })
-  review_type: string; // 'expert' | 'merchant' | 'platform'
+  review_type!: string; // 'expert' | 'merchant' | 'platform'
 
   @Column({ type: 'simple-array', nullable: true })
-  tags: string[];
+  tags!: string[];
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
-  created_at: Date;
+  created_at!: Date;
 }

@@ -15,11 +15,11 @@ export class BankAccount {
     id!: number;
 
     @Column({ type: 'int', name: 'expert_id', nullable: true })
-    expert_id?: number | null;
+    expert_id!: number | null;
 
     @ManyToOne(() => ProfileExpert, { onDelete: 'CASCADE', nullable: true })
     @JoinColumn({ name: 'expert_id' })
-    expert?: ProfileExpert | null;
+    expert!: ProfileExpert | null;
 
     @Column({ type: 'text' })
     account_holder_name!: string;
@@ -34,17 +34,17 @@ export class BankAccount {
     ifsc_code!: string;
 
     @Column({ type: 'text', nullable: true })
-    upi_id?: string;
+    upi_id!: string | null;
 
     @Column({ type: 'boolean', default: false })
     is_primary!: boolean;
 
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
     created_at!: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
+    @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
     updated_at!: Date;
 
     @Column({ type: 'text', nullable: true, name: 'razorpay_fund_account_id' })
-    razorpay_fund_account_id?: string;
+    razorpay_fund_account_id!: string | null; 
 }

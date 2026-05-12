@@ -13,31 +13,31 @@ import { Coupon } from './coupon.entity';
 @Entity('user_coupons')
 export class UserCoupon {
     @PrimaryGeneratedColumn()
-    id: number;
+    id!: number;
 
     @ManyToOne(() => User)
     @JoinColumn({ name: 'user_id' })
-    user: User;
+    user!: User;
 
-    @Column({ name: 'user_id' })
-    user_id: number;
+    @Column({ name: 'user_id', type: 'int' })
+    user_id!: number;
 
     @ManyToOne(() => Coupon)
     @JoinColumn({ name: 'coupon_id' })
-    coupon: Coupon;
+    coupon!: Coupon;
 
-    @Column({ name: 'coupon_id' })
-    coupon_id: number;
+    @Column({ name: 'coupon_id', type: 'int' })
+    coupon_id!: number;
 
     @Column({ type: 'boolean', default: false, name: 'is_used' })
-    is_used: boolean;
+    is_used!: boolean;
 
     @Column({ type: 'timestamptz', nullable: true, name: 'used_at' })
-    used_at: Date;
+    used_at!: Date;
 
-    @CreateDateColumn({ name: 'assigned_at' })
-    assigned_at: Date;
+    @CreateDateColumn({ name: 'assigned_at', type: 'timestamptz' })
+    assigned_at!: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
-    updated_at: Date;
+    @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+    updated_at!: Date;
 }

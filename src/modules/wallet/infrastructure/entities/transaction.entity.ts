@@ -28,37 +28,37 @@ export enum TransactionPurpose {
 @Entity('transactions')
 export class Transaction {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @ManyToOne(() => Wallet)
   @JoinColumn({ name: 'wallet_id' })
-  wallet: Wallet;
+  wallet!: Wallet;
 
-  @Column({ name: 'wallet_id' })
-  wallet_id: number;
+  @Column({ name: 'wallet_id', type: 'int' })
+  wallet_id!: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  amount: number;
+  amount!: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-  balance_before: number;
+  balance_before!: number | null;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-  balance_after: number;
+  balance_after!: number | null;
 
   @Column({ type: 'enum', enum: TransactionType })
-  type: TransactionType;
+  type!: TransactionType;
 
   @Column({ type: 'enum', enum: TransactionPurpose })
-  purpose: TransactionPurpose;
+  purpose!: TransactionPurpose;
 
-  @Column({ name: 'reference_id', nullable: true })
-  reference_id: string; // To link with session or external payment ID
+  @Column({ name: 'reference_id', type: 'text', nullable: true })
+  reference_id!: string | null; // To link with session or external payment ID
 
-  @Column({ name: 'transaction_no', nullable: true, unique: true })
-  transaction_no: string;
+  @Column({ name: 'transaction_no', type: 'text', nullable: true, unique: true })
+  transaction_no!: string | null;
 
-  @CreateDateColumn({ name: 'created_at' })
-  created_at: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  created_at!: Date;
 }
 

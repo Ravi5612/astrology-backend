@@ -28,23 +28,23 @@ export class ColumnNumericTransformer {
 @Entity('payment_orders')
 export class PaymentOrder {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
-  @Column({ name: 'user_id', nullable: true })
-  user_id: number;
+  @Column({ type: 'int', name: 'user_id', nullable: true })
+  user_id!: number | null;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
-  @Column({ name: 'razorpay_order_id', unique: true, nullable: true })
-  razorpay_order_id: string;
+  @Column({ name: 'razorpay_order_id', type: 'text', unique: true, nullable: true })
+  razorpay_order_id!: string | null;
 
-  @Column({ name: 'razorpay_payment_id', unique: true, nullable: true })
-  razorpay_payment_id: string;
+  @Column({ name: 'razorpay_payment_id', type: 'text', unique: true, nullable: true })
+  razorpay_payment_id!: string | null;
 
-  @Column({ name: 'razorpay_signature', nullable: true })
-  razorpay_signature: string;
+  @Column({ name: 'razorpay_signature', type: 'text', nullable: true })
+  razorpay_signature!: string | null;
 
   @Column({
     type: 'decimal',
@@ -52,17 +52,17 @@ export class PaymentOrder {
     scale: 2,
     transformer: new ColumnNumericTransformer(),
   })
-  amount: number;
+  amount!: number;
 
   @Column({ default: PaymentStatus.PENDING })
-  status: PaymentStatus;
+  status!: PaymentStatus;
 
   @Column({ type: 'json', nullable: true })
   notes: any;
 
   @CreateDateColumn({ name: 'created_at' })
-  created_at: Date;
+  created_at!: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
-  updated_at: Date;
+  updated_at!: Date;
 }

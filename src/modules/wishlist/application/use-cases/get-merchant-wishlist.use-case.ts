@@ -19,9 +19,9 @@ export class GetMerchantWishlistUseCase {
 
     // Filter only those that have a merchant (in case of mixed wishlist table)
     const merchants = wishlistItems
-      .filter((item) => item.merchant)
+      .filter((item) => item.merchant != null)
       .map((item) => {
-        const m = item.merchant;
+        const m = item.merchant!;
         return {
           id: m.id,
           name: m.shopName || m.user?.name || 'Unnamed Shop',

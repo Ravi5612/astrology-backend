@@ -1,4 +1,4 @@
-import { DataSource } from 'typeorm';
+import { DataSource, IsNull } from 'typeorm';
 import { Withdrawal } from '../src/modules/wallet/infrastructure/entities/withdrawal.entity';
 import { Transaction, TransactionPurpose } from '../src/modules/wallet/infrastructure/entities/transaction.entity';
 import { User } from '../src/modules/users/infrastructure/persistence/entities/user.entity';
@@ -25,7 +25,7 @@ async function migrate() {
 
     // 1. Update Withdrawals
     const withdrawals = await dataSource.getRepository(Withdrawal).find({
-        where: { withdrawal_no: null },
+        where: { withdrawal_no: IsNull() },
         relations: ['user', 'user.roles']
     });
 
@@ -40,7 +40,7 @@ async function migrate() {
 
     // 2. Update Transactions
     const transactions = await dataSource.getRepository(Transaction).find({
-        where: { transaction_no: null } as any,
+        where: { transaction_no: IsNull() },
         relations: ['wallet']
     });
 

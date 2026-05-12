@@ -17,31 +17,31 @@ export enum MessageType {
 @Entity('chat_messages')
 export class ChatMessage {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @ManyToOne(() => ChatSession)
   @JoinColumn({ name: 'session_id' })
-  session: ChatSession;
+  session!: ChatSession;
 
   @Column({ type: 'int', name: 'session_id' })
-  session_id: number;
+  session_id!: number;
 
   @Column({ type: 'int', name: 'sender_id' })
-  sender_id: number;
+  sender_id!: number;
 
   @Column({ type: 'text', name: 'sender_type' })
-  sender_type: 'user' | 'expert';
+  sender_type!: 'user' | 'expert';
 
   @Column({ type: 'text' })
-  content: string;
+  content!: string;
 
   @Column({
     type: 'enum',
     enum: MessageType,
     default: MessageType.TEXT,
   })
-  type: MessageType;
+  type!: MessageType;
 
-  @CreateDateColumn({ name: 'created_at' })
-  created_at: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  created_at!: Date;
 }

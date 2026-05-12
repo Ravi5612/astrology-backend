@@ -26,27 +26,27 @@ export class User {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ unique: true, nullable: true })
-  uid?: string | null; // e.g. AIB-USR-A8K2XP or AIB-EXP-QR91MN
+  @Column({ type: 'text', unique: true, nullable: true })
+  uid!: string | null; // e.g. AIB-USR-A8K2XP or AIB-EXP-QR91MN
 
-  @Column({ unique: true })
+  @Column({ type: 'character varying', length: 255, unique: true })
   email!: string;
 
-  @Column({ select: false, nullable: true })
+  @Column({ type: 'text', select: false, nullable: true })
   @Exclude()
-  password?: string; // argon2 hash
+  password!: string | null; // argon2 hash
 
   @Column({
     type: 'timestamptz',
     nullable: true,
   })
-  email_verified_at?: Date | null;
+  email_verified_at!: Date | null;
 
-  @Column({ nullable: true })
-  name?: string;
+  @Column({ type: 'character varying', length: 255, nullable: true })
+  name!: string | null;
 
   @Column({ type: 'text', nullable: true })
-  avatar?: string;
+  avatar!: string | null;
 
   @ManyToMany(() => Role, (r) => r.users)
   @JoinTable({
@@ -56,7 +56,7 @@ export class User {
   })
   roles!: Role[];
 
-  @Column({ default: false })
+  @Column({ type: 'bool', default: false })
   is_blocked!: boolean;
 
   @OneToMany(() => OAuthAccount, (oa) => oa.user)
@@ -65,32 +65,31 @@ export class User {
   @OneToMany(() => Session, (c) => c.user)
   sessions!: Session[];
 
-  @CreateDateColumn()
+  @CreateDateColumn({type: 'timestamptz'})
   created_at!: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({type: 'timestamptz'})
   updated_at!: Date;
 
   @OneToOne(() => ProfileClient, (p) => p.user, { cascade: true })
-  profile_client?: ProfileClient;
+  profile_client!: ProfileClient | null;
 
   @OneToOne(() => ProfileExpert, (p) => p.user, { cascade: true })
-  profile_expert?: ProfileExpert;
+  profile_expert!: ProfileExpert | null;
+  
+  @OneToOne(() => AgentProfile, (p) => p.user, { cascade: true })
+  agent_profile!: AgentProfile | null;
 
-  @Column({ nullable: true })
-  referred_by_id?: number | null;
+  @OneToOne(() => ProfileMerchant, (p) => p.user, { cascade: true })
+  profile_merchant!: ProfileMerchant | null;
+
+  @Column({ nullable: true, type: 'int' })
+  referred_by_id!: number | null;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'referred_by_id' })
-  referred_by?: User | null;
+  referred_by!: User | null;
 
-  @OneToOne(() => AgentProfile, (p) => p.user, { cascade: true })
-  agent_profile?: AgentProfile;
-
-  @OneToOne(() => ProfileMerchant, (p) => p.user, { cascade: true })
-  profile_merchant?: ProfileMerchant;
-
-  
   // methods
   isVerified() {
     return !!this.email_verified_at;

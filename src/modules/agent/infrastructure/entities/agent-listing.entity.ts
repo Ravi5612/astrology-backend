@@ -17,20 +17,20 @@ export class AgentListing {
     @Column({ type: 'varchar', length: 20 })
     type!: string; // 'mandir' | 'puja_shop'
 
-    @Column()
+    @Column({type: 'text'})
     name!: string;
 
-    @Column({ nullable: true })
-    location?: string | null;
+    @Column({type: 'text', nullable: true })
+    location!: string | null;
 
-    @Column({ nullable: true })
-    phone?: string | null;
+    @Column({type: 'character varying', length: 100, nullable: true })
+    phone!: string | null;
 
-    @Column({ nullable: true })
-    deity?: string | null; // main deity (mandir) or specialty (puja shop)
+    @Column({type: 'text', nullable: true })
+    deity!: string | null; // main deity (mandir) or specialty (puja shop)
 
-    @Column({ nullable: true })
-    items?: string | null; // timing info or items sold
+    @Column({type: 'text', nullable: true })
+    items!: string | null; // timing info or items sold
 
     @Column({ type: 'varchar', length: 20, default: 'pending' })
     status!: string; // 'pending' | 'approved' | 'rejected'
@@ -39,12 +39,12 @@ export class AgentListing {
     @JoinColumn({ name: 'agent_id' })
     agent!: User;
 
-    @Column()
+    @Column({type: 'int'})
     agent_id!: number;
 
-    @CreateDateColumn()
+    @CreateDateColumn({type: 'timestamptz'})
     created_at!: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({type: 'timestamptz'})
     updated_at!: Date;
 }

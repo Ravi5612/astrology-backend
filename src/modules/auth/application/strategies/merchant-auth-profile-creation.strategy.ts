@@ -15,7 +15,7 @@ export class MerchantAuthProfileCreationStrategy implements AuthProfileCreationS
       throw new Error('MerchantAuthProfileCreationStrategy requires a Database transaction (QueryRunner)');
     }
 
-    const existingProfile = await manager.findOne(ProfileMerchant, {
+    const existingProfile = await manager.exists(ProfileMerchant, {
       where: { user_id: user.id },
     });
 
@@ -23,7 +23,6 @@ export class MerchantAuthProfileCreationStrategy implements AuthProfileCreationS
       this.logger.log(`Creating Merchant profile for user: ${user.id}`);
       
       const newProfile = manager.create(ProfileMerchant, {
-        user: { id: user.id },
         user_id: user.id,
         shopName: user.name, // Will be populated with Google Name if Google Auth is used
         status: MerchantStatus.PENDING_VERIFICATION,

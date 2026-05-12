@@ -14,34 +14,34 @@ import { uuidv7 } from 'uuidv7';
 @Entity('sessions')
 export class Session {
   @PrimaryGeneratedColumn('uuid')
-  id: string; 
+  id!: string; 
 
   // hashed refresh token (or session secret)
-  @Column()
-  secret_hash: string;
+  @Column({type: 'text'})
+  secret_hash!: string;
 
   // distinguish between auth types (useful if you later expand)
   @Column({ default: 'refresh_token' })
-  type: 'refresh_token' | 'api_key' | 'device_session';
+  type!: 'refresh_token' | 'api_key' | 'device_session';
 
   @ManyToOne(() => User, (u) => u.sessions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   @Column({ type: 'timestamptz' })
-  expires_at: Date;
+  expires_at!: Date;
 
-  @Column({ default: false })
-  revoked: boolean;
+  @Column({ type: 'bool', default: false })
+  revoked!: boolean;
 
-  @Column({ nullable: true })
-  ip_address?: string;
+  @Column({ type: 'character varying', length: 100,  nullable: true })
+  ip_address!: string | null;
 
-  @Column({ nullable: true })
-  user_agent?: string;
+  @Column({ type: 'character varying', length: 100, nullable: true })
+  user_agent!: string | null;
 
-  @CreateDateColumn()
-  created_at: Date;
+  @CreateDateColumn({type: 'timestamptz'})
+  created_at!: Date;
 
   isActive(now: Date = new Date()) {
     return !this.revoked && now < this.expires_at;

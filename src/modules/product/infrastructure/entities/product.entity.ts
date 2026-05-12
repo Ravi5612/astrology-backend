@@ -10,22 +10,22 @@ import {
 @Entity('products')
 export class Product {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
-  @Column()
-  name: string;
+  @Column({type: 'character varying', length: 255})
+  name!: string;
 
-  @Column({ name: 'sku', nullable: true, unique: true })
-  sku: string;
+  @Column({ name: 'sku', type: 'text', nullable: true, unique: true })
+  sku!: string;
 
-  @Column({ name: 'category', nullable: true })
-  category: string;
+  @Column({ name: 'category', type: 'text', nullable: true })
+  category!: string;
 
   @Column({ type: 'text' })
-  description: string;
+  description!: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  price: number;
+  price!: number;
 
   @Column({
     type: 'decimal',
@@ -34,33 +34,33 @@ export class Product {
     nullable: true,
     name: 'original_price',
   })
-  original_price: number;
+  original_price!: number;
 
-  @Column({ name: 'image_url', nullable: true, default: '' })
-  image_url: string;
+  @Column({ type: 'text', name: 'image_url', nullable: true, default: '' })
+  image_url!: string;
 
   @Column({ type: 'json', nullable: true })
-  gallery?: string[];
+  gallery!: string[] | null;
 
   @Column({ name: 'short_description', nullable: true, type: 'text' })
-  short_description: string;
+  short_description!: string;
 
-  @Column({ default: 0 })
-  stock: number;
+  @Column({ type: 'int', default: 0 })
+  stock!: number;
 
-  @Column({ name: 'merchant_id', nullable: true })
-  merchant_id: number;
+  @Column({ name: 'merchant_id', type: 'int', nullable: true })
+  merchant_id!: number;
 
-  @Column({ default: true, name: 'is_active' })
-  is_active: boolean;
+  @Column({ type: 'bool', default: true, name: 'is_active' })
+  is_active!: boolean;
 
-  @CreateDateColumn({ name: 'created_at' })
-  created_at: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  created_at!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updated_at: Date;
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updated_at!: Date;
 
-  percentage_off: number;
+  percentage_off!: number;
 
   @AfterLoad()
   calculatePercentageOff() {
