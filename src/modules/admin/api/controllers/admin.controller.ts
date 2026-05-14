@@ -5,7 +5,7 @@ import { AdminFacade } from '../../application/admin.facade';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
-import { ChatFacade } from '@/modules/chat/application/chat.facade';
+import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 import { CouponFacade } from '@/modules/coupon/application/coupon.facade';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
@@ -14,7 +14,7 @@ import { FilterCriteria } from '../../application/use-cases/get-filtered-users.u
 import { CreateAgentDto } from '../dto/create-agent.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
-import { ReviewsFacade } from '@/modules/reviews/application/reviews.facade';
+import { ReviewsFacade } from '@/modules/consultation/reviews/application/reviews.facade';
 
 @Controller({
   path: 'admin',

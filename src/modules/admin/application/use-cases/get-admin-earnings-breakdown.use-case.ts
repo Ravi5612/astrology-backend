@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ChatSession } from '@/modules/chat/infrastructure/entities/chat-session.entity';
-import { CallSession, CallType } from '@/modules/call/infrastructure/entities/call-session.entity';
+import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
+import { CallSession, CallType } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { Order } from '@/modules/order/infrastructure/entities/order.entity';
 import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
 

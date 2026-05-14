@@ -21,12 +21,14 @@ import { GetAdminMerchantSalesDetailsUseCase } from './application/use-cases/get
 
 import { UsersModule } from '@/modules/users/users.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
-import { ChatModule } from '@/modules/chat/chat.module';
+// import { ChatModule } from '@/modules/chat/chat.module';
 import { ProfileModule } from '@/modules/expert/profile/profile.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdminAuditLog } from './infrastructure/entities/admin-audit-log.entity';
 import { CouponModule } from '@/modules/coupon/coupon.module';
-import { ChatSession } from '../chat/infrastructure/entities/chat-session.entity';
+// import { ChatSession } from '../chat/infrastructure/entities/chat-session.entity';
+import { CallSession } from '../consultation/call/infrastructure/entities/call-session.entity';
+import { ChatSession } from '../consultation/chat/infrastructure/entities/chat-session.entity';
 import { Order } from '../order/infrastructure/entities/order.entity';
 import { Coupon } from '../coupon/infrastructure/entities/coupon.entity';
 import { UserCoupon } from '../coupon/infrastructure/entities/user-coupon.entity';
@@ -36,10 +38,8 @@ import { Role } from '../role/entities/roles.entity';
 import { AgentProfile } from '../agent/infrastructure/entities/agent-profile.entity';
 import { User } from '../users/infrastructure/entities/user.entity';
 import { AgentListing } from '../agent/infrastructure/entities/agent-listing.entity';
-import { ReviewsModule } from '@/modules/reviews/reviews.module';
 import { Transaction } from '../wallet/infrastructure/entities/transaction.entity';
 import { SupportModule } from '../support/support.module';
-import { CallSession } from '../call/infrastructure/entities/call-session.entity';
 import { PujaAppointment } from '../puja-appointment/infrastructure/entities/puja-appointment.entity';
 import { OrderItem } from '../order/infrastructure/entities/order-item.entity';
 import { Product } from '../product/infrastructure/entities/product.entity';
@@ -53,6 +53,7 @@ import { PublicStatsController } from './api/controllers/public-stats.controller
 import { GetSupportSettingsUseCase } from './application/use-cases/get-support-settings.usecase';
 import { GetSystemSettingsUseCase } from './application/use-cases/get-system-settings.use-case';
 import { UpdateSystemSettingUseCase } from './application/use-cases/update-system-setting.use-case';
+import { ConsultationModule } from '../consultation/consultation.module';
 
 @Module({
   imports: [
@@ -80,11 +81,10 @@ import { UpdateSystemSettingUseCase } from './application/use-cases/update-syste
     RolesModule,
     ExternalModule,
     WalletModule,
-    ChatModule,
+    ConsultationModule,
     ProfileModule,
     MerchantModule,
     CouponModule,
-    ReviewsModule,
     SupportModule,
   ],
   controllers: [AdminController, SettingsController, PublicStatsController],

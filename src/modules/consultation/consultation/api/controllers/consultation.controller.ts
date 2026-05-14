@@ -3,8 +3,8 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { GetUnifiedHistoryUseCase } from '../../application/use-cases/get-unified-history.use-case';
-import { CallFacade } from '@/modules/call/application/call.facade';
-import { ChatFacade } from '@/modules/chat/application/chat.facade';
+import { CallFacade } from '@/modules/consultation/call/application/call.facade';
+import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 import { Post, Param, ParseIntPipe } from '@nestjs/common';
 
 @Controller({

@@ -34,10 +34,6 @@ export class GetPendingWithdrawalsUseCase {
         const [items, total] = await query.getManyAndCount();
         console.log(`[GetPendingWithdrawals] Found ${items.length} items. First item withdrawal_no:`, items.length > 0 ? items[0].withdrawal_no : 'N/A');
 
-
-
-
-
         return {
             data: items.map(item => ({
                 id: item.id,

@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { ChatSession, ChatSessionStatus } from '@/modules/chat/infrastructure/entities/chat-session.entity';
-import { CallSession, CallSessionStatus, CallType } from '@/modules/call/infrastructure/entities/call-session.entity';
-import { Review } from '@/modules/reviews/infrastructure/entities/review.entity';
+import { ChatSession, ChatSessionStatus } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
+import { CallSession, CallSessionStatus, CallType } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
+import { Review } from '@/modules/consultation/reviews/infrastructure/entities/review.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ConsultationHistoryDto, ConsultationType, ConsultationStatus } from '../../api/dto/consultation-history.dto';
 

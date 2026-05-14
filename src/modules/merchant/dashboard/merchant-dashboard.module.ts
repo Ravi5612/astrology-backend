@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OrderItem } from '@/modules/order/infrastructure/entities/order-item.entity';
 import { Product } from '@/modules/product/infrastructure/entities/product.entity';
-import { Review } from '@/modules/reviews/infrastructure/entities/review.entity';
+import { Review } from '@/modules/consultation/reviews/infrastructure/entities/review.entity';
 import { MerchantDashboardController } from './api/controllers/merchant-dashboard.controller';
 import { GetMerchantStatsUseCase } from './application/use-cases/get-merchant-stats.usecase';
 import { GetRecentOrdersUseCase } from './application/use-cases/get-recent-orders.usecase';

@@ -2,11 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
-import { ChatFacade } from '@/modules/chat/application/chat.facade';
+import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CallSession, CallSessionStatus } from '@/modules/call/infrastructure/entities/call-session.entity';
-import { ChatSessionStatus } from '@/modules/chat/infrastructure/entities/chat-session.entity';
+import { CallSession, CallSessionStatus } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
+import { ChatSessionStatus } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 
 @Injectable()
 export class GetExpertDetailUseCase {
@@ -19,7 +19,9 @@ export class GetExpertDetailUseCase {
   ) { }
 
   async execute(id: number) {
+
     const user = await this.usersFacade.findById(id);
+    
     if (!user) {
       throw new NotFoundException('User not found');
     }

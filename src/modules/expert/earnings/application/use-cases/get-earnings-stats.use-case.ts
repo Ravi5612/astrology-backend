@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
-import { ChatSession, ChatSessionStatus } from '@/modules/chat/infrastructure/entities/chat-session.entity';
-import { CallSession, CallSessionStatus, CallType } from '@/modules/call/infrastructure/entities/call-session.entity';
+import { ChatSession, ChatSessionStatus } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
+import { CallSession, CallSessionStatus, CallType } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { Order, OrderStatus } from '@/modules/order/infrastructure/entities/order.entity';
 import { OrderItem } from '@/modules/order/infrastructure/entities/order-item.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { PujaAppointment, PujaAppointmentStatus } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
-import { Review } from '@/modules/reviews/infrastructure/entities/review.entity';
+import { Review } from '@/modules/consultation/reviews/infrastructure/entities/review.entity';
 
 
 @Injectable()

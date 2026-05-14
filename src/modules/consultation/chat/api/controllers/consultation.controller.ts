@@ -10,7 +10,7 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { ChatFacade } from '@/modules/chat/application/chat.facade';
+import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';

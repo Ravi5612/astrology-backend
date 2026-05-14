@@ -7,8 +7,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfilePolicy } from '../../domain/policies/profile.policy';
 import { ExpertStatusChangedEvent } from '../../domain/events/profile-events';
 import { ActiveSessionOfflineError } from '../../domain/errors/active-session-offline.error';
-import { ChatFacade } from '@/modules/chat/application/chat.facade';
-import { ChatSessionStatus } from '@/modules/chat/infrastructure/entities/chat-session.entity';
+import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
+import { ChatSessionStatus } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 
 @Injectable()
 export class UpdateStatusUseCase {
