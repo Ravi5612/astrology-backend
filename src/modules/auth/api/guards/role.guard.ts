@@ -7,7 +7,6 @@ import {
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '@/common/decorators/roles.decorator';
 import { Role, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 
 interface JwtUser {
   id: number;
@@ -34,14 +33,22 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('No user found in request');
     }
 
-    const isUserAdmin = hasRoles(user.roles, 'ADMIN');
+    const userRoles: string[] = (user.roles || []).map((r: any) =>
+      (typeof r === 'string' ? r : r?.name || '').toLowerCase()
+    );
+
+    const isUserAdmin = userRoles.includes('admin');
 
     const hasRole =
-      isUserAdmin || hasRoles(user.roles, ...requiredRoles);
+      isUserAdmin ||
+      requiredRoles.some((reqRole) => {
+        const target = (RoleEnum[reqRole as Role] || reqRole).toLowerCase();
+        return userRoles.includes(target);
+      });
 
     console.log('[RolesGuard] Decision:', {
       userId: user.id,
-      userRoles: user.roles,
+      userRoles,
       requiredRoles,
       hasRole,
       isUserAdmin

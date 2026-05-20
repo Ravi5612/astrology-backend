@@ -155,7 +155,6 @@ export class ProfileController {
   }
 
   @Post('puja')
-  @Roles('EXPERT')
   upsertPuja(
     @CurrentUser() user: User,
     @Body() dto: ExpertPujaDto,
@@ -165,7 +164,6 @@ export class ProfileController {
   }
 
   @Delete('puja/:id')
-  @Roles('EXPERT')
   deletePuja(
     @CurrentUser() user: User,
     @Param('id', ParseIntPipe) id: number,
@@ -187,8 +185,6 @@ export class ProfileController {
 
 
   @Post('upload-file')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('EXPERT')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,

@@ -6,6 +6,7 @@
     "dist",
     "**/*spec.ts",
     "scripts",
-    "tmp"
+    "tmp",
+    "archive"
   ]
 }

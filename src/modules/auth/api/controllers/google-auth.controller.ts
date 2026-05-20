@@ -111,11 +111,15 @@ export class GoogleAuthController {
     } else {
       // Role-based fallback only if no redirect URI was provided at all
       const roles = authData.user?.roles || [];
-      if (roles.some((r: any) => r.name === 'expert')) {
+      const hasRole = (roleName: string) => roles.some((r: any) => 
+        (typeof r === 'string' ? r : r?.name || '').toLowerCase() === roleName.toLowerCase()
+      );
+
+      if (hasRole('expert')) {
         frontendUrl = this.config.get<string>('ASTROLOGER_FRONTEND_URL') || 'http://localhost:3003';
-      } else if (roles.some((r: any) => r.name === 'admin')) {
+      } else if (hasRole('admin')) {
         frontendUrl = this.config.get<string>('ADMIN_FRONTEND_URL') || 'http://localhost:3001';
-      } else if (roles.some((r: any) => r.name === 'merchant')) {
+      } else if (hasRole('merchant')) {
         frontendUrl = this.config.get<string>('MERCHANT_FRONTEND_URL') || 'http://localhost:3004';
       }
     }

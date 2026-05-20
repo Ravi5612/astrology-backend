@@ -21,20 +21,11 @@ export class FindAllOrdersUseCase {
   }
 
   async getExpertProductRevenueAndCount(expertProfileId: number) {
-    const stats = await this.orderItemRepo
-      .createQueryBuilder('item')
-      .innerJoin('item.product', 'p')
-      .innerJoin('item.order', 'o')
-      .select("SUM(item.price * item.quantity)", "total")
-      .addSelect("COUNT(item.id)", "count")
-      .where('p.expert_id = :id AND o.status IN (:...statuses)', { 
-        id: expertProfileId, 
-        statuses: ['paid', 'packed', 'shipped', 'delivered'] 
-      })
-      .getRawOne();
+    // E-commerce products are sold by Merchants, not Experts.
+    // Hence, experts always have 0 product revenue.
     return {
-      total: parseFloat(stats.total) || 0,
-      count: parseInt(stats.count, 10) || 0,
+      total: 0,
+      count: 0,
     };
   }
 }

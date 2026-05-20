@@ -36,16 +36,16 @@ export class GetAdminTopExpertsUseCase {
       const productStats = await this.orderFacade.getExpertProductRevenueAndCount(expertProfileId);
 
       const totalRevenue = 
-        chatStats.total + 
-        callStats.total + 
-        pujaStats.total + 
-        productStats.total;
+        (chatStats?.total ?? 0) + 
+        (callStats?.total ?? 0) + 
+        (pujaStats?.total ?? 0) + 
+        (productStats?.total ?? 0);
 
       const totalConsultations = 
-        chatStats.count + 
-        callStats.count + 
-        pujaStats.count + 
-        productStats.count;
+        (chatStats?.count ?? 0) + 
+        (callStats?.count ?? 0) + 
+        (pujaStats?.count ?? 0) + 
+        (productStats?.count ?? 0);
 
       return {
         name: expert.name,
