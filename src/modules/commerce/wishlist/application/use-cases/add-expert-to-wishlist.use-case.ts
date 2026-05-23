@@ -25,7 +25,7 @@ export class AddExpertToWishlistUseCase {
     private readonly profileExpertRepository: Repository<ProfileExpert>,
   ) {}
 
-  async execute(userId: number, expertId: number): Promise<Wishlist> {
+  async execute(userId: string, expertId: number): Promise<Wishlist> {
     let expertUser;
     let foundViaProfile = false;
 

@@ -151,7 +151,7 @@ export class AuthController {
   @Roles('AGENT')
   async agentRegister(
     @Body() dto: AgentRegisterUserDto,
-    @CurrentUser('id') agentId: number,
+    @CurrentUser('id') agentId: string,
   ) {
     return this.authFacade.agentRegister(dto, agentId);
   }

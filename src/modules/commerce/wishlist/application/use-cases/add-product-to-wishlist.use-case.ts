@@ -21,7 +21,7 @@ export class AddProductToWishlistUseCase {
     private readonly findUserUseCase: FindUserUseCase,
   ) {}
 
-  async execute(userId: number, productId: number): Promise<Wishlist> {
+  async execute(userId: string, productId: number): Promise<Wishlist> {
     const product = await this.productRepository.findOne({
       where: { id: productId },
     });

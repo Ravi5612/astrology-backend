@@ -15,7 +15,7 @@ export class RemoveExpertFromWishlistUseCase {
     private readonly profileExpertRepository: Repository<ProfileExpert>,
   ) {}
 
-  async execute(userId: number, expertId: number): Promise<{ message: string }> {
+  async execute(userId: string, expertId: number): Promise<{ message: string }> {
     const wishlist = await this.wishlistRepository.findOne({
       where: { user: { id: userId }, expert: { id: expertId } },
     });

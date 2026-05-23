@@ -21,7 +21,7 @@ export class AddToCartUseCase {
     private userRepository: Repository<User>,
   ) {}
 
-  async execute(userId: number, addToCartDto: AddToCartDto) {
+  async execute(userId: string, addToCartDto: AddToCartDto) {
     const { productId, quantity } = addToCartDto;
 
     const product = await this.productRepository.findOne({

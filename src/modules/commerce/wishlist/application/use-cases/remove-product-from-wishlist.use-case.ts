@@ -12,7 +12,7 @@ export class RemoveProductFromWishlistUseCase {
     private readonly wishlistRepository: Repository<Wishlist>,
   ) {}
 
-  async execute(userId: number, productId: number): Promise<{ message: string }> {
+  async execute(userId: string, productId: number): Promise<{ message: string }> {
     const wishlist = await this.wishlistRepository.findOne({
       where: { user: { id: userId }, product: { id: productId } },
     });

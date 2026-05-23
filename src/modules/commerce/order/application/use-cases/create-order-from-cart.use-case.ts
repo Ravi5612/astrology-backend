@@ -37,7 +37,7 @@ export class CreateOrderFromCartUseCase {
     private emailService: NodeMailerService,
   ) { }
 
-  async execute(userId: number, dto: CreateOrderDto) {
+  async execute(userId: string, dto: CreateOrderDto) {
     const shipping_address = dto.shipping_address;
 
     if (!shipping_address) {

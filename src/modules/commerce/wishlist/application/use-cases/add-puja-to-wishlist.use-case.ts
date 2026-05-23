@@ -21,7 +21,7 @@ export class AddPujaToWishlistUseCase {
     private readonly expertPujaRepository: Repository<ExpertPuja>,
   ) {}
 
-  async execute(userId: number, pujaId: number): Promise<Wishlist> {
+  async execute(userId: string, pujaId: number): Promise<Wishlist> {
     const puja = await this.expertPujaRepository.findOne({
       where: { id: pujaId },
     });

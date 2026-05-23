@@ -11,7 +11,7 @@ export class GetMerchantWishlistUseCase {
     private readonly wishlistRepository: Repository<Wishlist>,
   ) {}
 
-  async execute(userId: number) {
+  async execute(userId: string) {
     const wishlistItems = await this.wishlistRepository.find({
       where: { user: { id: userId } },
       relations: ['merchant', 'merchant.user'],

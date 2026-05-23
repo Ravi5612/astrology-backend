@@ -41,7 +41,7 @@ export class AuthFacade {
     return this.registerUser.execute(dto, ipAddress, userAgent);
   }
 
-  async logout(userId: number) {
+  async logout(userId: string) {
     return this.logoutUser.execute(userId);
   }
 
@@ -73,7 +73,7 @@ export class AuthFacade {
     return this.loginWithMagicLinkUseCase.execute(token, ip, ua);
   }
 
-  async agentRegister(dto: AgentRegisterUserDto, agentId: number) {
+  async agentRegister(dto: AgentRegisterUserDto, agentId: string) {
     return this.agentRegisterUserUseCase.execute(dto, agentId);
   }
 
@@ -81,7 +81,7 @@ export class AuthFacade {
     return this.merchantRegisterUserUseCase.execute(dto, ipAddress, userAgent);
   }
 
-  async getMerchantProfile(userId: number) {
+  async getMerchantProfile(userId: string) {
     return this.getMerchantProfileUseCase.execute(userId);
   }
 }

@@ -14,7 +14,7 @@ export class GetUserOrdersUseCase {
     private pujaRepo: Repository<PujaAppointment>,
   ) { }
 
-  async execute(userId: number, limit?: number, offset?: number) {
+  async execute(userId: string, limit?: number, offset?: number) {
     // 1. Fetch Product Orders
     const productOrders = await this.orderRepo.find({
       where: { client_id: userId },

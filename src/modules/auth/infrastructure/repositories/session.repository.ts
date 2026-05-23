@@ -20,7 +20,7 @@ export class SessionRepository extends BaseService<Session> {
     return repo.save(data);
   }
 
-  revoke(userId: number, sessionId?: string, queryRunner?: QueryRunner) {
+  revoke(userId: string, sessionId?: string, queryRunner?: QueryRunner) {
     const repo = this.getRepo(queryRunner);
 
     const options: FindOptionsWhere<Session> = {

@@ -11,7 +11,7 @@ export class GetCartUseCase {
     private cartRepository: Repository<Cart>,
   ) {}
 
-  async execute(userId: number) {
+  async execute(userId: string) {
     const cart = await this.cartRepository.findOne({
       where: { user: { id: userId } },
       relations: ['items', 'items.product'],

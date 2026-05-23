@@ -12,7 +12,7 @@ export class RemoveMerchantFromWishlistUseCase {
     private readonly wishlistRepository: Repository<Wishlist>,
   ) {}
 
-  async execute(userId: number, merchantId: number): Promise<void> {
+  async execute(userId: string, merchantId: number): Promise<void> {
     const wishlist = await this.wishlistRepository.findOne({
       where: { user: { id: userId }, merchant: { id: merchantId } },
     });
