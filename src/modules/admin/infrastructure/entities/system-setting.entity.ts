@@ -1,9 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({ schema: 'admin', name: 'system_settings' })
 export class SystemSetting {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @UuidPrimaryKeyColumn()
+  id!: string;
 
   @Column({type: 'character varying', length: 255, unique: true })
   key!: string;

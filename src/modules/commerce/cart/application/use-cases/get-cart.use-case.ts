@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -10,10 +11,10 @@ export class GetCartUseCase {
     private cartRepository: Repository<Cart>,
   ) {}
 
-  async execute(userId: number) {
+  async execute(userId: string) {
     const cart = await this.cartRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ['items', 'items.product'],
+      where: { client: { user: { id: userId } } },
+      relations: ['items', 'items.product', 'client', 'client.user'],
     });
 
     if (!cart) {

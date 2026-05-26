@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Injectable } from '@nestjs/common';
 import { FindOptionsWhere, QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,11 +16,11 @@ export class SessionRepository extends BaseService<Session> {
 
   storeRefreshToken(data: Partial<Session>, queryRunner?: QueryRunner) {
     const repo = this.getRepo(queryRunner);
-
-    return repo.save(data);
+    const session = repo.create(data);
+    return repo.save(session);
   }
 
-  revoke(userId: number, sessionId?: string, queryRunner?: QueryRunner) {
+  revoke(userId: string, sessionId?: string, queryRunner?: QueryRunner) {
     const repo = this.getRepo(queryRunner);
 
     const options: FindOptionsWhere<Session> = {

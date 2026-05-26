@@ -8,8 +8,9 @@ import {
   Param,
   UseGuards,
   Query,
-  ParseIntPipe,
+  ParseUUIDPipe,
   DefaultValuePipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ReviewsFacade } from '../../application/reviews.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
@@ -30,7 +31,7 @@ export class ReviewsController {
   @Post()
   @UseGuards(JwtAuthGuard)
   async createReview(
-    @CurrentUser('id') userId: number,
+    @CurrentUser('id') userId: string,
     @Body() body: CreateReviewDto,
   ) {
     return this.reviewsFacade.createReview(userId, body);
@@ -47,7 +48,7 @@ export class ReviewsController {
   // ─── Public: Expert reviews ─────────────────────────────────────────────────
   @Get('expert/:expertId')
   async getReviews(
-    @Param('expertId', ParseIntPipe) expertId: number,
+    @Param('expertId', ParseUUIDPipe) expertId: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
@@ -55,14 +56,14 @@ export class ReviewsController {
   }
 
   @Get('expert/:expertId/stats')
-  async getStats(@Param('expertId', ParseIntPipe) expertId: number) {
+  async getStats(@Param('expertId', ParseUUIDPipe) expertId: string) {
     return this.reviewsFacade.getReviewsStats(expertId);
   }
 
   // ─── Public: Merchant reviews ────────────────────────────────────────────────
   @Get('merchant/:merchantId')
   async getMerchantReviews(
-    @Param('merchantId', ParseIntPipe) merchantId: number,
+    @Param('merchantId', ParseUUIDPipe) merchantId: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
@@ -97,7 +98,7 @@ export class ReviewsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   async updateStatus(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body('status') status: string,
   ) {
     return this.reviewsFacade.updateReviewStatus(id, status);
@@ -107,7 +108,7 @@ export class ReviewsController {
   @Delete('admin/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN') 
-  async deleteReview(@Param('id', ParseIntPipe) id: number) {
+  async deleteReview(@Param('id', ParseUUIDPipe) id: string) {
     return this.reviewsFacade.deleteReview(id);
   }
 }

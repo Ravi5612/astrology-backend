@@ -10,11 +10,11 @@ export class FindActiveClientSessionUseCase {
         private sessionRepo: Repository<ChatSession>,
     ) { }
 
-    async execute(userId: number) {
+    async execute(userId: string) {
         return this.sessionRepo.findOne({
             where: [
-                { user_id: userId, status: ChatSessionStatus.PENDING },
-                { user_id: userId, status: ChatSessionStatus.ACTIVE },
+                { client: { user: { id: userId } }, status: ChatSessionStatus.PENDING },
+                { client: { user: { id: userId } }, status: ChatSessionStatus.ACTIVE },
             ],
             relations: ['expert', 'expert.user'],
             order: { created_at: 'DESC' },

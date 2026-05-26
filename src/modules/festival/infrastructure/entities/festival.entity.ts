@@ -1,6 +1,6 @@
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
@@ -8,8 +8,8 @@ import {
 
 @Entity({ schema: 'content', name: 'festivals' })
 export class Festival {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @UuidPrimaryKeyColumn()
+  id!: string;
 
   @Column({type: 'character varying', length: '255'})
   name!: string;

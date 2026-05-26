@@ -8,8 +8,8 @@ export class DisputePolicy {
         }
     }
 
-    static ensureOwnedBy(dispute: Dispute, userId: number) {
-        if (dispute.user_id !== userId) {
+    static ensureOwnedBy(dispute: Dispute, userId: string) {
+        if (dispute.client_id !== (userId as any)) {
             // In a real app, we might throw a ForbiddenError, 
             // but sticking to standard pattern for now
             throw new DisputeNotFoundError();

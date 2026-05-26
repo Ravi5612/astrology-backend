@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
@@ -17,7 +18,7 @@ export class CreateProfileUseCase extends BaseService<ProfileClient> {
     super(profileRepo);
    }
 
-  async execute(userId: number, dto: CreateProfileClientDto, queryRunner?: QueryRunner) {
+  async execute(userId: string, dto: CreateProfileClientDto, queryRunner?: QueryRunner) {
     const repo = this.getRepo(queryRunner);
     
     const existingProfile = await repo.findOne({

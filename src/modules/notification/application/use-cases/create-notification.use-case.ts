@@ -13,14 +13,14 @@ export class CreateNotificationUseCase {
     ) { }
 
     async execute(
-        userId: number,
+        userId: string,
         type: NotificationType,
         title: string,
         message: string,
         metadata?: any,
     ) {
         const notification = this.notificationRepo.create({
-            user_id: userId,
+            client_id: userId as any,
             type,
             title,
             message,

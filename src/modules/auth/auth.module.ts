@@ -9,7 +9,7 @@ import { Session } from './infrastructure/entities/session.entity';
 import { OAuthAccount } from './infrastructure/entities/oauth-accounts.entity';
 import { JwtStrategy } from './api/strategies/jwt.strategy';
 import { DatabaseModule } from '@/core/database/database.module';
-import { AgentProfile } from '../agent/infrastructure/entities/agent-profile.entity';
+import { ProfileAgent } from '../agent/infrastructure/entities/profile-agent.entity';
 import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 
@@ -43,6 +43,8 @@ import { SendMagicLinkEventHandler } from './application/event-handlers/send-mag
 import { SendMagicLinkUseCase } from './application/use-cases/send-magic-link.usecase';
 import { LoginWithMagicLinkUseCase } from './application/use-cases/login-with-magic-link.usecase';
 import { GetMerchantProfileUseCase } from './application/use-cases/get-merchant-profile.usecase';
+import { InitiateEmailRegistrationUseCase } from './application/use-cases/initiate-email-registration.usecase';
+import { CompleteEmailRegistrationUseCase } from './application/use-cases/complete-email-registration.usecase';
 import { ExternalModule } from '@/external/external.module';
 import {
   AUTH_PROFILE_CREATION_STRATEGIES,
@@ -56,7 +58,7 @@ import { AuthProfileCreationResolver } from './application/strategies/auth-profi
 @Module({
   imports: [
     UsersModule,
-    TypeOrmModule.forFeature([Session, OAuthAccount, UsedTokens, AgentProfile]),
+    TypeOrmModule.forFeature([Session, OAuthAccount, UsedTokens, ProfileAgent]),
     DatabaseModule,
     ExternalModule,
     ClientProfileModule,
@@ -111,6 +113,8 @@ import { AuthProfileCreationResolver } from './application/strategies/auth-profi
     SendMagicLinkUseCase,
     LoginWithMagicLinkUseCase,
     GetMerchantProfileUseCase,
+    InitiateEmailRegistrationUseCase,
+    CompleteEmailRegistrationUseCase,
     // Use case - end
 
     Argon2PasswordHasher,
@@ -125,3 +129,5 @@ import { AuthProfileCreationResolver } from './application/strategies/auth-profi
   // exports: [TokenService, OAuthService],
 })
 export class AuthModule { }
+
+

@@ -21,8 +21,8 @@ export class GetAdminReviewsUseCase {
     const { page = 1, limit = 15, status, search, ratingType, review_type } = params;
 
     const queryBuilder = this.reviewRepository.createQueryBuilder('review')
-      .leftJoinAndSelect('review.user', 'user')
-      .leftJoinAndSelect('user.profile_client', 'profile_client')
+      .leftJoinAndSelect('review.client', 'client')
+      .leftJoinAndSelect('client.user', 'user')
       .leftJoinAndSelect('review.expert', 'expert')
       .leftJoinAndSelect('expert.user', 'expertUser')
       .orderBy('review.created_at', 'DESC');
@@ -58,15 +58,15 @@ export class GetAdminReviewsUseCase {
     const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:6543/';
 
     const mappedReviews = reviews.map(r => {
-      const rawAvatar = r.user?.avatar || (r.user as any)?.profile_client?.profile_picture;
+      const rawAvatar = r.client?.avatar || ((r.client as any))?.profile_client?.profile_picture;
       const fullAvatar = rawAvatar 
         ? (rawAvatar.startsWith('http') ? rawAvatar : `${baseUrl.replace(/\/$/, '')}/${rawAvatar.replace(/^\//, '')}`)
         : null;
 
       return {
         ...r,
-        user: r.user ? {
-          ...r.user,
+        client: r.client ? {
+          ...r.client,
           avatar: fullAvatar
         } : null
       };

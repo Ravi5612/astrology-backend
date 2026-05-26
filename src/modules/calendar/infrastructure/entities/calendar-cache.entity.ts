@@ -1,6 +1,6 @@
+import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
@@ -11,8 +11,8 @@ import {
 @Index(['type', 'cacheKey'], { unique: true })
 
 export class CalendarCache {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @UuidPrimaryKeyColumn()
+  id!: string;
 
   @Column({type: 'character varying', length: 100})
   type!: string; // 'monthly', 'daily', 'festivals'

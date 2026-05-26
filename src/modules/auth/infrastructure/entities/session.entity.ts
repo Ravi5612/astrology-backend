@@ -1,7 +1,6 @@
 // src/auth/credential.entity.ts
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   ManyToOne,
   CreateDateColumn,
@@ -20,6 +19,7 @@ export class Session {
 
   @UuidV7PrimaryKey()
   id!: string; 
+
 
   // hashed refresh token (or session secret)
   @Column({type: 'text'})
