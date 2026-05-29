@@ -1,7 +1,7 @@
 import { OnEvent } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
-import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
+import { EmailQueueService } from '@/modules/email-queue/email-queue.service';
 import { ConfigService } from '@nestjs/config';
 import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 
@@ -9,18 +9,18 @@ import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 export class UserRegisteredHandler {
   private readonly logger = new Logger(UserRegisteredHandler.name);
   constructor(
-    private readonly nodeMailerService: NodeMailerService,
+    private readonly emailQueueService: EmailQueueService,
     private readonly configService: ConfigService,
   ) {}
 
   @OnEvent('auth.user.registered', { async: true })
   async handle(event: UserRegisteredEvent) {
     this.logger.debug('Email sending to the user');
-    await this.nodeMailerService.sendEmail(
-      event.email,
-      'Verify your email',
-      this.buildTemplate(event),
-    );
+    await this.emailQueueService.queueEmail({
+      to: event.email,
+      subject: 'Verify your email',
+      html: this.buildTemplate(event),
+    });
   }
 
   private buildTemplate(event: UserRegisteredEvent) {

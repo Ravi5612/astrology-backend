@@ -12,6 +12,7 @@ import { DatabaseModule } from '@/core/database/database.module';
 import { ProfileAgent } from '../agent/infrastructure/entities/profile-agent.entity';
 import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
+import { EmailQueueModule } from '../email-queue/email-queue.module';
 
 import { UsedTokens } from './infrastructure/entities/used-tokens.entity';
 import { AuthFacade } from './application/auth.facade';
@@ -65,6 +66,7 @@ import { AuthProfileCreationResolver } from './application/strategies/auth-profi
     ExpertProfileModule,
     MerchantProfileModule,
     WalletModule,
+    EmailQueueModule,
   ],
   providers: [
     // AuthService,

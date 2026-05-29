@@ -25,8 +25,7 @@ export class StuckWithdrawalJob {
             where: {
                 status: WithdrawalStatus.PROCESSING,
                 updated_at: LessThan(oneDayAgo)
-            },
-            relations: ['user']
+            }
         });
 
         if (stuckWithdrawals.length > 0) {
