@@ -23,6 +23,8 @@ export class AgentAuthProfileCreationStrategy implements AuthProfileCreationStra
             profile.commission_rate = 10;
             profile.total_earnings = 0;
             profile.total_registrations = 0;
+            profile.avatar = user.avatar;
+            profile.name = user.name;
             await repo.save(profile);
         }
     }

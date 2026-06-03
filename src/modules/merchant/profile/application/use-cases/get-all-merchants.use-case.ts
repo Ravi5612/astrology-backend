@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
@@ -14,7 +14,7 @@ export class GetAllMerchantsUseCase {
     private readonly wishlistRepository: Repository<Wishlist>,
   ) {}
 
-  async execute(filters: { search?: string; city?: string; page?: number; limit?: number; currentUserId?: number } = {}) {
+  async execute(filters: { search?: string; city?: string; page?: number; limit?: number; currentUserId?: string } = {}) {
     const { search, city, page = 1, limit = 10, currentUserId } = filters;
     const skip = (page - 1) * limit;
 
@@ -47,15 +47,15 @@ export class GetAllMerchantsUseCase {
     }
 
     // Fetch top 4 active product image URLs per merchant using user_id mapping
-    const userIdToProfileId = new Map<number, number>();
+    const userIdToProfileId = new Map<string, string>();
     const userIds = merchants
       .map((m) => {
-        if ((m.user_id as any as string)) userIdToProfileId.set((m.user_id as any as string), m.id);
-        return (m.user_id as any as string);
+        if (m.user_id) userIdToProfileId.set(m.user_id, m.id);
+        return m.user_id;
       })
-      .filter((id) => id !== null);
+      .filter((id): id is string => id !== null && id !== undefined);
 
-    const productMap = new Map<number, string[]>();
+    const productMap = new Map<string, string[]>();
 
     if (userIds.length > 0) {
       const productsRaw: { merchant_id: string; image_url: string }[] =
@@ -77,7 +77,7 @@ export class GetAllMerchantsUseCase {
         );
 
       for (const row of productsRaw) {
-        const userId = Number(row.merchant_id);
+        const userId = row.merchant_id;
         const profileId = userIdToProfileId.get(userId);
         if (profileId) {
           const arr = productMap.get(profileId) ?? [];
@@ -113,9 +113,9 @@ export class GetAllMerchantsUseCase {
       .groupBy('w.merchant')
       .getRawMany();
 
-    const likesCountMap = new Map<number, number>();
+    const likesCountMap = new Map<string, number>();
     for (const row of likesCountRaw) {
-      likesCountMap.set(Number(row.merchant_id), Number(row.count));
+      likesCountMap.set(row.merchant_id, Number(row.count));
     }
 
     const formattedMerchants = merchants.map((m) => ({

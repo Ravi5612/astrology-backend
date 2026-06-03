@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { CookieOptions, Request, Response } from 'express';
 import {
   Controller,
@@ -90,7 +90,7 @@ export class MerchantAuthController {
         message: 'Login successful',
         token: tokens.accessToken,
         user: {
-          merchantId: user.uid || user.id.toString(),
+          merchantId: user.id.toString(),
           shopName: merchantProfile?.shopName || user.name,
           email: user.email,
           roles: user.roles

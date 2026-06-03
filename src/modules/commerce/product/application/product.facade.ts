@@ -21,7 +21,7 @@ export class ProductFacade {
     return this.createProductUseCase.execute(dto);
   }
 
-  findAll(filters: { merchantId?: number; expertId?: number; page?: number; limit?: number } = {}) {
+  findAll(filters: { merchantId?: string; expertId?: string; page?: number; limit?: number } = {}) {
     return this.findAllProductsUseCase.execute(filters);
   }
 

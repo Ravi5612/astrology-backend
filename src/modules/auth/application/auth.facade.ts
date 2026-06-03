@@ -17,6 +17,7 @@ import { GetMerchantProfileUseCase } from './use-cases/get-merchant-profile.usec
 import { InitiateEmailRegistrationUseCase } from './use-cases/initiate-email-registration.usecase';
 import { CompleteEmailRegistrationUseCase } from './use-cases/complete-email-registration.usecase';
 import { InitiateRegisterDto, CompleteRegisterDto } from '../api/dto/email-register.dto';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class AuthFacade {
@@ -74,8 +75,8 @@ export class AuthFacade {
     return this.sendMagicLinkUseCase.execute(email);
   }
 
-  async loginWithMagicLink(token: string, ip?: string, ua?: string) {
-    return this.loginWithMagicLinkUseCase.execute(token, ip, ua);
+  async loginWithMagicLink(token: string, role: RoleEnum, ip?: string, ua?: string) {
+    return this.loginWithMagicLinkUseCase.execute(token, role, ip, ua);
   }
 
   async agentRegister(dto: AgentRegisterUserDto, agentId: string) {

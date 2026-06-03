@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, QueryRunner } from 'typeorm';
@@ -53,12 +53,13 @@ export class MarkOrderAsPaidUseCase {
       // 2. Track Client Spending
       try {
         let clientProfile = await qr.manager.findOne(ProfileClient, {
-          where: { client_id: order.client_id },
+          where: { id: order.client_id },
           select: ['id']
         });
         if (!clientProfile) {
-          clientProfile = qr.manager.create(ProfileClient, { client_id: order.client_id });
-          clientProfile = await qr.manager.save(clientProfile);
+          // If the profile does not exist, we shouldn't attempt to track it since it's an FK dependency
+          console.error('[MARK_AS_PAID_TRACKING] Client profile not found for ID:', order.client_id);
+          return;
         }
 
         await qr.manager.createQueryBuilder()

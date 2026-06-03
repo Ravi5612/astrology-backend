@@ -26,6 +26,8 @@ export class MerchantAuthProfileCreationStrategy implements AuthProfileCreationS
       const newProfile = manager.create(ProfileMerchant, {
         user_id: user.id,
         shopName: user.name, // Will be populated with Google Name if Google Auth is used
+        avatar: user.avatar,
+        image: user.avatar,
         status: MerchantStatus.PENDING_VERIFICATION,
       });
       await manager.save(ProfileMerchant, newProfile);

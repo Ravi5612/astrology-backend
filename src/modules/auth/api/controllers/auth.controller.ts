@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { CookieOptions, Request, Response } from 'express';
 import {
   Controller,
@@ -155,11 +155,13 @@ export class AuthController {
   @Get('magic/login')
   async magicLinkLogin(
     @Query('token') token: string,
+    @Query('role') role: RoleEnum = RoleEnum.CLIENT,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
     const { user, tokens } = await this.authFacade.loginWithMagicLink(
       token,
+      role,
       req.ip,
       req.get('user-agent'),
     );

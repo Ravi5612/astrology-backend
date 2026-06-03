@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -99,7 +99,7 @@ export class EndCallUseCase {
     let buyer_agent_id: string | undefined = undefined;
     
     const buyerUser = await this.userRepo.findOne({
-        where: { id: session.client_id },
+        where: { id: session.user_id },
         select: ['id', 'referred_by_id']
     });
 
@@ -137,7 +137,7 @@ export class EndCallUseCase {
       if (finalPrice <= initialReservation) {
         if (finalPrice > 0) {
           await this.walletFacade.deductFromReserved(
-            session.client_id,
+            session.user_id,
             finalPrice,
             referenceId,
           );
@@ -145,20 +145,20 @@ export class EndCallUseCase {
         const remainingReserved = initialReservation - finalPrice;
         if (remainingReserved > 0) {
           await this.walletFacade.releaseReserved(
-            session.client_id,
+            session.user_id,
             remainingReserved,
             referenceId,
           );
         }
       } else {
         await this.walletFacade.deductFromReserved(
-          session.client_id,
+          session.user_id,
           initialReservation,
           referenceId,
         );
         const excessCost = finalPrice - initialReservation;
         await this.walletFacade.debit(
-          session.client_id,
+          session.user_id,
           excessCost,
           TransactionPurpose.CONSULTATION,
           referenceId,
@@ -217,7 +217,7 @@ export class EndCallUseCase {
       'call.ended',
       new CallEndedEvent(
         session.id,
-        session.client_id,
+        session.user_id,
         session.expert_id,
         session.duration_seconds,
         session.final_price,
@@ -234,7 +234,7 @@ export class EndCallUseCase {
       if (expert) {
         const startTime = savedSession.start_time ? savedSession.start_time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
         const endTime = savedSession.end_time ? savedSession.end_time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
-        const expertName = expert.client?.name || 'Astrologer';
+        const expertName = expert.user?.name || 'Astrologer';
         const duration = savedSession.duration_seconds ? (savedSession.duration_seconds / 60).toFixed(1) : '0';
         const typeLabel = savedSession.type === CallType.VIDEO ? 'Video Call' : 'Call';
         

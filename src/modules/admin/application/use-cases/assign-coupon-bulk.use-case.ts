@@ -1,9 +1,10 @@
-// @ts-nocheck
+
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Coupon, CouponStatus } from '@/modules/commerce/coupon/infrastructure/entities/coupon.entity';
 import { UserCoupon } from '@/modules/commerce/coupon/infrastructure/entities/user-coupon.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { GetFilteredUsersUseCase, FilterCriteria } from './get-filtered-users.use-case';
 
 @Injectable()
@@ -50,14 +51,19 @@ export class AssignCouponBulkUseCase {
 
         try {
             for (const user of matchedUsers) {
+                const profileClient = await queryRunner.manager.findOne(ProfileClient, {
+                    where: { user_id: user.id }
+                });
+                if (!profileClient) continue;
+
                 // Check if already assigned (optional, but good for idempotency)
                 const existing = await queryRunner.manager.findOne(UserCoupon, {
-                    where: { user_id: user.id, coupon_id: coupon.id }
+                    where: { client_id: profileClient.id, coupon_id: coupon.id }
                 });
 
                 if (!existing) {
                     const userCoupon = queryRunner.manager.create(UserCoupon, {
-                        user_id: user.id,
+                        client_id: profileClient.id,
                         coupon_id: coupon.id,
                         is_used: false
                     });

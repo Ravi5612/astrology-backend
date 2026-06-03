@@ -13,7 +13,7 @@ export class AdminTerminateSessionUseCase {
         private chatGateway: ChatGateway,
     ) { }
 
-    async execute(sessionId: string, adminId: number, userMessage?: string, expertMessage?: string) {
+    async execute(sessionId: string, adminId: string, userMessage?: string, expertMessage?: string) {
         const session = await this.sessionRepo.findOne({ where: { id: sessionId as any } });
         if (!session) {
             throw new NotFoundException('Session not found');

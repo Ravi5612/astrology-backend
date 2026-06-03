@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -148,7 +148,7 @@ export class UpdateOrderStatusUseCase {
               // Debit Merchant(s) ONLY if the order was already settled (Delivered)
               if ((oldStatus as any) === OrderStatus.DELIVERED) {
                 for (const [mId, grossAmount] of Object.entries(merchantAmounts)) {
-                  const debitId = Number(mId);
+                  const debitId = mId;
                   
                   // Calculate Net that was actually credited (to avoid over-debiting merchant)
                   const platformFee = Number((grossAmount * (refundPlatformFeeRate / 100)).toFixed(2));
@@ -369,7 +369,7 @@ export class UpdateOrderStatusUseCase {
     // Send status update email to user
     try {
       const user = await this.userRepo.findOne({ where: { id: order.client_id } });
-      if (client?.email) {
+      if (user && user.email) {
         let otpSection = '';
         if (status === OrderStatus.SHIPPED && order.delivery_otp) {
           otpSection = `
@@ -387,7 +387,7 @@ export class UpdateOrderStatusUseCase {
           <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6;">
             <div style="background-color: ${isCancelled ? '#fff5f5' : '#fffcf9'}; padding: 40px; border-radius: 20px; border: 1px solid ${isCancelled ? '#ffe3e3' : '#fff0e0'};">
               <h1 style="color: ${isCancelled ? '#e03131' : '#fd6410'}; margin-top: 0; font-size: 24px;">${title}</h1>
-              <p style="font-size: 16px;">Dear ${user.name || 'Customer'},</p>
+              <p style="font-size: 16px;">Dear ${user?.name || 'Customer'},</p>
               <p style="font-size: 15px; color: #555;">${message}</p>
               
               ${otpSection}

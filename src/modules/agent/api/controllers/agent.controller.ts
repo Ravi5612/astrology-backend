@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Controller, Get, UseGuards, Patch, Body, Post, Query, BadRequestException, ParseUUIDPipe, Headers, Ip, ParseIntPipe, ParseDatePipe, ParseFloatPipe } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
@@ -553,7 +553,7 @@ export class AgentController {
                 qb.orderBy('al.created_at', 'DESC');
 
                 if (!isAll) {
-                    qb.skip((page - 1) * limit).take(limit);
+                    qb.skip(pagination.offset).take(pagination.limit);
                 }
 
                 const [places, total] = await qb.getManyAndCount();
@@ -585,7 +585,7 @@ export class AgentController {
             if (isAll) {
                 const start = pagination.offset;
                 return {
-                    data: allData.slice(start, start + limit),
+                    data: allData.slice(start, start + pagination.limit),
                     total: allTotal,
                     page: pagination.page,
                     limit: pagination.limit,
@@ -609,7 +609,7 @@ export class AgentController {
         @Query() pagination: PaginationDto,
     ) {
         const offset = pagination.offset;
-        const result = await this.walletFacade.getTransactions(user.id, pagination.limit, offset, 'all', 'agent_commission');
+        const result = await this.walletFacade.getTransactions(user.id, String(pagination.limit), String(offset), 'all', 'agent_commission');
 
         const resolvedData = await this.db.transaction(async (queryRunner) => {
             return await Promise.all(result.data.map(async (t) => {
@@ -619,7 +619,7 @@ export class AgentController {
 
                 try {
                     if (refId.startsWith('call_')) {
-                        const callId = parseInt(refId.replace('call_', ''));
+                        const callId = String(refId.replace('call_', ''));
                         const call = await queryRunner.manager.findOne(CallSession, {
                             where: { id: callId },
                             relations: ['expert', 'expert.user']
@@ -629,7 +629,7 @@ export class AgentController {
                             type = call.type === 'video' ? 'video_call' : 'audio_call';
                         }
                     } else if (refId.startsWith('chat_')) {
-                        const chatId = parseInt(refId.replace('chat_', ''));
+                        const chatId = String(refId.replace('chat_', ''));
                         const chat = await queryRunner.manager.findOne(ChatSession, {
                             where: { id: chatId },
                             relations: ['expert', 'expert.user']
@@ -639,7 +639,7 @@ export class AgentController {
                             type = 'chat';
                         }
                     } else if (refId.startsWith('puja_')) {
-                        const pujaId = parseInt(refId.replace('puja_', ''));
+                        const pujaId = String(refId.replace('puja_', ''));
                         const puja = await queryRunner.manager.findOne(PujaAppointment, {
                             where: { id: pujaId },
                             relations: ['expert', 'expert.user', 'puja']

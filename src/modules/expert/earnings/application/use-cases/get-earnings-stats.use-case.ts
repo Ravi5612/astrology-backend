@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
@@ -274,7 +274,7 @@ export class GetEarningsStatsUseCase {
         // Wallet and Stats
         const walletBalance = await this.walletFacade.getBalance(userId as any);
         const { totalWithdrawn } = await this.walletFacade.getWithdrawalsStatus(userId as any);
-        const { data: transactions } = await this.walletFacade.getTransactions(userId as any, 5, 0, 'all');
+        const { data: transactions } = await this.walletFacade.getTransactions(userId as any, '5', '0', 'all');
         const recentTransactions = transactions.map(t => ({
             id: t.id.toString(),
             date: t.created_at,

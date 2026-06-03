@@ -64,7 +64,7 @@ export class ExpertProfileFacade {
     return this.getExpertByIdUseCase.execute(id);
   }
 
-  async updateKycStatus(expertId: number, status: string, reason?: string) {
+  async updateKycStatus(expertId: string, status: string, reason?: string) {
     return this.updateKycStatusUseCase.execute(expertId, status, reason);
   }
 
@@ -76,7 +76,7 @@ export class ExpertProfileFacade {
     return this.getExpertByUserIdUseCase.execute(userId, queryRunner);
   }
 
-  async upsertPuja(user: User, dto: ExpertPujaDto, id?: number) {
+  async upsertPuja(user: User, dto: ExpertPujaDto, id?: string) {
     return this.upsertPujaUseCase.execute(user, dto, id);
   }
 

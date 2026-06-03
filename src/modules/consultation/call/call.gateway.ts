@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import {
     WebSocketGateway,
     WebSocketServer,
@@ -25,9 +25,9 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     server: Server;
 
     private logger: Logger = new Logger('CallGateway');
-    private expertSockets = new Map<number, string>(); // expertId -> socketId
-    private sessionTimers = new Map<number, NodeJS.Timeout>();
-    private triggeredFreeLimit = new Set<number>();
+    private expertSockets = new Map<string, string>(); // expertId -> socketId
+    private sessionTimers = new Map<string, NodeJS.Timeout>();
+    private triggeredFreeLimit = new Set<string>();
 
     constructor(
         @Inject(forwardRef(() => CallFacade))

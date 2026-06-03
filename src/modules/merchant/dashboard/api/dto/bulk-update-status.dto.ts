@@ -1,10 +1,10 @@
-import { IsArray, IsEnum, IsNumber } from 'class-validator';
+import { IsArray, IsEnum, IsString } from 'class-validator';
 import { MerchantProductStatus } from './create-merchant-product.dto';
 
 export class BulkUpdateStatusDto {
   @IsArray()
-  @IsNumber({}, { each: true })
-  ids: number[];
+  @IsString({ each: true })
+  ids: string[];
 
   @IsEnum(MerchantProductStatus)
   status: MerchantProductStatus;

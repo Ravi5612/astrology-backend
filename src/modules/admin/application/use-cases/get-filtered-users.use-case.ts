@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder, DataSource } from 'typeorm';
@@ -66,7 +66,7 @@ export class GetFilteredUsersUseCase {
                 const subQuery = qb.subQuery()
                     .select('COUNT(session.id)')
                     .from(ChatSession, 'session')
-                    .where('session.user_id = user.id')
+                    .where('session.client_id = user.id')
                     .andWhere('session.status = :sessStatus', { sessStatus: ChatSessionStatus.COMPLETED })
                     .getQuery();
                 return `${subQuery} >= :minSess`;
@@ -89,7 +89,7 @@ export class GetFilteredUsersUseCase {
                 const sq = qb.subQuery()
                     .select('COALESCE(SUM(order.total_amount), 0)')
                     .from(Order, 'order')
-                    .where('order.user_id = user.id')
+                    .where('order.client_id = user.id')
                     .andWhere('order.status = :orderPaid', { orderPaid: OrderStatus.PAID });
                 
                 if (sinceDate) {
@@ -135,12 +135,12 @@ export class GetFilteredUsersUseCase {
         // Enhance with stats for preview
         const enhancedUsers = await Promise.all(users.map(async (u) => {
             const sessionCount = await this.dataSource.getRepository(ChatSession).count({
-                where: { user_id: u.id, status: ChatSessionStatus.COMPLETED }
+                where: { client_id: u.id, status: ChatSessionStatus.COMPLETED }
             });
 
             const spendingResult = await this.dataSource.getRepository(Order).createQueryBuilder('order')
                 .select('SUM(order.total_amount)', 'total')
-                .where('order.user_id = :uid', { uid: u.id })
+                .where('order.client_id = :uid', { uid: u.id })
                 .andWhere('order.status = :st', { st: OrderStatus.PAID })
                 .getRawOne();
 

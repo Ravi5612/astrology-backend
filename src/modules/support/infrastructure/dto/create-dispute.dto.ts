@@ -10,6 +10,6 @@ export class CreateDisputeDto {
     description: string;
 
     @IsOptional()
-    @IsNumber()
-    order_id?: number;
+    @IsString()
+    order_id?: string;
 }

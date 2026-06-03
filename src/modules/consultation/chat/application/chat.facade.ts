@@ -69,7 +69,7 @@ export class ChatFacade {
 
     async saveMessage(
         sessionId: string,
-        senderId: number,
+        senderId: string,
         senderType: 'user' | 'expert',
         content: string,
         type?: MessageType,
@@ -106,7 +106,7 @@ export class ChatFacade {
     }
 
 
-    async adminTerminateSession(sessionId: string, adminId: number, userMessage?: string, expertMessage?: string) {
+    async adminTerminateSession(sessionId: string, adminId: string, userMessage?: string, expertMessage?: string) {
         return this.adminTerminateSessionUseCase.execute(sessionId, adminId, userMessage, expertMessage);
     }
 
@@ -122,7 +122,7 @@ export class ChatFacade {
         return this.updateSessionMetadataUseCase.execute(sessionId, metadata);
     }
 
-    async getExpertRevenueAndCount(expertProfileId: number) {
+    async getExpertRevenueAndCount(expertProfileId: string) {
         return this.countExpertSessionsUseCase.getRevenueAndCount(expertProfileId);
     }
 }

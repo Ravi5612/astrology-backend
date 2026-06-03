@@ -6,8 +6,8 @@ export class CreateOrderDto {
   shipping_address?: any;
 
   @IsOptional()
-  @IsNumber()
-  product_id?: number;
+  @IsString()
+  product_id?: string;
 
   @IsOptional()
   @IsNumber()

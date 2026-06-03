@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';

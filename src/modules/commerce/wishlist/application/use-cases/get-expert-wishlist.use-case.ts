@@ -1,10 +1,4 @@
-// @ts-nocheck
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
 
-@Injectable()
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';

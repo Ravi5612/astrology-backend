@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -11,17 +11,9 @@ export class UpdateListingStatusAdminUseCase {
     private readonly listingRepository: Repository<AgentListing>,
   ) {}
 
-  async execute(id: string | number, data: { status: string }) {
+  async execute(id: string, data: { status: string }) {
     const stringId = String(id);
-    const numericId = stringId.startsWith('listing-') 
-      ? parseInt(stringId.replace('listing-', ''), 10) 
-      : parseInt(stringId, 10);
-
-    if (isNaN(numericId)) {
-      throw new NotFoundException('Invalid listing ID format');
-    }
-
-    const listing = await this.listingRepository.findOne({ where: { id: numericId } });
+    const listing = await this.listingRepository.findOne({ where: { id: stringId } });
 
     if (!listing) {
       throw new NotFoundException('Listing not found');

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Controller, Post, Get, Res, Req, Logger, Inject } from '@nestjs/common';
 import { Response } from 'express';
 import * as twilio from 'twilio';
@@ -51,35 +51,30 @@ export class TwimlController {
             let timeLimit = 3600; // Default 1 hour
             
             if (sessionId !== 'DefaultSession') {
-                const parsedId = parseInt(sessionId);
-                if (!isNaN(parsedId)) {
-                    const session = await this.sessionRepo.findOne({
-                        where: { id: parsedId }
-                    });
+                const session = await this.sessionRepo.findOne({
+                    where: { id: sessionId }
+                });
+                
+                if (session) {
+                    const balance = await this.walletFacade.getBalance(session.user_id);
+                    // Safety check: ensure price_per_minute is a positive number to avoid division by zero or Infinity
+                    const price = session.price_per_minute || 0;
                     
-                    if (session) {
-                        const balance = await this.walletFacade.getBalance(session.client_id);
-                        // Safety check: ensure price_per_minute is a positive number to avoid division by zero or Infinity
-                        const price = session.price_per_minute || 0;
-                        
-                        if (price > 0) {
-                            timeLimit = Math.floor((balance / price) * 60);
-                            this.logger.log(`[TwiML] Calculated TimeLimit for session ${sessionId}: ${timeLimit}s (Balance: ${balance}, Price: ${price})`);
-                        } else {
-                            this.logger.warn(`[TwiML] Session ${sessionId} has zero or invalid price. Using default time limit.`);
-                        }
-                        
-                        if (timeLimit <= 0) {
-                            this.logger.warn(`[TwiML] Insufficient balance for session ${sessionId}. Hanging up.`);
-                            response.say("You don't have enough money to talk 5 minutes to expert. Please add some more money in your wallet.");
-                            res.set('Content-Type', 'text/xml');
-                            return res.status(200).send(response.toString());
-                        }
+                    if (price > 0) {
+                        timeLimit = Math.floor((balance / price) * 60);
+                        this.logger.log(`[TwiML] Calculated TimeLimit for session ${sessionId}: ${timeLimit}s (Balance: ${balance}, Price: ${price})`);
                     } else {
-                        this.logger.warn(`[TwiML] Session ${sessionId} not found in database.`);
+                        this.logger.warn(`[TwiML] Session ${sessionId} has zero or invalid price. Using default time limit.`);
+                    }
+                    
+                    if (timeLimit <= 0) {
+                        this.logger.warn(`[TwiML] Insufficient balance for session ${sessionId}. Hanging up.`);
+                        response.say("You don't have enough money to talk 5 minutes to expert. Please add some more money in your wallet.");
+                        res.set('Content-Type', 'text/xml');
+                        return res.status(200).send(response.toString());
                     }
                 } else {
-                    this.logger.warn(`[TwiML] Invalid sessionId format: ${sessionId}`);
+                    this.logger.warn(`[TwiML] Session ${sessionId} not found in database.`);
                 }
             } else {
                 this.logger.log(`[TwiML] Using DefaultSession (No limit lookup)`);

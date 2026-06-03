@@ -89,7 +89,7 @@ export class RazorpayPayoutService {
   /**
    * Initiate a Payout
    */
-  async initiatePayout(withdrawalId: number, amount: number, fundAccountId: string) {
+  async initiatePayout(withdrawalId: string, amount: number, fundAccountId: string) {
     const accountNumber = this.configService.get<string>('RAZORPAY_X_ACCOUNT_NUMBER');
 
     if (!accountNumber || accountNumber.includes('ADD_YOUR')) {

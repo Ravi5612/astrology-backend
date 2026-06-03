@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable, InternalServerErrorException, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -31,8 +31,8 @@ export class InitiateCallUseCase {
         // ✅ Block duplicate sessions — user can only have ONE active/pending call at a time
         const existingSession = await this.sessionRepo.findOne({
             where: [
-                { client_id: userId as any, status: CallSessionStatus.ACTIVE },
-                { client_id: userId as any, status: CallSessionStatus.PENDING },
+                { user_id: userId as any, status: CallSessionStatus.ACTIVE },
+                { user_id: userId as any, status: CallSessionStatus.PENDING },
             ],
             relations: ['user'],
         });
@@ -70,7 +70,7 @@ export class InitiateCallUseCase {
         const minBalanceRequired = callPrice * minMins;
 
         const callCount = await this.sessionRepo.count({
-            where: { client_id: userId as any, status: CallSessionStatus.COMPLETED },
+            where: { user_id: userId as any, status: CallSessionStatus.COMPLETED },
         });
 
         const isFreeEnabled = process.env.FREE_CHAT_ENABLED === 'true';

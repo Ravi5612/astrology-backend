@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -220,7 +220,7 @@ export class UpdateWithdrawalStatusUseCase {
                     
                     console.log(`[RefundLogic] Transaction logged. No: ${transaction.transaction_no}`);
                 } else {
-                    console.warn(`[RefundLogic] Wallet not found for user ${userId}`);
+                    console.warn(`[RefundLogic] Wallet not found for profile ${profileId}`);
                 }
             } else {
                 console.log(`[RefundLogic] Refund skipped. shouldRefund: ${shouldRefund}, wasRefunded: ${wasRefunded}`);

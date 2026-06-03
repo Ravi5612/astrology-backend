@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable, BadRequestException, Logger, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
 import { Wallet } from '../../infrastructure/entities/wallet.entity';
@@ -145,15 +145,15 @@ export class DebitUseCase {
           });
 
           if (!clientProfile) {
-            clientProfile = qr.manager.create(ProfileClient, { client_id: userId as any });
-            clientProfile = await qr.manager.save(ProfileClient, clientProfile);
+            // Cannot auto-create client profile - it requires a user relation
+            this.logger.warn(`[DEBIT_TX] Client profile not found for wallet owner ${walletOwnerId}, skipping spending tracking`);
+          } else {
+            await qr.manager.createQueryBuilder()
+              .update(ProfileClient)
+              .set({ total_spending: () => `COALESCE(total_spending, 0) + ${Number(amount)}` })
+              .where('id = :id', { id: clientProfile.id })
+              .execute();
           }
-
-          await qr.manager.createQueryBuilder()
-            .update(ProfileClient)
-            .set({ total_spending: () => `COALESCE(total_spending, 0) + ${Number(amount)}` })
-            .where('id = :id', { id: clientProfile.id })
-            .execute();
         } catch (e) {
           this.logger.error(`[DEBIT_TX] Spending tracking failed: ${e.message}`);
         }

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -39,7 +39,7 @@ export class GetAdminMerchantSalesOverviewUseCase {
 
       // 3. Map aggregation to merchant cards
       return merchants.map((merchant) => {
-        const stats = salesData.find((s) => Number(s.userId) === merchant.user_id);
+        const stats = salesData.find((s) => String(s.userId) === String(merchant.user_id));
         return {
           id: merchant.id,
           userId: merchant.user_id,

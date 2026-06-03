@@ -158,7 +158,7 @@ export class ProfileController {
   upsertPuja(
     @CurrentUser() user: User,
     @Body() dto: ExpertPujaDto,
-    @Query('id') id?: number,
+    @Query('id') id?: string,
   ) {
     return this.profileFacade.upsertPuja(user, dto, id ? id : undefined);
   }

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -46,7 +46,7 @@ export class RejectCallUseCase {
         const reservedAmount = session.price_per_minute * 5;
         try {
             await this.walletFacade.releaseReserved(
-                session.client_id,
+                session.user_id,
                 reservedAmount,
                 referenceId,
             );

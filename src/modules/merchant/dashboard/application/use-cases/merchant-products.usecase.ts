@@ -45,7 +45,7 @@ export class MerchantProductsUseCase {
 
   // 1. LIST with filters + pagination
   async findAll(
-    merchantId: number,
+    merchantId: string,
     opts: { status?: string; search?: string; page?: number; limit?: number },
   ) {
     const { status, search, page = 1, limit = 20 } = opts;
@@ -78,7 +78,7 @@ export class MerchantProductsUseCase {
   }
 
   // 2. CREATE
-  async create(merchantId: number, dto: CreateMerchantProductDto) {
+  async create(merchantId: string, dto: CreateMerchantProductDto) {
     const isActive = dto.status === MerchantProductStatus.ACTIVE;
     const product = this.productRepo.create({ ...dto, 
       name: dto.name,
@@ -97,7 +97,7 @@ export class MerchantProductsUseCase {
   }
 
   // 3. UPDATE
-  async update(merchantId: number, productId: number, dto: Partial<CreateMerchantProductDto>) {
+  async update(merchantId: string, productId: string, dto: Partial<CreateMerchantProductDto>) {
     const existing = await this.productRepo.findOneBy({ id: productId as any });
     if (!existing) throw new NotFoundException('Product not found');
     if (existing.merchant_id !== (merchantId as any)) {
@@ -123,7 +123,7 @@ export class MerchantProductsUseCase {
   }
 
   // 4. DELETE
-  async remove(merchantId: number, productId: number) {
+  async remove(merchantId: string, productId: string) {
     const existing = await this.productRepo.findOneBy({ id: productId as any });
     if (!existing) throw new NotFoundException('Product not found');
     if (existing.merchant_id !== (merchantId as any)) {
@@ -135,8 +135,8 @@ export class MerchantProductsUseCase {
 
   // 5. BULK STATUS UPDATE
   async bulkUpdateStatus(
-    merchantId: number,
-    ids: number[],
+    merchantId: string,
+    ids: string[],
     status: MerchantProductStatus,
   ) {
     // Ensure all products belong to the merchant
@@ -157,7 +157,7 @@ export class MerchantProductsUseCase {
   }
 
   // 6. FIND ONE
-  async findOne(merchantId: number, productId: number) {
+  async findOne(merchantId: string, productId: string) {
     const p = await this.productRepo.findOneBy({ id: productId as any });
     if (!p) throw new NotFoundException('Product not found');
     if (p.merchant_id !== (merchantId as any)) {

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
 import { Wallet } from '../../infrastructure/entities/wallet.entity';
@@ -83,15 +83,14 @@ export class DeductFromReservedUseCase {
         });
 
         if (!clientProfile) {
-          clientProfile = qr.manager.create(ProfileClient, { client_id: userId as any });
-          clientProfile = await qr.manager.save(ProfileClient, clientProfile);
+          console.warn('[DEDUCT_RESERVED_TRACKING] Client profile not found, skipping spending tracking');
+        } else {
+          await qr.manager.createQueryBuilder()
+            .update(ProfileClient)
+            .set({ total_spending: () => `COALESCE(total_spending, 0) + ${Number(amount)}` })
+            .where('id = :id', { id: clientProfile.id })
+            .execute();
         }
-
-        await qr.manager.createQueryBuilder()
-          .update(ProfileClient)
-          .set({ total_spending: () => `COALESCE(total_spending, 0) + ${Number(amount)}` })
-          .where('id = :id', { id: clientProfile.id })
-          .execute();
       } catch (trackingError) {
         console.error('[DEDUCT_RESERVED_TRACKING] Failed to track client spending:', trackingError);
       }

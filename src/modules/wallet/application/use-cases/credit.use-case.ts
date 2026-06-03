@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable, BadRequestException, Logger, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
 import { Wallet } from '../../infrastructure/entities/wallet.entity';
@@ -74,9 +74,15 @@ export class CreditUseCase {
 
       if (!wallet) {
         if (walletOwnerId && queryKey) {
-            wallet = new Wallet(); (wallet as any)[queryKey] = walletOwnerId; wallet.balance = 0; wallet.reserved_balance = 0;
+            const newWallet = new Wallet();
+            (newWallet as any)[queryKey] = walletOwnerId;
+            newWallet.balance = 0;
+            newWallet.reserved_balance = 0;
+            wallet = await qr.manager.save(Wallet, newWallet);
         }
-        wallet = await qr.manager.save(Wallet, wallet);
+        if (!wallet) {
+          throw new BadRequestException('Unable to create wallet for user');
+        }
       }
 
       // 2. Atomic Balance update via QueryBuilder
@@ -89,11 +95,11 @@ export class CreditUseCase {
       this.logger.log(`[CREDIT_TX] Balance added for user ${userId}`);
 
       // 3. Record Transaction with Snapshots
-      const balanceBefore = Number(wallet.balance) || 0;
+      const balanceBefore = Number(wallet!.balance) || 0;
       const balanceAfter = balanceBefore + Number(amount);
 
       const transaction = qr.manager.create(Transaction, {
-        wallet_id: wallet.id,
+        wallet_id: wallet!.id,
         amount: amount,
         balance_before: balanceBefore,
         balance_after: balanceAfter,

@@ -19,7 +19,7 @@ export class MerchantPublicController {
   @Get()
   @UseGuards(OptionalJwtAuthGuard)
   async findAll(
-    @OptionalUser('id') userId?: number,
+    @OptionalUser('id') userId?: string,
     @Query('search') search?: string,
     @Query('city') city?: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
@@ -37,7 +37,7 @@ export class MerchantPublicController {
   @UseGuards(OptionalJwtAuthGuard)
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
-    @OptionalUser('id') userId?: number,
+    @OptionalUser('id') userId?: string,
   ) {
     return this.getMerchantDetails.execute(id, userId);
   }

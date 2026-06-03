@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
@@ -68,8 +68,8 @@ export class GetUnifiedHistoryUseCase {
       where: whereConditions
     }) : [];
     
-    const chatReviewMap = new Map<number, { rating: number, comment?: string }>();
-    const callReviewMap = new Map<number, { rating: number, comment?: string }>();
+    const chatReviewMap = new Map<string, { rating: number, comment?: string }>();
+    const callReviewMap = new Map<string, { rating: number, comment?: string }>();
     
     reviews.forEach(r => {
       if (r.session_id) chatReviewMap.set(r.session_id, { rating: r.rating, comment: r.comment });
@@ -129,15 +129,15 @@ export class GetUnifiedHistoryUseCase {
       rate: Number(session.price_per_minute || 0),
       rating: review?.rating || 0,
       comment: review?.comment,
-      expert_image: session.expert?.user?.profile_client?.profile_picture || (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-astrologer.jpg',
+      expert_image: (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-astrologer.jpg',
       user_image: session.user?.avatar || '/images/dummy-user.jpg',
       expert_name: session.expert?.user?.name || session.expert?.name || 'Expert',
       expert_category: session.expert?.specialization || 'Astrologer',
       user_name: session.user?.name || 'Client',
       expert: {
-        id: session.expert?.id || 0,
+        id: session.expert?.id || '',
         name: session.expert?.user?.name || session.expert?.name || 'Expert',
-        profileImage: session.expert?.user?.profile_client?.profile_picture || (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-astrologer.jpg',
+        profileImage: (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-astrologer.jpg',
       },
       metadata: {
         terminatedBy: session.terminated_by,
@@ -169,14 +169,15 @@ export class GetUnifiedHistoryUseCase {
       rate: Number(session.price_per_minute || 0),
       rating: review?.rating || 0,
       comment: review?.comment,
-      expert_image: session.expert?.user?.profile_client?.profile_picture || (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-expert.jpg',
+      expert_image: (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-expert.jpg',
       user_image: session.user?.avatar || '/images/dummy-user.jpg',
       expert_name: session.expert?.user?.name || 'Expert',
+      expert_category: session.expert?.specialization || 'Astrologer',
       user_name: session.user?.name || 'User',
       expert: {
-        id: session.expert?.id,
+        id: session.expert?.id || '',
         name: session.expert?.user?.name || 'Expert',
-        profileImage: session.expert?.user?.profile_client?.profile_picture || (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-expert.jpg',
+        profileImage: (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-expert.jpg',
       },
       metadata: {
         callSid: session.twilio_sid,

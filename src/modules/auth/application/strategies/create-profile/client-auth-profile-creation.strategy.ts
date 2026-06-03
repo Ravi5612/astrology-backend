@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
 import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
@@ -24,7 +24,9 @@ export class ClientAuthProfileCreationStrategy
         user.id,
         {
           full_name: user.name || '',
-        },
+          avatar: user.avatar,
+          profile_picture: user.avatar,
+        } as any,
         queryRunner,
       );
     }

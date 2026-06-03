@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -192,14 +192,14 @@ export class EndChatUseCase {
             if (sessionWithExpert) {
                 const startTime = sessionWithExpert.start_time ? sessionWithExpert.start_time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
                 const endTime = sessionWithExpert.end_time ? sessionWithExpert.end_time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
-                const expertName = sessionWithExpert.expert?.client?.name || 'Astrologer';
+                const expertName = sessionWithExpert.expert?.user?.name || 'Astrologer';
                 const duration = sessionWithExpert.start_time ? ((sessionWithExpert.end_time.getTime() - sessionWithExpert.start_time.getTime()) / 60000).toFixed(1) : '0';
                 
                 const title = "Consultation Summary";
                 const message = `From ${startTime} to ${endTime} you consulted ${expertName} via Chat, total duration: ${duration} mins, total cost: ₹${sessionWithExpert.total_cost}`;
                 
                 await this.notificationFacade.create(
-                    sessionWithExpert.user_id,
+                    sessionWithExpert.client_id,
                     NotificationType.GENERAL,
                     title,
                     message,

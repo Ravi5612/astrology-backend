@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -26,8 +26,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
 
   private logger: Logger = new Logger('ChatGateway');
-  private sessionTimers = new Map<number, NodeJS.Timeout>();
-  private expertSockets = new Map<number, string>(); // expertId -> socketId
+  private sessionTimers = new Map<string, NodeJS.Timeout>();
+  private expertSockets = new Map<string, string>(); // expertId -> socketId
 
   constructor(
     @Inject(forwardRef(() => ChatFacade))
@@ -313,7 +313,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody()
     payload: {
       sessionId: string;
-      senderId: number;
+      senderId: string;
       senderType: 'user' | 'expert';
       content: string;
       type?: MessageType;
@@ -378,7 +378,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody()
     payload: {
       sessionId: string;
-      adminId: number;
+      adminId: string;
       userMessage?: string;
       expertMessage?: string;
     },

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable, BadRequestException, UnauthorizedException, Inject } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
@@ -120,12 +120,11 @@ export class CompleteEmailRegistrationUseCase {
         }
 
         if (dto.address) {
-          const profile = await queryRunner.manager.findOne(ProfileMerchant, { where: { user: { id: user.id } } });
-          if (profile) {
-            const newAddress = new Address();
-            Object.assign(newAddress, dto.address);
-            newAddress.profile_merchant = profile;
-            await queryRunner.manager.save(Address, newAddress);
+          if (merchantProfile) {
+            merchantProfile.address = dto.address.line1 || merchantProfile.address;
+            merchantProfile.city = dto.address.city || merchantProfile.city;
+            merchantProfile.pincode = dto.address.zipCode || merchantProfile.pincode;
+            await queryRunner.manager.save(ProfileMerchant, merchantProfile);
           }
         }
 

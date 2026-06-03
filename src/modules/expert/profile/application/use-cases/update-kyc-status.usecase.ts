@@ -19,7 +19,7 @@ export class UpdateKycStatusUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  async execute(expertId: number, status: string, reason?: string) {
+  async execute(expertId: string, status: string, reason?: string) {
     const user = await this.userRepo.findOne({
       where: { id: expertId as any }
     });

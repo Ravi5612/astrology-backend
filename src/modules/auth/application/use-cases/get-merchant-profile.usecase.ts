@@ -1,8 +1,10 @@
-// @ts-nocheck
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { DatabaseService } from '@/core/database/database.service';
 import { hasRoles, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Injectable()
 export class GetMerchantProfileUseCase {
@@ -17,33 +19,24 @@ export class GetMerchantProfileUseCase {
       throw new NotFoundException('User not found');
     }
 
-    // Load merchant profile if not already loaded (though it might be via Eager loading if we configured that, but safer to check)
-    // Actually UsersFacade.findById usually returns standard user.
-    // We can use the DatabaseService to get the full profile if needed or use the repository directly via facade.
-    
-    // We already have the relation in User entity.
-    const fullUser = await this.db.transaction(async (qr) => {
-        return qr.manager.findOne('User', {
-            where: { id: userId },
-            relations: ['profile_merchant']
+    const { ProfileMerchant } = await import('../../../merchant/profile/infrastructure/entities/profile-merchant.entity');
+    const merchantProfile = await this.db.transaction(async (qr) => {
+        return qr.manager.findOne(ProfileMerchant, {
+            where: { user: { id: userId } }
         });
     });
 
-    if (!fullUser) {
-        throw new NotFoundException('User not found');
-    }
-
-    const isMerchant = hasRoles(fullUser.roles, 'MERCHANT');
+    const isMerchant = hasRoles(user.roles, 'MERCHANT');
     if (!isMerchant) {
       throw new NotFoundException('Merchant profile not found for this user');
     }
 
     return {
-      merchantId: fullUser.profile_merchant?.uid || fullUser.profile_merchant?.id,
-      shopName: fullUser.profile_merchant?.shopName || fullUser.name,
-      email: fullUser.email,
+      merchantId: merchantProfile?.uid || merchantProfile?.id || user.id,
+      shopName: merchantProfile?.shopName || user.name,
+      email: user.email,
       role: RoleEnum.MERCHANT,
-      status: fullUser.profile_merchant?.status || 'pending_verification',
+      status: merchantProfile?.status || 'pending_verification',
     };
   }
 }

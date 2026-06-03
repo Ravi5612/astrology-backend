@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable } from '@nestjs/common';
 import { GetAdminDashboardStatsUseCase } from './use-cases/get-admin-dashboard-stats.use-case';
 import { GetAdminUserGrowthStatsUseCase } from './use-cases/get-admin-user-growth-stats.use-case';
@@ -68,7 +68,7 @@ export class AdminFacade {
   }
 
 
-  async terminateSession(sessionId: number, adminId: number, userMessage?: string, expertMessage?: string) {
+  async terminateSession(sessionId: string, adminId: string, userMessage?: string, expertMessage?: string) {
     return this.chatFacade.adminTerminateSession(sessionId, adminId, userMessage, expertMessage);
   }
 
@@ -78,7 +78,7 @@ export class AdminFacade {
   }
 
 
-  async updateWithdrawalStatus(id: string, status: WithdrawalStatus, adminId: number, remark?: string) {
+  async updateWithdrawalStatus(id: string, status: WithdrawalStatus, adminId: string, remark?: string) {
     return this.walletFacade.updateWithdrawalStatus(id, status, adminId, remark);
   }
 
@@ -115,7 +115,7 @@ export class AdminFacade {
     return this.getAdminListingsUseCase.execute(params);
   }
 
-  async updateListingStatus(id: string | number, status: string) {
+  async updateListingStatus(id: string, status: string) {
     return this.updateListingStatusAdminUseCase.execute(id, { status });
   }
 
@@ -136,19 +136,19 @@ export class AdminFacade {
     return this.supportFacade.getAllDisputes(params);
   }
 
-  async getDisputeById(disputeId: number) {
+  async getDisputeById(disputeId: string) {
     return this.supportFacade.getDisputeByIdForAdmin(disputeId);
   }
 
-  async updateDisputeStatus(disputeId: number, status: DisputeStatus, notes?: string) {
+  async updateDisputeStatus(disputeId: string, status: DisputeStatus, notes?: string) {
     return this.supportFacade.updateDisputeStatus(disputeId, { status, notes });
   }
 
-  async getDisputeMessages(disputeId: number) {
+  async getDisputeMessages(disputeId: string) {
     return this.supportFacade.getAdminMessages(disputeId);
   }
 
-  async sendDisputeMessage(disputeId: number, adminId: number, data: { message: string }) {
+  async sendDisputeMessage(disputeId: string, adminId: string, data: { message: string }) {
     return this.supportFacade.sendAdminMessage(adminId, disputeId, data);
   }
 
@@ -164,7 +164,7 @@ export class AdminFacade {
     return this.getMerchantSalesOverviewUseCase.execute();
   }
 
-  async getMerchantSalesDetails(merchantId: number) {
+  async getMerchantSalesDetails(merchantId: string) {
     return this.getMerchantSalesDetailsUseCase.execute(merchantId);
   }
 }

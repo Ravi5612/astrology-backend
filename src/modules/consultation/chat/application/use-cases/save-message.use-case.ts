@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -13,7 +13,7 @@ export class SaveMessageUseCase {
 
     async execute(
         sessionId: string,
-        senderId: number,
+        senderId: string,
         senderType: 'user' | 'expert',
         content: string,
         type: MessageType = MessageType.TEXT,

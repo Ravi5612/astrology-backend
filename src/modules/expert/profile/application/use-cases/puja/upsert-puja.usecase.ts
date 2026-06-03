@@ -21,7 +21,7 @@ export class UpsertPujaUseCase {
     private readonly cloudinaryService: CloudinaryService,
   ) { }
 
-  async execute(user: User, dto: ExpertPujaDto, id?: number) {
+  async execute(user: User, dto: ExpertPujaDto, id?: string) {
     const profile = await this.profileRepo.findOne({
       where: { user: { id: user.id } },
     });

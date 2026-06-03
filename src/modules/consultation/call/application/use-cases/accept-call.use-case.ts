@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -54,7 +54,7 @@ export class AcceptCallUseCase {
     session.start_time = new Date();
 
     // Calculate Max Duration based on Wallet Balance + Free Minutes
-    const balance = await this.walletFacade.getBalance(session.client_id);
+    const balance = await this.walletFacade.getBalance(session.user_id);
     const paidMinutes = session.price_per_minute > 0 ? balance / session.price_per_minute : 0;
     const totalMinutes = (session.is_free ? session.free_minutes : 0) + paidMinutes;
     session.max_duration_seconds = Math.floor(totalMinutes * 60);

@@ -48,7 +48,7 @@ export class MerchantProductsController {
   @HttpCode(HttpStatus.OK)
   async findOne(
     @CurrentUser('id') userId: string,
-    @Param('id', ParseUUIDPipe) productId: number,
+    @Param('id', ParseUUIDPipe) productId: string,
   ) {
     const product = await this.merchantProducts.findOne(userId as any, productId);
     return { success: true, data: product };
@@ -81,7 +81,7 @@ export class MerchantProductsController {
   @HttpCode(HttpStatus.OK)
   async update(
     @CurrentUser('id') userId: string,
-    @Param('id', ParseUUIDPipe) productId: number,
+    @Param('id', ParseUUIDPipe) productId: string,
     @Body() dto: CreateMerchantProductDto,
   ) {
     const product = await this.merchantProducts.update(userId as any, productId, dto);
@@ -93,7 +93,7 @@ export class MerchantProductsController {
   @HttpCode(HttpStatus.OK)
   async remove(
     @CurrentUser('id') userId: string,
-    @Param('id', ParseUUIDPipe) productId: number,
+    @Param('id', ParseUUIDPipe) productId: string,
   ) {
     const result = await this.merchantProducts.remove(userId as any, productId);
     return { success: true, data: result };

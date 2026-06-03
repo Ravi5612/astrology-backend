@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -140,7 +140,7 @@ export class CreateReviewUseCase {
   private async handleMerchantReview(userId: string, clientId: string, merchantId: string, orderId: string | undefined, rating: number, comment?: string, tags?: string[]) {
     // Try lookup by primary ID first, then by client_id
     const merchant = await this.merchantRepository.findOne({ 
-      where: [{ id: merchantId as any }, { client_id: merchantId }] 
+      where: [{ id: merchantId as any }, { user_id: merchantId }] 
     });
     if (!merchant) throw new NotFoundException('Merchant not found');
     
@@ -158,7 +158,7 @@ export class CreateReviewUseCase {
       }
 
       // Verify order contains products from this merchant
-      const hasMerchantProduct = order.items.some(item => item.product.merchant_id === merchant.client_id);
+      const hasMerchantProduct = order.items.some(item => item.product.merchant_id === merchant.user_id);
       if (!hasMerchantProduct) {
         throw new ForbiddenException('This order does not contain products from this merchant');
       }

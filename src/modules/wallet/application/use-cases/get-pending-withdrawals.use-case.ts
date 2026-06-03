@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -14,7 +14,10 @@ export class GetPendingWithdrawalsUseCase {
 
     async execute(limit = 10, offset = 0, status?: WithdrawalStatus, userRole?: RoleEnum) {
         const query = this.withdrawalRepository.createQueryBuilder('w')
-            .leftJoinAndSelect('w.user', 'user')
+            .leftJoinAndSelect('w.expert', 'expert')
+            .leftJoinAndSelect('expert.user', 'expertUser')
+            .leftJoinAndSelect('w.merchant', 'merchant')
+            .leftJoinAndSelect('merchant.user', 'merchantUser')
             .leftJoinAndSelect('w.bankAccount', 'bankAccount')
             .orderBy('w.created_at', 'DESC')
             .skip(offset)
@@ -26,7 +29,7 @@ export class GetPendingWithdrawalsUseCase {
 
         if (userRole) {
             console.log(`[GetPendingWithdrawals] Filtering by role: ${userRole}`);
-            query.andWhere(':roleName = ANY(user.roles)', { roleName: userRole });
+            // Filter handled at application level or by joining relevant profile table
         }
 
         const [items, total] = await query.getManyAndCount();
@@ -39,7 +42,7 @@ export class GetPendingWithdrawalsUseCase {
                 status: item.status,
                 remark: item.remark,
                 date: item.created_at,
-                userName: item.user?.name || 'Unknown',
+                userName: item.expert?.user?.name || item.merchant?.user?.name || (item as any).agent?.user?.name || 'Unknown',
                 withdrawalNo: item.withdrawal_no,
                 bankAccount: item.bankAccount ? {
                     bankName: item.bankAccount.bank_name,

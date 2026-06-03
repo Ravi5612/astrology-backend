@@ -3,7 +3,8 @@ import { IsArray, IsBoolean, IsOptional, IsString, ValidateNested } from "class-
 
 export class ExpertDocumentDto {
   @IsOptional()
-  id?: number | string;
+  @IsString()
+  id?: string;
 
   @IsOptional()
   @IsString()

@@ -3,7 +3,8 @@ import { AddressTag } from './address.entity';
 
 export class AddressDto {
   @IsOptional()       
-  id?: number;
+  @IsString()
+  id?: string;
 
   @IsString()
   line1: string;

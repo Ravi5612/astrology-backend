@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
@@ -27,10 +27,9 @@ export class CreateProfileUseCase extends BaseService<ProfileClient> {
     
     if (existingProfile) return existingProfile;
 
-    const profile = repo.create({
-      ...dto,
-      user: { id: userId },
-    });
+    const profile = repo.create();
+    Object.assign(profile, dto);
+    profile.user = { id: userId } as any;
 
     const savedProfile = await repo.save(profile);
 

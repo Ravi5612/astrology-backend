@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Controller, Get, Query, Post, Body, UseGuards, Patch, Param, ParseUUIDPipe, UseInterceptors, UploadedFiles, Delete, ParseEnumPipe, ParseIntPipe } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
@@ -106,7 +106,7 @@ export class AdminController {
 
   @Get('clients')
   async getAllUsers(
-    @Query('search') search?: string,
+    @Query('search') search: string | undefined,
     @Query() pagination: PaginationDto
   ) {
     return this.usersFacade.findAllByRole('client', search, pagination.page, pagination.limit);
@@ -119,7 +119,7 @@ export class AdminController {
 
   @Get('experts')
   async getAllExperts(
-    @Query('search') search?: string,
+    @Query('search') search: string | undefined,
     @Query() pagination: PaginationDto,
     @Query('status') status?: string,
   ) {
@@ -144,12 +144,12 @@ export class AdminController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { isBlocked: boolean },
   ) {
-    return this.usersFacade.update(id, { is_blocked: body.isBlocked });
+    return this.usersFacade.update(id, { is_blocked: body.isBlocked } as any);
   }
 
   @Get('live-sessions')
   async getLiveSessions(
-    @Query('type') type?: string,
+    @Query('type') type: string | undefined,
     @Query() pagination: PaginationDto
   ) {
     return this.adminFacade.getLiveSessions(type, pagination.page, pagination.limit);
@@ -242,8 +242,8 @@ export class AdminController {
 
   @Get('merchants')
   async getAllMerchants(
-    @Query('search') search?: string,
-    @Query('status', new ParseEnumPipe(MerchantStatus, {optional: true})) status?: MerchantStatus,
+    @Query('search') search: string | undefined,
+    @Query('status', new ParseEnumPipe(MerchantStatus, {optional: true})) status: MerchantStatus | undefined,
     @Query() pagination: PaginationDto,
   ) {
     return this.adminFacade.getAllMerchants({ search, status, page: pagination.page, limit: pagination.limit });
@@ -307,8 +307,8 @@ export class AdminController {
 
   @Get('listings')
   async getListings(
-    @Query('type') type?: string,
-    @Query('search') search?: string,
+    @Query('type') type: string | undefined,
+    @Query('search') search: string | undefined,
     @Query() pagination: PaginationDto,
   ) {
     return this.adminFacade.getListings({ type, search, page: pagination.page, limit: pagination.limit });
@@ -325,7 +325,7 @@ export class AdminController {
   // --- Support / Disputes Management ---
   @Get('support/disputes')
   async getAllDisputes(
-    @Query('status', new ParseEnumPipe(DisputeStatus, {optional: true})) status?: DisputeStatus,
+    @Query('status', new ParseEnumPipe(DisputeStatus, {optional: true})) status: DisputeStatus | undefined,
     @Query() pagination: PaginationDto,
   ) {
     return this.adminFacade.getAllDisputes({ status, page: pagination.page, limit: pagination.limit });

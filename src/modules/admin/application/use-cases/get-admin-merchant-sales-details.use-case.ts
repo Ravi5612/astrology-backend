@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -16,7 +16,7 @@ export class GetAdminMerchantSalesDetailsUseCase {
     private readonly merchantRepository: Repository<ProfileMerchant>,
   ) {}
 
-  async execute(merchantId: number) {
+  async execute(merchantId: string) {
     try {
       // 1. Verify merchant exists and get their user_id
       const merchant = await this.merchantRepository.findOne({
@@ -33,8 +33,7 @@ export class GetAdminMerchantSalesDetailsUseCase {
         .createQueryBuilder('item')
         .leftJoinAndSelect('item.product', 'product')
         .leftJoinAndSelect('item.order', 'order')
-        .leftJoinAndSelect('order.user', 'customer')
-        .leftJoinAndMapOne('customer.profile_client', ProfileClient, 'pClient', 'pClient.user_id = customer.id')
+        .leftJoinAndSelect('order.client', 'client')
         .where('product.merchant_id = :userId', { userId: merchant.user_id })
         .andWhere('order.status NOT IN (:...invalidStatuses)', {
           invalidStatuses: [OrderStatus.CANCELLED, OrderStatus.PENDING]
@@ -62,10 +61,10 @@ export class GetAdminMerchantSalesDetailsUseCase {
           quantity: item.quantity,
           totalPrice: Number(item.price) * item.quantity,
           customer: {
-            id: item.order?.user?.id,
-            name: item.order?.user?.name,
-            phone: (item.order?.user as any)?.profile_client?.phone || 'N/A',
-            email: item.order?.user?.email,
+            id: item.order?.client?.id,
+            name: item.order?.client?.name,
+            phone: item.order?.client?.phone || 'N/A',
+            email: item.order?.client?.email,
           },
           status: item.order?.status,
           date: item.order?.created_at,

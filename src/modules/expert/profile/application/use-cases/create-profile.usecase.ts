@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
@@ -86,7 +86,7 @@ export class CreateProfileUseCase {
       // Emit events
       this.eventEmitter.emit(
         'expert.profile.updated',
-        new ProfileUpdatedEvent(user.id as any as string, savedProfile.id, dto),
+        new ProfileUpdatedEvent(user.id, savedProfile.id, dto),
       );
 
       if (dto.is_available !== undefined) {

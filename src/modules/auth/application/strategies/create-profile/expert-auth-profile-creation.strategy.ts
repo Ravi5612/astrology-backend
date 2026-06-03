@@ -23,6 +23,7 @@ export class ExpertAuthProfileCreationStrategy
         user,
         {
           full_name: user.name || '',
+          avatar: user.avatar,
         } as any,
         queryRunner,
       );

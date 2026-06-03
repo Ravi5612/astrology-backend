@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import {
   BadRequestException,
   Injectable,
@@ -10,6 +10,7 @@ import { UsedTokensService } from '../../infrastructure/services/used-tokens.ser
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { LoginWithMagicLinkPolicy } from '../../domain/policies/login-with-magic-link.policy';
 import { IssueAuthTokensUseCase } from './issue-auth-tokens.usecase';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class LoginWithMagicLinkUseCase {

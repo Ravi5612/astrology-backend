@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -25,8 +25,8 @@ export class GetMerchantWishlistUseCase {
         const m = item.merchant!;
         return {
           id: m.id,
-          name: m.shopName || m.client?.name || 'Unnamed Shop',
-          image: m.client?.avatar || '',
+          name: m.shopName || m.name || m.user?.name || 'Unnamed Shop',
+          image: m.avatar || m.user?.avatar || '',
           address: m.address || '',
           city: m.city || '',
           rating: Number(m.rating) || 0,

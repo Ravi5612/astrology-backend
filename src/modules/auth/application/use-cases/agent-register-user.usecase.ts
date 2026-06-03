@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { UsersFacade } from '@/modules/users/application/users.facade';
@@ -55,7 +55,7 @@ export class AgentRegisterUserUseCase {
                         email: dto.email,
                         roles: dto.roles,
                         password: hashedPassword,
-                        referred_by_id: Number(agentId),
+                        referred_by_id: agentId,
                     },
                     queryRunner,
                 );

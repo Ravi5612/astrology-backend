@@ -37,7 +37,8 @@ class UserDto {
   avatar?: string;
 
   @IsOptional()
-  referred_by_id?: number | null;
+  @IsString()
+  referred_by_id?: string | null;
 }
 
 export class CreateUserDto extends UserDto { }

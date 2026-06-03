@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import {
   Controller,
   Post,
@@ -402,8 +402,8 @@ export class ChatController {
             specialization: session.expert?.specialization,
             rating: session.expert?.rating,
             user: {
-              name: session.expert?.client?.name,
-              avatar: session.expert?.client?.avatar,
+              name: session.expert?.user?.name,
+              avatar: session.expert?.user?.avatar,
             },
           },
         };

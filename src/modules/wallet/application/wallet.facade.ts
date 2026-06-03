@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Injectable } from '@nestjs/common';
 import { GetWalletUseCase } from './use-cases/get-wallet.use-case';
 import { GetBalanceUseCase } from './use-cases/get-balance.use-case';
@@ -61,6 +61,7 @@ export class WalletFacade {
   }
 
   async validateBalance(userId: string | undefined, minAmount: number) {
+    if (!userId) throw new Error('userId is required');
     return this.validateBalanceUseCase.execute(userId, minAmount);
   }
 
@@ -89,7 +90,9 @@ export class WalletFacade {
   }
 
   async getTransactions(userId: string, limit?: string, offset?: string, type?: string, purpose?: string) {
-    return this.getTransactionsUseCase.execute(userId, limit, offset, type, purpose);
+    const limitNum = limit ? parseInt(limit, 10) : undefined;
+    const offsetNum = offset ? parseInt(offset, 10) : undefined;
+    return this.getTransactionsUseCase.execute(userId, limitNum, offsetNum, type, purpose);
   }
 
   async getTotalEarnings(userId: string, options: { startDate?: Date; endDate?: Date } = {}) {
@@ -101,6 +104,7 @@ export class WalletFacade {
   }
 
   async getWithdrawalsStatus(userId: string | undefined) {
+    if (!userId) throw new Error('userId is required');
     return this.getWithdrawalsStatusUseCase.execute(userId);
   }
 
