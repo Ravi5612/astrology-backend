@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CalendarController } from './api/controllers/calendar.controller';
-import { CalendarService } from './application/calendar.service';
+import { CalendarFacade } from './application/calendar.facade';
+import { GetDailyPanchangUseCase } from './application/use-cases/get-daily-panchang.usecase';
+import { GetMonthlyCalendarUseCase } from './application/use-cases/get-monthly-calendar.usecase';
+import { GetYearlyFestivalsUseCase } from './application/use-cases/get-yearly-festivals.usecase';
 import { CalendarCache } from './infrastructure/entities/calendar-cache.entity';
 import { ProkeralaModule } from '@/external/prokerala/prokerala.module';
 
@@ -11,7 +14,12 @@ import { ProkeralaModule } from '@/external/prokerala/prokerala.module';
     ProkeralaModule,
   ],
   controllers: [CalendarController],
-  providers: [CalendarService],
-  exports: [CalendarService],
+  providers: [
+    CalendarFacade,
+    GetDailyPanchangUseCase,
+    GetMonthlyCalendarUseCase,
+    GetYearlyFestivalsUseCase,
+  ],
+  exports: [CalendarFacade],
 })
 export class CalendarModule {}

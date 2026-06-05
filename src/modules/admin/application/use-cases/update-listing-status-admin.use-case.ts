@@ -1,36 +1,14 @@
-
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { AgentListing } from '@/modules/agent/infrastructure/entities/agent-listing.entity';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import { AgentFacade } from '@/modules/agent/application/agent.facade';
 
 @Injectable()
 export class UpdateListingStatusAdminUseCase {
   constructor(
-    @InjectRepository(AgentListing)
-    private readonly listingRepository: Repository<AgentListing>,
+    @Inject(forwardRef(() => AgentFacade))
+    private readonly agentFacade: AgentFacade
   ) {}
 
   async execute(id: string, data: { status: string }) {
-    const stringId = String(id);
-    const listing = await this.listingRepository.findOne({ where: { id: stringId } });
-
-    if (!listing) {
-      throw new NotFoundException('Listing not found');
-    }
-
-    // Mapping 'active' to 'approved' if necessary (frontend might send 'active' for merchants)
-    let newStatus = data.status.toLowerCase();
-    if (newStatus === 'active') newStatus = 'approved';
-
-    listing.status = newStatus;
-    
-    await this.listingRepository.save(listing);
-
-    return {
-      success: true,
-      message: `Listing status updated to ${newStatus} successfully`,
-      data: listing,
-    };
+    return this.agentFacade.updateAdminListingStatus(id, data);
   }
 }

@@ -46,12 +46,12 @@ export class WishlistFacade {
     return this.getExpertWishlistUseCase.execute(userId);
   }
 
-  async addExpertToWishlist(userId: string, expertId: string) {
-    return this.addExpertUseCase.execute(userId, expertId);
+  async addExpertToWishlist(userId: string, expert_id: string) {
+    return this.addExpertUseCase.execute(userId, expert_id);
   }
 
-  async removeExpertFromWishlist(userId: string, expertId: string) {
-    return this.removeExpertUseCase.execute(userId, expertId);
+  async removeExpertFromWishlist(userId: string, expert_id: string) {
+    return this.removeExpertUseCase.execute(userId, expert_id);
   }
 
   async getPujaWishlist(userId: string) {

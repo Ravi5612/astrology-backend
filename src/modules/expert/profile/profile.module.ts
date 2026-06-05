@@ -2,6 +2,10 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { forwardRef } from '@nestjs/common';
+import { WalletModule } from '@/modules/wallet/wallet.module';
+import { UsersModule } from '@/modules/users/users.module';
+import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
 
 import { ProfileExpert } from './infrastructure/entities/profile-expert.entity';
 import { Address } from '@/common/address/address.entity';
@@ -25,6 +29,9 @@ import { UpsertPujaUseCase } from './application/use-cases/puja/upsert-puja.usec
 import { DeletePujaUseCase } from './application/use-cases/puja/delete-puja.usecase';
 import { ListAllPujasUseCase } from './application/use-cases/puja/list-all-pujas.usecase';
 import { GetPujaByIdUseCase } from './application/use-cases/puja/get-puja-by-id.usecase';
+import { UpdatePujaLikesUseCase } from './application/use-cases/puja/update-puja-likes.usecase';
+import { UpdateProfileWithQueryRunnerUseCase } from './application/use-cases/update-profile-with-query-runner.usecase';
+import { GetExpertDetailUseCase } from './application/use-cases/get-admin-expert-detail.use-case';
 
 import { ExpertPuja } from './infrastructure/entities/expert-puja.entity';
 import { KycStatusChangedHandler } from './application/event-handlers/kyc-status-changed.handler';
@@ -35,7 +42,10 @@ import { ExpertStatusChangedHandler } from './application/event-handlers/expert-
     TypeOrmModule.forFeature([ProfileExpert, User, Address, ExpertPuja]),
     NodemailerModule,
     CloudinaryModule,
-    ConsultationModule,
+    forwardRef(() => ConsultationModule),
+    forwardRef(() => WalletModule),
+    forwardRef(() => UsersModule),
+    forwardRef(() => ClientProfileModule),
   ],
   controllers: [ProfileController],
   providers: [
@@ -52,8 +62,11 @@ import { ExpertStatusChangedHandler } from './application/event-handlers/expert-
     GetExpertByUserIdUseCase,
     UpsertPujaUseCase,
     DeletePujaUseCase,
+    GetExpertDetailUseCase,
     ListAllPujasUseCase,
     GetPujaByIdUseCase,
+    UpdatePujaLikesUseCase,
+    UpdateProfileWithQueryRunnerUseCase,
 
     KycStatusChangedHandler,
     ExpertStatusChangedHandler,

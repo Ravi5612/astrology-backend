@@ -8,11 +8,11 @@ export class GetWalletBalanceUseCase {
     async execute(userId: string) {
         const balance = await this.walletFacade.getBalance(userId as any);
         const stats = await this.walletFacade.getWithdrawalsStatus(userId);
-        const totalEarnings = await this.walletFacade.getTotalEarnings(userId);
+        const total_earnings = await this.walletFacade.getTotalEarnings(userId);
 
         return {
-            availableBalance: balance,
-            totalEarnings: totalEarnings,
+            available_balance: balance,
+            total_earnings: total_earnings,
             ...stats
         };
     }

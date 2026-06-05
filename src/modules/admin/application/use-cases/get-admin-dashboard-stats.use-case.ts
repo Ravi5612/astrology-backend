@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
@@ -6,8 +6,11 @@ import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade'
 @Injectable()
 export class GetAdminDashboardStatsUseCase {
   constructor(
+    @Inject(forwardRef(() => UsersFacade))
     private readonly usersFacade: UsersFacade,
+    @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
+    @Inject(forwardRef(() => ChatFacade))
     private readonly chatFacade: ChatFacade,
   ) { }
 
@@ -15,7 +18,7 @@ export class GetAdminDashboardStatsUseCase {
     const expertStats = await this.usersFacade.getExpertStats();
     const clientStats = await this.usersFacade.getClientStats();
     const chatSessionsCount = await this.chatFacade.getTotalSessionsCount();
-    const totalEarnings = await this.walletFacade.getGlobalEarnings();
+    const total_earnings = await this.walletFacade.getGlobalEarnings();
 
     // Fetch recent activities
     const [latestUsers, latestExperts, latestAgents] = await Promise.all([
@@ -57,14 +60,14 @@ export class GetAdminDashboardStatsUseCase {
         time: this.formatTime(activity.createdAt),
       }));
 
-    const adminEarnings = await this.walletFacade.getAdminCommission();
+    const admin_earnings = await this.walletFacade.getAdminCommission();
 
     return {
-      totalChatSessions: chatSessionsCount,
-      totalExperts: expertStats.totalExperts,
-      totalUsers: clientStats.totalClients,
-      totalEarnings: totalEarnings,
-      adminEarnings: adminEarnings,
+      total_chat_sessions: chatSessionsCount,
+      total_experts: expertStats.total_experts,
+      total_users: clientStats.totalClients,
+      total_earnings: total_earnings,
+      admin_earnings: admin_earnings,
       trends: expertStats.trends,
       activities: activities,
     };

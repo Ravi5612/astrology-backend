@@ -33,15 +33,15 @@ export class ExpertLikeController {
   ) {
     return this.wishlistFacade.addExpertToWishlist(
       userId,
-      addExpertToWishlistDto.expertId,
+      addExpertToWishlistDto.expert_id,
     );
   }
 
-  @Delete('remove/:expertId')
+  @Delete('remove/:expert_id')
   removeExpert(
     @CurrentUser("id") userId: string,
-    @Param('expertId') expertId: string,
+    @Param('expert_id') expert_id: string,
   ) {
-    return this.wishlistFacade.removeExpertFromWishlist(userId, expertId);
+    return this.wishlistFacade.removeExpertFromWishlist(userId, expert_id);
   }
 }

@@ -3,7 +3,7 @@ import { IsNotEmpty, IsNumber, IsOptional, IsString, IsArray, IsIn, Max, Min, Is
 export class CreateReviewDto {
   @IsOptional()
   @IsUUID()
-  expertId?: string;
+  expert_id?: string;
 
   @IsOptional()
   @IsUUID()

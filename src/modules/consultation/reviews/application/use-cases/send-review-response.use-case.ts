@@ -5,15 +5,12 @@ import { Repository } from 'typeorm';
 import { Review } from '../../infrastructure/entities/review.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
 @Injectable()
 export class SendReviewResponseUseCase {
   constructor(
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
-    @InjectRepository(ProfileExpert)
-    private readonly expertRepository: Repository<ProfileExpert>,
     private readonly notificationFacade: NotificationFacade,
   ) { }
 

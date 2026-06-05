@@ -1,17 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { OrderItem } from '@/modules/commerce/order/infrastructure/entities/order-item.entity';
-import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
+import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 
 @Injectable()
 export class GetMerchantFinanceStatsUseCase {
   constructor(
+    @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
-    @InjectRepository(OrderItem)
-    private readonly orderItemRepo: Repository<OrderItem>,
+    private readonly orderFacade: OrderFacade,
     @InjectRepository(ProfileMerchant)
     private readonly merchantRepo: Repository<ProfileMerchant>,
   ) {}
@@ -26,23 +25,14 @@ export class GetMerchantFinanceStatsUseCase {
       });
       const merchantId = merchantProfile?.id;
 
-      const [wallet, actualEarnings, withdrawalsStatus, grossEarningsQuery] = await Promise.all([
+      const [wallet, actual_earnings, withdrawalsStatus, grossEarnings] = await Promise.all([
         this.walletFacade.getWallet(userId as any),
         this.walletFacade.getTotalEarnings(userId),
         this.walletFacade.getWithdrawalsStatus(userId as any),
         merchantId
-          ? this.orderItemRepo
-              .createQueryBuilder('oi')
-              .innerJoin('oi.order', 'o')
-              .innerJoin('oi.product', 'p')
-              .where('p.merchant_id = :merchantId', { merchantId })
-              .andWhere('o.status != :cancelled', { cancelled: OrderStatus.CANCELLED })
-              .select('SUM(oi.price * oi.quantity)', 'sum')
-              .getRawOne()
-          : Promise.resolve({ sum: '0' }),
+          ? this.orderFacade.getMerchantGrossTotalEarnings(merchantId)
+          : Promise.resolve(0),
       ]);
-
-      const grossEarnings = Number(grossEarningsQuery?.sum) || 0;
       
       const platformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_PUJA_SHOP');
       const gstRate = await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
@@ -51,22 +41,22 @@ export class GetMerchantFinanceStatsUseCase {
       const estimatedGst = estimatedFee * (gstRate / 100);
       const netEarnings = grossEarnings - estimatedFee - estimatedGst;
 
-      console.log('[FINANCE_STATS] Data retrieved:', { wallet, actualEarnings, withdrawalsStatus, grossEarnings, netEarnings });
+      console.log('[FINANCE_STATS] Data retrieved:', { wallet, actual_earnings, withdrawalsStatus, grossEarnings, netEarnings });
 
       // Calculate next payout date (Next Monday at 10 AM)
-      const nextPayoutDate = new Date();
-      const daysUntilMonday = (1 + 7 - nextPayoutDate.getDay()) % 7 || 7;
-      nextPayoutDate.setDate(nextPayoutDate.getDate() + daysUntilMonday);
-      nextPayoutDate.setHours(10, 0, 0, 0);
+      const next_payout_date = new Date();
+      const daysUntilMonday = (1 + 7 - next_payout_date.getDay()) % 7 || 7;
+      next_payout_date.setDate(next_payout_date.getDate() + daysUntilMonday);
+      next_payout_date.setHours(10, 0, 0, 0);
 
       const result = {
-        totalEarnings: Number(netEarnings.toFixed(2)),
-        actualEarnings: Number(actualEarnings) || 0,
-        availableBalance: Number(wallet?.balance) || 0,
-        pendingPayout: Number(withdrawalsStatus?.pendingAmount) || 0,
-        processingAmount: Number(withdrawalsStatus?.processingAmount) || 0,
-        totalPayouts: Number(withdrawalsStatus?.totalWithdrawn) || 0,
-        nextPayoutDate: nextPayoutDate.toISOString(),
+        total_earnings: Number(netEarnings.toFixed(2)),
+        actual_earnings: Number(actual_earnings) || 0,
+        available_balance: Number(wallet?.balance) || 0,
+        pendingPayout: Number(withdrawalsStatus?.pending_amount) || 0,
+        processing_amount: Number(withdrawalsStatus?.processing_amount) || 0,
+        total_payouts: Number(withdrawalsStatus?.total_withdrawn) || 0,
+        next_payout_date: next_payout_date.toISOString(),
       };
       
       console.log('[FINANCE_STATS] Final Result:', result);

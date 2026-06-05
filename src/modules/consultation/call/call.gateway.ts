@@ -25,13 +25,14 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     server: Server;
 
     private logger: Logger = new Logger('CallGateway');
-    private expertSockets = new Map<string, string>(); // expertId -> socketId
+    private expertSockets = new Map<string, string>(); // expert_id -> socketId
     private sessionTimers = new Map<string, NodeJS.Timeout>();
     private triggeredFreeLimit = new Set<string>();
 
     constructor(
         @Inject(forwardRef(() => CallFacade))
         private readonly callFacade: CallFacade,
+        @Inject(forwardRef(() => WalletFacade))
         private readonly walletFacade: WalletFacade,
     ) { }
 
@@ -41,10 +42,10 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     handleDisconnect(client: Socket) {
         this.logger.log(`Client disconnected from call: ${client.id}`);
-        for (const [expertId, socketId] of this.expertSockets.entries()) {
+        for (const [expert_id, socketId] of this.expertSockets.entries()) {
             if (socketId === client.id) {
-                this.expertSockets.delete(expertId);
-                this.logger.log(`Expert ${expertId} unregistered from call due to disconnect`);
+                this.expertSockets.delete(expert_id);
+                this.logger.log(`Expert ${expert_id} unregistered from call due to disconnect`);
                 break;
             }
         }
@@ -53,26 +54,26 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @SubscribeMessage('register_expert')
     handleRegisterExpert(
         @ConnectedSocket() client: Socket,
-        @MessageBody() payload: { expertId: string },
+        @MessageBody() payload: { expert_id: string },
     ) {
-        this.expertSockets.set(payload.expertId, client.id);
-        client.join(`expert_${payload.expertId}`);
-        this.logger.log(`Expert ${payload.expertId} registered for calls. Socket ID: ${client.id}`);
+        this.expertSockets.set(payload.expert_id, client.id);
+        client.join(`expert_${payload.expert_id}`);
+        this.logger.log(`Expert ${payload.expert_id} registered for calls. Socket ID: ${client.id}`);
         return { status: 'registered' };
     }
 
-    notifyExpertNewCall(expertId: string, callData: any) {
-        const roomName = `expert_${expertId}`;
+    notifyExpertNewCall(expert_id: string, callData: any) {
+        const roomName = `expert_${expert_id}`;
         this.server.to(roomName).emit('new_call_request', callData);
         this.logger.log(`[Notification] ✅ Emitted new_call_request to ${roomName} for sessionId: ${callData.session.id}`);
     }
 
     notifyExpertStatusUpdate(
-        expertId: string,
+        expert_id: string,
         event: 'call_accepted' | 'call_ended',
         data: any,
     ) {
-        const roomName = `expert_${expertId}`;
+        const roomName = `expert_${expert_id}`;
         this.server.to(roomName).emit(event, data);
         this.logger.log(`[Notification] ✅ Emitted ${event} to ${roomName} for sessionId: ${data.session?.id || data.sessionId}`);
     }

@@ -1,17 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, MoreThanOrEqual } from 'typeorm';
-import { OrderItem } from '@/modules/commerce/order/infrastructure/entities/order-item.entity';
-import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
+import { ProductFacade } from '@/modules/commerce/product/application/product.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
 @Injectable()
 export class GetMerchantStatsUseCase {
   constructor(
-    @InjectRepository(OrderItem)
-    private readonly orderItemRepo: Repository<OrderItem>,
-    @InjectRepository(Product)
-    private readonly productRepo: Repository<Product>,
+    private readonly orderFacade: OrderFacade,
+    private readonly productFacade: ProductFacade,
+    @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
   ) {}
 
@@ -21,44 +18,12 @@ export class GetMerchantStatsUseCase {
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    // 1. Total Orders - Lifetime (Distinct order_id where product.merchant_id = userId)
-    const totalOrdersQuery = await this.orderItemRepo
-      .createQueryBuilder('oi')
-      .innerJoin('oi.order', 'o')
-      .innerJoin('oi.product', 'p')
-      .where('p.merchant_id = :userId', { userId })
-      .andWhere('o.status != :cancelled', { cancelled: 'cancelled' })
-      .select('COUNT(DISTINCT oi.order_id)', 'count')
-      .getRawOne();
-
-    // 2. Total Products
-    const totalProducts = await this.productRepo.count({
-      where: { merchant_id: userId as any },
-    });
-
-    // 3. Monthly Earnings (Sum of price * quantity where product.merchant_id = userId for current month)
-    const monthlyEarningsQuery = await this.orderItemRepo
-      .createQueryBuilder('oi')
-      .innerJoin('oi.order', 'o')
-      .innerJoin('oi.product', 'p')
-      .where('p.merchant_id = :userId', { userId })
-      .andWhere('o.status != :cancelled', { cancelled: 'cancelled' })
-      .andWhere('oi.created_at >= :startOfMonth', { startOfMonth })
-      .select('SUM(oi.price * oi.quantity)', 'sum')
-      .getRawOne();
-
-    // 4. Total Earnings (Sum of price * quantity where product.merchant_id = userId)
-    const totalEarningsQuery = await this.orderItemRepo
-      .createQueryBuilder('oi')
-      .innerJoin('oi.order', 'o')
-      .innerJoin('oi.product', 'p')
-      .where('p.merchant_id = :userId', { userId })
-      .andWhere('o.status != :cancelled', { cancelled: 'cancelled' })
-      .select('SUM(oi.price * oi.quantity)', 'sum')
-      .getRawOne();
-
-    const grossMonthly = Number(monthlyEarningsQuery.sum) || 0;
-    const grossTotal = Number(totalEarningsQuery.sum) || 0;
+    const [totalOrdersCount, total_products, grossMonthly, grossTotal] = await Promise.all([
+      this.orderFacade.getMerchantTotalOrders(userId),
+      this.productFacade.findMerchantProducts(userId, {}).then(res => res.total).catch(() => 0),
+      this.orderFacade.getMerchantGrossMonthlyEarnings(userId, startOfMonth),
+      this.orderFacade.getMerchantGrossTotalEarnings(userId),
+    ]);
 
     // Estimate Net Earnings (subtracting platform fee and GST)
     const platformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_PUJA_SHOP');
@@ -71,13 +36,13 @@ export class GetMerchantStatsUseCase {
     };
 
     const result = {
-      totalOrders: { value: Number(totalOrdersQuery.count) || 0, trend: '+10%' },
-      totalProducts: { value: totalProducts, trend: '+2 new' },
-      totalEarnings: {
+      totalOrders: { value: totalOrdersCount, trend: '+10%' },
+      total_products: { value: total_products, trend: '+2 new' },
+      total_earnings: {
         value: calculateNet(grossTotal),
         trend: '+15%',
       },
-      monthlyEarnings: {
+      monthly_earnings: {
         value: calculateNet(grossMonthly),
         trend: '+8%',
       },

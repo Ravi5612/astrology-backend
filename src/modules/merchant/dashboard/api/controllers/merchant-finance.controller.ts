@@ -2,7 +2,6 @@ import { Controller, Get, Post, Body, Patch, Param, UseGuards, HttpCode, HttpSta
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { GetMerchantFinanceStatsUseCase } from '../../application/use-cases/get-merchant-finance-stats.usecase';
-import { GetMerchantTransactionsUseCase } from '../../application/use-cases/get-merchant-transactions.usecase';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
@@ -17,7 +16,6 @@ import { Roles } from '@/common/decorators/roles.decorator';
 export class MerchantFinanceController {
   constructor(
     private readonly getStats: GetMerchantFinanceStatsUseCase,
-    private readonly getTransactions: GetMerchantTransactionsUseCase,
     private readonly walletFacade: WalletFacade,
   ) {}
 
@@ -36,7 +34,7 @@ export class MerchantFinanceController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
   ) {
-    const transactions = await this.getTransactions.execute(userId, { search, page, limit });
+    const transactions = await this.walletFacade.getMerchantTransactions(userId, { search, page, limit });
     return { success: true, data: transactions };
   }
 

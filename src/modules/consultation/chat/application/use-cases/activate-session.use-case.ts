@@ -1,10 +1,10 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, forwardRef, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { ChatSession, ChatSessionStatus } from '../../infrastructure/entities/chat-session.entity';
 import { ChatMessage, MessageType } from '../../infrastructure/entities/chat-message.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 
 @Injectable()
 export class ActivateSessionUseCase {
@@ -13,9 +13,8 @@ export class ActivateSessionUseCase {
         private sessionRepo: Repository<ChatSession>,
         @InjectRepository(ChatMessage)
         private messageRepo: Repository<ChatMessage>,
-        @InjectRepository(ProfileClient)
-        private profileClientRepo: Repository<ProfileClient>,
-        private walletFacade: WalletFacade,
+        @Inject(forwardRef(() => ClientProfileFacade)) private clientProfileFacade: ClientProfileFacade,
+        @Inject(forwardRef(() => WalletFacade)) private walletFacade: WalletFacade,
     ) { }
 
     async execute(sessionId: string): Promise<{ session: ChatSession, introCard?: ChatMessage }> {
@@ -40,7 +39,7 @@ export class ActivateSessionUseCase {
 
         // Calculate Max Duration based on Wallet Balance + Free Minutes
         const balance = await this.walletFacade.getBalance(session.client_id);
-        const paidMinutes = session.price_per_minute > 0 ? balance / session.price_per_minute : 0;
+        const paidMinutes = session.price_per_minute > 0 ? balance / session.price_per_minute : 60; // fallback 60 mins if price is 0
         const totalMinutes = (session.is_free ? session.free_minutes : 0) + paidMinutes;
         session.max_duration_seconds = Math.floor(totalMinutes * 60);
 
@@ -58,9 +57,7 @@ export class ActivateSessionUseCase {
         });
 
         if (!existingCard) {
-            const profileClient = await this.profileClientRepo.findOne({
-                where: { user: { id: session.client_id } }
-            });
+            const profileClient = await this.clientProfileFacade.getProfile(session.client_id);
 
             const userData = session.metadata || {
                 name: (session.user as any)?.name || profileClient?.name,

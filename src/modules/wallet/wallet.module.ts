@@ -1,14 +1,16 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Wallet } from './infrastructure/entities/wallet.entity';
 import { Transaction } from './infrastructure/entities/transaction.entity';
 import { Withdrawal } from './infrastructure/entities/withdrawal.entity';
 import { Idempotency } from './infrastructure/entities/idempotency.entity';
-import { User } from '../users/infrastructure/entities/user.entity';
-import { BankAccount } from '../expert/bank-accounts/infrastructure/entities/bank-account.entity';
-import { ProfileClient } from '../client/profile/infrastructure/entities/profile-client.entity';
-import { ProfileExpert } from '../expert/profile/infrastructure/entities/profile-expert.entity';
-import { SystemSetting } from '../admin/infrastructure/entities/system-setting.entity';
+import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
+import { AgentModule } from '../agent/agent.module';
+import { UsersModule } from '../users/users.module';
+import { AdminModule } from '../admin/admin.module';
+import { ProfileModule as ExpertProfileModule } from '../expert/profile/profile.module';
+import { ProfileModule as ClientProfileModule } from '../client/profile/profile.module';
+import { MerchantModule } from '../merchant/merchant.module';
 import { WalletController } from './api/controllers/wallet.controller';
 import { PayoutWebhookController } from './api/controllers/payout-webhook.controller';
 import { WalletFacade } from './application/wallet.facade';
@@ -22,6 +24,7 @@ import { ReserveBalanceUseCase } from './application/use-cases/reserve-balance.u
 import { DeductFromReservedUseCase } from './application/use-cases/deduct-from-reserved.use-case';
 import { ReleaseReservedUseCase } from './application/use-cases/release-reserved.use-case';
 import { GetTransactionsUseCase } from './application/use-cases/get-transactions.use-case';
+import { GetMerchantTransactionsUseCase } from './application/use-cases/get-merchant-transactions.use-case';
 import { GetTotalEarningsUseCase } from './application/use-cases/get-total-earnings.use-case';
 import { GetGlobalEarningsUseCase } from './application/use-cases/get-global-earnings.use-case';
 import { GetWithdrawalsStatusUseCase } from './application/use-cases/get-withdrawals-status.use-case';
@@ -30,6 +33,7 @@ import { GetPendingWithdrawalsUseCase } from './application/use-cases/get-pendin
 import { UpdateWithdrawalStatusUseCase } from './application/use-cases/update-withdrawal-status.use-case';
 import { GetAdminWithdrawalStatsUseCase } from './application/use-cases/get-admin-withdrawal-stats.use-case';
 import { GetAdminCommissionUseCase } from './application/use-cases/get-admin-commission.use-case';
+import { GetAdminRevenueTrendUseCase } from './application/use-cases/get-admin-revenue-trend.use-case';
 import { GetWithdrawalsUseCase } from './application/use-cases/get-withdrawals.use-case';
 import { ReconcileWalletUseCase } from './application/use-cases/reconcile-wallet.use-case';
 import { StuckWithdrawalJob } from './application/use-cases/stuck-withdrawal-job.use-case';
@@ -44,15 +48,17 @@ import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts
         Wallet, 
         Transaction, 
         Withdrawal, 
-        Idempotency, 
-        User, 
-        BankAccount, 
-        ProfileClient, 
-        ProfileExpert,
-        SystemSetting
+        Idempotency,
+        SystemSetting,
     ]),
     NotificationModule,
     BankAccountsModule,
+    UsersModule,
+    forwardRef(() => AdminModule),
+    forwardRef(() => ExpertProfileModule),
+    forwardRef(() => ClientProfileModule),
+    forwardRef(() => MerchantModule),
+    forwardRef(() => AgentModule),
   ],
   providers: [
     WalletFacade,
@@ -66,6 +72,7 @@ import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts
     DeductFromReservedUseCase,
     ReleaseReservedUseCase,
     GetTransactionsUseCase,
+    GetMerchantTransactionsUseCase,
     GetTotalEarningsUseCase,
     GetGlobalEarningsUseCase,
     GetWithdrawalsStatusUseCase,
@@ -74,6 +81,7 @@ import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts
     UpdateWithdrawalStatusUseCase,
     GetAdminWithdrawalStatsUseCase,
     GetAdminCommissionUseCase,
+    GetAdminRevenueTrendUseCase,
     GetWithdrawalsUseCase,
     ReconcileWalletUseCase,
     StuckWithdrawalJob,

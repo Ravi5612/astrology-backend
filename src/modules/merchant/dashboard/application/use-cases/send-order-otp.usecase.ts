@@ -1,44 +1,21 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Order, OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
+import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 
 @Injectable()
 export class SendOrderOtpUseCase {
   constructor(
-    @InjectRepository(Order)
-    private orderRepo: Repository<Order>,
-    @InjectRepository(User)
-    private userRepo: Repository<User>,
+    private readonly orderFacade: OrderFacade,
     private notificationFacade: NotificationFacade,
     private notificationGateway: NotificationGateway,
     private emailService: NodeMailerService,
   ) { }
 
   async execute(merchantId: number, orderId: number) {
-    const order = await this.orderRepo.findOne({ 
-      where: { id: orderId as any },
-      relations: ['items', 'items.product']
-    });
-    
-    if (!order) throw new NotFoundException('Order not found');
-
-    // Ownership check
-    const belongsToMerchant = order.items.some(item => item.product?.merchant_id === (merchantId as any));
-    if (!belongsToMerchant) {
-      throw new ForbiddenException('You do not have permission to access this order');
-    }
-
-    // Generate OTP if not exists
-    if (!order.delivery_otp) {
-        order.delivery_otp = Math.floor(100000 + Math.random() * 900000).toString();
-        await this.orderRepo.save(order);
-    }
+    const { order, merchantItems } = await this.orderFacade.sendOrderOtp(orderId, merchantId.toString());
 
     const otp = order.delivery_otp;
     const title = 'Delivery Verification';
@@ -63,7 +40,7 @@ export class SendOrderOtpUseCase {
 
     // 3. Send Email
     try {
-      const user = await this.userRepo.findOne({ where: { id: order.client_id as any } });
+      const user = (order as any).client?.user;
       if (user?.email) {
         const emailHtml = `
           <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">

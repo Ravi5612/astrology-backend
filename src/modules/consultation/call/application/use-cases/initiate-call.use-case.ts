@@ -1,9 +1,8 @@
-
 import { Injectable, InternalServerErrorException, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CallSession, CallSessionStatus, CallType } from '../../infrastructure/entities/call-session.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { TwilioService } from '../../infrastructure/services/twilio.service';
 import { CallGateway } from '../../call.gateway';
@@ -18,16 +17,15 @@ export class InitiateCallUseCase {
     constructor(
         @InjectRepository(CallSession)
         private sessionRepo: Repository<CallSession>,
-        @InjectRepository(ProfileExpert)
-        private expertRepo: Repository<ProfileExpert>,
-        private walletFacade: WalletFacade,
+        @Inject(forwardRef(() => ExpertProfileFacade)) private expertProfileFacade: ExpertProfileFacade,
+        @Inject(forwardRef(() => WalletFacade)) private walletFacade: WalletFacade,
         private twilioService: TwilioService,
         @Inject(forwardRef(() => CallGateway))
         private callGateway: CallGateway,
         private eventEmitter: EventEmitter2,
     ) { }
 
-    async execute(userId: string, expertId: string, type: CallType = CallType.AUDIO) {
+    async execute(userId: string, expert_id: string, type: CallType = CallType.AUDIO) {
         // ✅ Block duplicate sessions — user can only have ONE active/pending call at a time
         const existingSession = await this.sessionRepo.findOne({
             where: [
@@ -39,7 +37,7 @@ export class InitiateCallUseCase {
 
         if (existingSession) {
             // Same expert → return existing session so frontend can redirect/resume
-            if (existingSession.expert_id === expertId) {
+            if (existingSession.expert_id === expert_id) {
                 return {
                     session: { ...existingSession, isResumed: true },
                     token: "", // Frontend will handle resume logic
@@ -55,9 +53,11 @@ export class InitiateCallUseCase {
             );
         }
 
-        const expert = await this.expertRepo.findOne({
-            where: { id: expertId as any },
-        });
+        const expert = await this.expertProfileFacade.getExpertById(expert_id);
+
+        if (!expert) {
+            throw new InternalServerErrorException("Expert not found");
+        }
 
         CallPolicy.ensureExpertExists(expert);
         CallPolicy.ensureExpertAvailable(expert.is_available);
@@ -89,7 +89,7 @@ export class InitiateCallUseCase {
 
         const session = this.sessionRepo.create({
             user_id: userId,
-            expert_id: expertId,
+            expert_id: expert_id,
             price_per_minute: callPrice,
             status: CallSessionStatus.PENDING,
             type: type,
@@ -126,8 +126,13 @@ export class InitiateCallUseCase {
         // Fetch session with expert & user details for client
         const sessionWithDetails = await this.sessionRepo.findOne({
             where: { id: savedSession.id },
-            relations: ['user', 'expert'],
+            relations: ['user'], // 'expert' is not a relation anymore, or maybe it's not defined in the entity since we separated domains?
         });
+
+        // Attach expert manually
+        if (sessionWithDetails) {
+            (sessionWithDetails as any).expert = expert;
+        }
 
         if (sessionWithDetails?.user) {
             // Priority: User.avatar || ProfileClient.profile_picture
@@ -142,11 +147,11 @@ export class InitiateCallUseCase {
             roomName,
         };
 
-        this.callGateway.notifyExpertNewCall(expertId, result);
+        this.callGateway.notifyExpertNewCall(expert_id, result);
         this.logger.log(`Expert notified of new call sessionId=${savedSession.id}`);
         this.eventEmitter.emit(
             'call.initiated',
-            new CallInitiatedEvent(savedSession.id, userId, expertId, type),
+            new CallInitiatedEvent(savedSession.id, userId, expert_id, type),
         );
 
         return result;

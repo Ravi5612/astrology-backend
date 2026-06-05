@@ -1,9 +1,9 @@
 import { DomainError } from '@/common/types/domain.error';
 
 export class ExpertNotFoundError extends DomainError {
-  constructor(expertId: string) {
+  constructor(expert_id: string) {
     super();
-    this.message = `Expert with ID ${expertId} not found`;
+    this.message = `Expert with ID ${expert_id} not found`;
   }
   readonly code = 'EXPERT_NOT_FOUND';
   readonly message: string;

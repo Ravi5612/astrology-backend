@@ -1,5 +1,4 @@
-
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatSession, ChatSessionStatus } from '../../infrastructure/entities/chat-session.entity';
@@ -14,7 +13,7 @@ export class EndChatUseCase {
     constructor(
         @InjectRepository(ChatSession)
         private sessionRepo: Repository<ChatSession>,
-        private walletFacade: WalletFacade,
+        @Inject(forwardRef(() => WalletFacade)) private walletFacade: WalletFacade,
         private notificationFacade: NotificationFacade,
     ) { }
 

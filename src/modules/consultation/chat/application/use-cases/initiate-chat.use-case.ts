@@ -1,9 +1,10 @@
 
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, forwardRef, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatSession, ChatSessionStatus } from '../../infrastructure/entities/chat-session.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
 @Injectable()
@@ -11,12 +12,12 @@ export class InitiateChatUseCase {
     constructor(
         @InjectRepository(ChatSession)
         private sessionRepo: Repository<ChatSession>,
-        @InjectRepository(ProfileExpert)
-        private expertRepo: Repository<ProfileExpert>,
-        private walletFacade: WalletFacade,
+        @Inject(forwardRef(() => ExpertProfileFacade)) private expertProfileFacade: ExpertProfileFacade,
+        @Inject(forwardRef(() => ClientProfileFacade)) private clientProfileFacade: ClientProfileFacade,
+        @Inject(forwardRef(() => WalletFacade)) private walletFacade: WalletFacade,
     ) { }
 
-    async execute(userId: string, expertId: string, metadata?: any) {
+    async execute(userId: string, expert_id: string, metadata?: any) {
         // ✅ Check if user already has an ACTIVE or PENDING session
         const existingSession = await this.sessionRepo.findOne({
             where: [
@@ -28,7 +29,7 @@ export class InitiateChatUseCase {
 
         if (existingSession) {
             // Same expert → return existing session so frontend can redirect back to it
-            if (existingSession.expert_id === expertId) {
+            if (existingSession.expert_id === expert_id) {
                 return { ...existingSession, isResumed: true };
             }
 
@@ -40,9 +41,7 @@ export class InitiateChatUseCase {
             );
         }
 
-        const expert = await this.expertRepo.findOne({
-            where: { id: expertId as any },
-        });
+        const expert = await this.expertProfileFacade.getExpertById(expert_id);
 
         if (!expert) {
             throw new NotFoundException('Expert not found');
@@ -83,7 +82,7 @@ export class InitiateChatUseCase {
 
         const session = this.sessionRepo.create({
             client_id: userId,
-            expert_id: expertId,
+            expert_id: expert_id,
             price_per_minute: chatPrice,
             status: ChatSessionStatus.PENDING,
             is_free: isEligibleForFree,
@@ -109,10 +108,7 @@ export class InitiateChatUseCase {
         });
 
         if (sessionWithUser && sessionWithUser.user) {
-            const { ProfileClient } = await import('../../../../client/profile/infrastructure/entities/profile-client.entity');
-            const profileClient = await this.sessionRepo.manager.findOne(ProfileClient, {
-                where: { user: { id: sessionWithUser.user.id } }
-            });
+            const profileClient = await this.clientProfileFacade.getProfile(sessionWithUser.user.id);
             if (profileClient && profileClient.profile_picture) {
                 (sessionWithUser as any).user_image = profileClient.profile_picture;
             }

@@ -13,6 +13,7 @@ import { ProfileAgent } from '../agent/infrastructure/entities/profile-agent.ent
 import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { EmailQueueModule } from '../email-queue/email-queue.module';
+import { AgentModule } from '@/modules/agent/agent.module';
 
 import { UsedTokens } from './infrastructure/entities/used-tokens.entity';
 import { AuthFacade } from './application/auth.facade';
@@ -111,6 +112,7 @@ const handlers = [
     ClientProfileModule,
     ExpertProfileModule,
     MerchantProfileModule,
+    AgentModule,
     WalletModule,
     EmailQueueModule,
   ],

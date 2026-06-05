@@ -12,10 +12,12 @@ import { ClearCartUseCase } from './application/use-cases/clear-cart.use-case';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Cart, CartItem, Product, User, ProfileClient]),
+    TypeOrmModule.forFeature([Cart, CartItem, Product]),
+    ClientProfileModule
   ],
   controllers: [CartController],
   providers: [

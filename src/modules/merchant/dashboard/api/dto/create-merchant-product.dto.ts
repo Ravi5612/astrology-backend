@@ -44,7 +44,7 @@ export class CreateMerchantProductDto {
 
   @IsString()
   @IsOptional()
-  imageUrl?: string;
+  image_url?: string;
 
   @IsNumber()
   @Min(0)

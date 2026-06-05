@@ -1,5 +1,5 @@
 
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
@@ -9,8 +9,9 @@ import { Product } from '@/modules/commerce/product/infrastructure/entities/prod
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { UsersFacade } from '@/modules/users/application/users.facade';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
@@ -20,11 +21,11 @@ export class UpdateOrderStatusUseCase {
   constructor(
     @InjectRepository(Order)
     private orderRepo: Repository<Order>,
-    @InjectRepository(User)
-    private userRepo: Repository<User>,
+    private usersFacade: UsersFacade,
     private notificationFacade: NotificationFacade,
     private notificationGateway: NotificationGateway,
     private emailService: NodeMailerService,
+    @Inject(forwardRef(() => WalletFacade))
     private walletFacade: WalletFacade,
     private dataSource: DataSource,
   ) { }
@@ -368,7 +369,7 @@ export class UpdateOrderStatusUseCase {
 
     // Send status update email to user
     try {
-      const user = await this.userRepo.findOne({ where: { id: order.client_id } });
+      const user = await this.usersFacade.findById(order.client_id);
       if (user && user.email) {
         let otpSection = '';
         if (status === OrderStatus.SHIPPED && order.delivery_otp) {

@@ -1,22 +1,20 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
-import { CallSession, CallType } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
-import { Order } from '@/modules/commerce/order/infrastructure/entities/order.entity';
-import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
+import { CallFacade } from '@/modules/consultation/call/application/call.facade';
+import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
+import { PujaAppointmentFacade } from '@/modules/puja-appointment/application/puja-appointment.facade';
 
 @Injectable()
 export class GetAdminEarningsBreakdownUseCase {
   constructor(
-    @InjectRepository(ChatSession)
-    private readonly chatRepository: Repository<ChatSession>,
-    @InjectRepository(CallSession)
-    private readonly callRepository: Repository<CallSession>,
-    @InjectRepository(Order)
-    private readonly orderRepository: Repository<Order>,
-    @InjectRepository(PujaAppointment)
-    private readonly pujaRepository: Repository<PujaAppointment>,
+    @Inject(forwardRef(() => ChatFacade))
+    private readonly chatFacade: ChatFacade,
+    @Inject(forwardRef(() => CallFacade))
+    private readonly callFacade: CallFacade,
+    @Inject(forwardRef(() => OrderFacade))
+    private readonly orderFacade: OrderFacade,
+    @Inject(forwardRef(() => PujaAppointmentFacade))
+    private readonly pujaFacade: PujaAppointmentFacade,
   ) { }
 
   async execute(days: number = 7) {
@@ -24,53 +22,26 @@ export class GetAdminEarningsBreakdownUseCase {
     dateLimit.setDate(dateLimit.getDate() - days);
 
     // Chat earnings
-    const chatStats = await this.chatRepository
-      .createQueryBuilder('chat')
-      .select("SUM(chat.total_cost)", "total")
-      .where('chat.created_at >= :date', { date: dateLimit })
-      .andWhere("chat.status = 'completed'")
-      .getRawOne();
+    const chatTotal = await this.chatFacade.getEarnings(dateLimit);
 
     // Call earnings (Audio)
-    const callStats = await this.callRepository
-      .createQueryBuilder('call')
-      .select("SUM(call.final_price)", "total")
-      .where('call.created_at >= :date', { date: dateLimit })
-      .andWhere("call.status = 'completed'")
-      .andWhere("call.type = 'audio'")
-      .getRawOne();
+    const callTotal = await this.callFacade.getEarnings(dateLimit, 'audio');
 
     // Video earnings 
-    const videoStats = await this.callRepository
-      .createQueryBuilder('call')
-      .select("SUM(call.final_price)", "total")
-      .where('call.created_at >= :date', { date: dateLimit })
-      .andWhere("call.status = 'completed'")
-      .andWhere("call.type = 'video'")
-      .getRawOne();
+    const videoTotal = await this.callFacade.getEarnings(dateLimit, 'video');
 
     // Product earnings
-    const productStats = await this.orderRepository
-      .createQueryBuilder('order')
-      .select("SUM(order.total_amount)", "total")
-      .where('order.created_at >= :date', { date: dateLimit })
-      .andWhere("order.status IN ('paid', 'packed', 'shipped', 'delivered')")
-      .getRawOne();
+    const productTotal = await this.orderFacade.getOrderEarnings(dateLimit);
 
     // Puja earnings
-    const pujaStats = await this.pujaRepository
-      .createQueryBuilder('puja')
-      .select("SUM(puja.price)", "total")
-      .where('puja.created_at >= :date', { date: dateLimit })
-      .andWhere("puja.status IN ('accepted', 'confirmed')")
-      .getRawOne();
+    const pujaTotal = await this.pujaFacade.getPujaEarnings(dateLimit);
 
     return [
-      { name: 'Chat', value: parseFloat(chatStats.total) || 0, color: '#f97316' },
-      { name: 'Call', value: parseFloat(callStats.total) || 0, color: '#3b82f6' },
-      { name: 'Video Call', value: parseFloat(videoStats.total) || 0, color: '#ec4899' },
-      { name: 'Product Selling', value: parseFloat(productStats.total) || 0, color: '#10b981' },
-      { name: 'Puja Service', value: parseFloat(pujaStats.total) || 0, color: '#8b5cf6' },
+      { name: 'Chat', value: chatTotal, color: '#f97316' },
+      { name: 'Call', value: callTotal, color: '#3b82f6' },
+      { name: 'Video Call', value: videoTotal, color: '#ec4899' },
+      { name: 'Product Selling', value: productTotal, color: '#10b981' },
+      { name: 'Puja Service', value: pujaTotal, color: '#8b5cf6' },
     ];
   }
 }

@@ -19,6 +19,8 @@ import { RequestWithdrawalUseCase } from './use-cases/request-withdrawal.use-cas
 import { GetPendingWithdrawalsUseCase } from './use-cases/get-pending-withdrawals.use-case';
 import { UpdateWithdrawalStatusUseCase } from './use-cases/update-withdrawal-status.use-case';
 import { GetAdminWithdrawalStatsUseCase } from './use-cases/get-admin-withdrawal-stats.use-case';
+import { GetMerchantTransactionsUseCase } from './use-cases/get-merchant-transactions.use-case';
+import { GetAdminRevenueTrendUseCase } from './use-cases/get-admin-revenue-trend.use-case';
 import { TransactionPurpose } from '../infrastructure/entities/transaction.entity';
 import { WithdrawalStatus } from '../infrastructure/entities/withdrawal.entity';
 import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
@@ -50,6 +52,8 @@ export class WalletFacade {
     private readonly updateWithdrawalStatusUseCase: UpdateWithdrawalStatusUseCase,
     private readonly getAdminWithdrawalStatsUseCase: GetAdminWithdrawalStatsUseCase,
     private readonly getAdminCommissionUseCase: GetAdminCommissionUseCase,
+    private readonly getMerchantTransactionsUseCase: GetMerchantTransactionsUseCase,
+    private readonly getAdminRevenueTrendUseCase: GetAdminRevenueTrendUseCase,
   ) { }
 
   async getWallet(userId: string) {
@@ -93,6 +97,10 @@ export class WalletFacade {
     const limitNum = limit ? parseInt(limit, 10) : undefined;
     const offsetNum = offset ? parseInt(offset, 10) : undefined;
     return this.getTransactionsUseCase.execute(userId, limitNum, offsetNum, type, purpose);
+  }
+
+  async getMerchantTransactions(userId: string, options: { search?: string; page?: number; limit?: number }) {
+    return this.getMerchantTransactionsUseCase.execute(userId, options);
   }
 
   async getTotalEarnings(userId: string, options: { startDate?: Date; endDate?: Date } = {}) {
@@ -153,5 +161,9 @@ export class WalletFacade {
       console.error(`[WalletFacade] Failed to fetch setting ${key}:`, e);
     }
     return 3; // Default 3% fallback
+  }
+
+  async getAdminRevenueTrend(days?: number) {
+    return this.getAdminRevenueTrendUseCase.execute(days);
   }
 }

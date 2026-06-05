@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order } from './infrastructure/entities/order.entity';
 import { OrderItem } from './infrastructure/entities/order-item.entity';
@@ -11,6 +11,10 @@ import { GetUserOrdersUseCase } from './application/use-cases/get-user-orders.us
 import { GetOrderByIdUseCase } from './application/use-cases/get-order-by-id.use-case';
 import { UpdateOrderStatusUseCase } from './application/use-cases/update-order-status.use-case';
 import { FindAllOrdersUseCase } from './application/use-cases/find-all-orders.use-case';
+import { GetOrderEarningsUseCase } from './application/use-cases/get-order-earnings.use-case';
+import { MerchantOrderQueriesUseCase } from './application/use-cases/merchant-order-queries.use-case';
+import { GetAdminMerchantSalesOverviewUseCase } from './application/use-cases/get-admin-merchant-sales-overview.use-case';
+import { GetAdminMerchantSalesDetailsUseCase } from './application/use-cases/get-admin-merchant-sales-details.use-case';
 import { CartModule } from '@/modules/commerce/cart/cart.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { UsersModule } from '@/modules/users/users.module';
@@ -21,17 +25,25 @@ import { CouponModule } from '@/modules/commerce/coupon/coupon.module';
 import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
 import { ProductModule } from '@/modules/commerce/product/product.module';
 import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
+import { AdminModule } from '@/modules/admin/admin.module';
+import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
+import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
+import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Order, OrderItem, User, Product, PujaAppointment]),
-    CartModule,
-    ProductModule,
+    TypeOrmModule.forFeature([Order, OrderItem, Product]),
+    forwardRef(() => ClientProfileModule),
+    forwardRef(() => PujaAppointmentModule),
+    forwardRef(() => CartModule),
+    forwardRef(() => ProductModule),
     NotificationModule,
     UsersModule,
     NodemailerModule,
-    WalletModule,
-    CouponModule,
+    forwardRef(() => WalletModule),
+    forwardRef(() => CouponModule),
+    forwardRef(() => AdminModule),
+    forwardRef(() => MerchantProfileModule),
   ],
   controllers: [OrderController, OrderSingularController],
   providers: [
@@ -43,7 +55,11 @@ import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
     GetOrderByIdUseCase,
     UpdateOrderStatusUseCase,
     FindAllOrdersUseCase,
+    GetOrderEarningsUseCase,
+    MerchantOrderQueriesUseCase,
+    GetAdminMerchantSalesOverviewUseCase,
+    GetAdminMerchantSalesDetailsUseCase,
   ],
-  exports: [OrderFacade],
+  exports: [OrderFacade, GetOrderEarningsUseCase],
 })
 export class OrderModule { }

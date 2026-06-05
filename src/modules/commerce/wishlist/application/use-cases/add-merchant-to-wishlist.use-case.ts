@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
+import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import {
   MerchantAlreadyInWishlistError,
   MerchantNotFoundError,
@@ -16,21 +16,17 @@ export class AddMerchantToWishlistUseCase {
   constructor(
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
-    @InjectRepository(ProfileMerchant)
-    private readonly merchantRepository: Repository<ProfileMerchant>,
-    @InjectRepository(ProfileClient)
-    private readonly profileClientRepo: Repository<ProfileClient>,
+    private readonly merchantProfileFacade: MerchantProfileFacade,
+    private readonly clientProfileFacade: ClientProfileFacade,
   ) {}
 
   async execute(userId: string, merchantId: string): Promise<Wishlist> {
-    const merchant = await this.merchantRepository.findOne({
-      where: { id: merchantId },
-    });
+    const merchant = await this.merchantProfileFacade.getProfileById(merchantId);
     if (!merchant) {
       throw new MerchantNotFoundError(merchantId);
     }
 
-    const client = await this.profileClientRepo.findOne({ where: { user: { id: userId } } });
+    const client = await this.clientProfileFacade.getProfile(userId);
     if (!client) {
       throw new UserNotFoundError();
     }

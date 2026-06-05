@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import {
   ProductAlreadyInWishlistError,
@@ -16,14 +16,13 @@ export class AddProductToWishlistUseCase {
   constructor(
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
-    @InjectRepository(ProfileClient)
-    private readonly profileClientRepo: Repository<ProfileClient>,
+    private readonly clientProfileFacade: ClientProfileFacade,
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
   ) {}
 
   async execute(userId: string, productId: string): Promise<Wishlist> {
-    const client = await this.profileClientRepo.findOne({ where: { user: { id: userId } } });
+    const client = await this.clientProfileFacade.getProfile(userId);
     if (!client) {
       throw new UserNotFoundError();
     }
@@ -34,7 +33,7 @@ export class AddProductToWishlistUseCase {
     }
 
     const existing = await this.wishlistRepository.findOne({
-      where: { client: { id: client.id }, product: { id: product.id } },
+      where: { client: { id: client.id }, product: { id: productId } },
     });
 
     if (existing) {
@@ -42,8 +41,8 @@ export class AddProductToWishlistUseCase {
     }
 
     const wishlist = this.wishlistRepository.create({
-      client: client,
-      product: product,
+      client,
+      product,
     });
 
     return await this.wishlistRepository.save(wishlist);

@@ -3,7 +3,7 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
 import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { UsersFacade } from '@/modules/users/application/users.facade';
 import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
@@ -11,13 +11,11 @@ export class GetProfileUseCase {
   constructor(
     @InjectRepository(ProfileClient)
     private readonly repo: Repository<ProfileClient>,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
+    private readonly usersFacade: UsersFacade,
   ) { }
 
   async execute(userId: string, queryRunner?: QueryRunner) {
     const profileRepo = queryRunner ? queryRunner.manager.getRepository(ProfileClient) : this.repo;
-    const userRepo = queryRunner ? queryRunner.manager.getRepository(User) : this.userRepo;
 
     const profile = await profileRepo.findOne({
       where: { user: { id: userId } },
@@ -26,8 +24,7 @@ export class GetProfileUseCase {
 
     if (!profile) {
       // Check if user exists and what their role is
-      const user = await userRepo.findOne({ where: { id: userId } });
-
+      const user = await this.usersFacade.findById(userId, queryRunner);
 
       
       const roles = user?.roles || [];

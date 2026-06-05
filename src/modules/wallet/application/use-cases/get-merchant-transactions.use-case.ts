@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Transaction, TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
-import { Wallet } from '@/modules/wallet/infrastructure/entities/wallet.entity';
-import { Withdrawal, WithdrawalStatus } from '@/modules/wallet/infrastructure/entities/withdrawal.entity';
+import { Transaction, TransactionPurpose } from '../../infrastructure/entities/transaction.entity';
+import { Wallet } from '../../infrastructure/entities/wallet.entity';
+import { Withdrawal } from '../../infrastructure/entities/withdrawal.entity';
 
 @Injectable()
 export class GetMerchantTransactionsUseCase {
@@ -40,7 +40,6 @@ export class GetMerchantTransactionsUseCase {
       .take(limit)
       .getManyAndCount();
 
-    // Map transactions and handle withdrawal status if needed
     const mappedTransactions = await Promise.all(
       transactions.map(async (txn) => {
         let type = 'sale';

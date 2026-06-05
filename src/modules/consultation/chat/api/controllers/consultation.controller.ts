@@ -12,10 +12,8 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
-import { Repository } from 'typeorm';
 import { ConsultationBookDto } from '../dto/consultation-book.dto';
 
 @Controller({
@@ -28,8 +26,7 @@ export class ConsultationController {
         private readonly walletFacade: WalletFacade,
         private readonly chatFacade: ChatFacade,
         private readonly couponFacade: CouponFacade,
-        @InjectRepository(ProfileExpert)
-        private readonly expertRepo: Repository<ProfileExpert>,
+        private readonly expertProfileFacade: ExpertProfileFacade,
     ) { }
 
     @Post('book-with-wallet')
@@ -43,7 +40,7 @@ export class ConsultationController {
             throw new BadRequestException('Expert ID is required');
         }
 
-        const expert = await this.expertRepo.findOne({ where: { id: expert_id } });
+        const expert = await this.expertProfileFacade.getExpertById(expert_id);
         if (!expert) {
             throw new NotFoundException('Expert not found');
         }

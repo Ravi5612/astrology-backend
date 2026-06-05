@@ -1,5 +1,5 @@
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, QueryRunner } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
@@ -12,7 +12,9 @@ export class MarkOrderAsPaidUseCase {
   constructor(
     @InjectRepository(Order)
     private orderRepo: Repository<Order>,
+    @Inject(forwardRef(() => WalletFacade))
     private walletFacade: WalletFacade,
+    @Inject(forwardRef(() => CouponFacade))
     private couponFacade: CouponFacade,
     private dataSource: DataSource,
   ) { }

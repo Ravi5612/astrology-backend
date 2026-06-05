@@ -1,10 +1,10 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { CalendarService } from '../../application/calendar.service';
+import { CalendarFacade } from '../../application/calendar.facade';
 import { Public } from '@/common/decorators/public.decorator';
 
 @Controller('calendar')
 export class CalendarController {
-  constructor(private readonly calendarService: CalendarService) {}
+  constructor(private readonly calendarFacade: CalendarFacade) {}
 
   @Public()
   @Get('monthly')
@@ -15,7 +15,7 @@ export class CalendarController {
     @Query('lon') lon: string,
     @Query('lang') lang: string = 'en',
   ) {
-    return this.calendarService.getMonthlyCalendar(
+    return this.calendarFacade.getMonthlyCalendar(
       parseInt(year),
       parseInt(month),
       lat,
@@ -32,7 +32,7 @@ export class CalendarController {
     @Query('lon') lon: string,
     @Query('lang') lang: string = 'en',
   ) {
-    return this.calendarService.getDailyPanchang(date, lat, lon, lang);
+    return this.calendarFacade.getDailyPanchang(date, lat, lon, lang);
   }
 
   @Public()
@@ -41,6 +41,6 @@ export class CalendarController {
     @Query('year') year: string,
     @Query('lang') lang: string = 'en',
   ) {
-    return this.calendarService.getYearlyFestivals(parseInt(year), lang);
+    return this.calendarFacade.getYearlyFestivals(parseInt(year), lang);
   }
 }

@@ -55,12 +55,12 @@ export class GetWithdrawalsStatusUseCase {
       .getRawOne();
 
     return {
-      pendingAmount: Number(pendingResult.sum || 0),
-      approvedAmount: Number(approvedResult.sum || 0),
-      processingAmount: Number(processingResult.sum || 0),
-      totalWithdrawn: Number(totalWithdrawnResult.sum || 0),
+      pending_amount: Number(pendingResult.sum || 0),
+      approved_amount: Number(approvedResult.sum || 0),
+      processing_amount: Number(processingResult.sum || 0),
+      total_withdrawn: Number(totalWithdrawnResult.sum || 0),
       // For backward compatibility
-      pendingWithdrawals: Number(pendingResult.sum || 0) + Number(approvedResult.sum || 0) + Number(processingResult.sum || 0),
+      pending_withdrawals: Number(pendingResult.sum || 0) + Number(approvedResult.sum || 0) + Number(processingResult.sum || 0),
     };
   }
 

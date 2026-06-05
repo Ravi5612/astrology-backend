@@ -1,5 +1,5 @@
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { GetAdminDashboardStatsUseCase } from './use-cases/get-admin-dashboard-stats.use-case';
 import { GetAdminUserGrowthStatsUseCase } from './use-cases/get-admin-user-growth-stats.use-case';
 import { GetExpertDetailUseCase } from './use-cases/get-expert-detail.use-case';
@@ -24,6 +24,7 @@ import { SupportFacade } from '@/modules/support/application/support.facade';
 import { WithdrawalStatus } from '@/modules/wallet/infrastructure/entities/withdrawal.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { DisputeStatus } from '@/modules/support/infrastructure/entities/dispute.entity';
+import { GetSystemSettingsUseCase } from './use-cases/get-system-settings.use-case';
 
 @Injectable()
 export class AdminFacade {
@@ -45,9 +46,13 @@ export class AdminFacade {
     private readonly updateMerchantStatusAdminUseCase: UpdateMerchantStatusAdminUseCase,
     private readonly getMerchantSalesOverviewUseCase: GetAdminMerchantSalesOverviewUseCase,
     private readonly getMerchantSalesDetailsUseCase: GetAdminMerchantSalesDetailsUseCase,
+    @Inject(forwardRef(() => ChatFacade))
     private readonly chatFacade: ChatFacade,
+    @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
+    @Inject(forwardRef(() => SupportFacade))
     private readonly supportFacade: SupportFacade,
+    private readonly getSystemSettingsUseCase: GetSystemSettingsUseCase,
   ) { }
 
 
@@ -166,6 +171,10 @@ export class AdminFacade {
 
   async getMerchantSalesDetails(merchantId: string) {
     return this.getMerchantSalesDetailsUseCase.execute(merchantId);
+  }
+
+  async getSystemSettings(keys?: string[]) {
+    return this.getSystemSettingsUseCase.execute(keys);
   }
 }
 

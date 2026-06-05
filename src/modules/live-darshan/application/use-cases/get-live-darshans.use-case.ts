@@ -10,7 +10,7 @@ export class GetLiveDarshansUseCase {
                 location: 'Varanasi, Uttar Pradesh',
                 image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?q=80&w=800&auto=format&fit=crop',
                 status: 'Live Now',
-                videoUrl: 'https://www.youtube.com/embed/UXB0unZtVbs',
+                video_url: 'https://www.youtube.com/embed/UXB0unZtVbs',
                 description: 'Experience the divine energy of Kashi Vishwanath temple live from Varanasi.',
             },
             {
@@ -19,7 +19,7 @@ export class GetLiveDarshansUseCase {
                 location: 'Ujjain, Madhya Pradesh',
                 image: 'https://images.unsplash.com/photo-1600080645604-03714bca0ef6?q=80&w=800&auto=format&fit=crop',
                 status: 'Live Now',
-                videoUrl: 'https://www.youtube.com/embed/BEPUQyrgbF0',
+                video_url: 'https://www.youtube.com/embed/BEPUQyrgbF0',
                 description: 'Watch the Bhasma Aarti and daily rituals of Lord Mahakal live from Ujjain.',
             },
             {
@@ -28,7 +28,7 @@ export class GetLiveDarshansUseCase {
                 location: 'Prabhas Patan, Gujarat',
                 image: 'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?q=80&w=800&auto=format&fit=crop',
                 status: 'Live Now',
-                videoUrl: 'https://www.youtube.com/embed/fopdU7c3mu4',
+                video_url: 'https://www.youtube.com/embed/fopdU7c3mu4',
                 description: 'View the majestic Somnath temple situated on the shores of the Arabian Sea.',
             },
             {
@@ -37,7 +37,7 @@ export class GetLiveDarshansUseCase {
                 location: 'Mumbai, Maharashtra',
                 image: 'https://images.unsplash.com/photo-1599863266228-56ebbb2a47ea?q=80&w=800&auto=format&fit=crop',
                 status: 'Live Now',
-                videoUrl: 'https://www.youtube.com/embed/XFg_Gcs2-kc',
+                video_url: 'https://www.youtube.com/embed/XFg_Gcs2-kc',
                 description: 'Live Darshan of Lord Ganesha from the famous Siddhivinayak Temple in Mumbai.',
             },
             {
@@ -46,7 +46,7 @@ export class GetLiveDarshansUseCase {
                 location: 'Shirdi, Maharashtra',
                 image: 'https://images.unsplash.com/photo-1623943362142-b0cece9fb3c2?q=80&w=800&auto=format&fit=crop',
                 status: 'Live Now',
-                videoUrl: 'https://www.youtube.com/embed/WQNTX3Cgc9I',
+                video_url: 'https://www.youtube.com/embed/WQNTX3Cgc9I',
                 description: 'Experience the divine presence of Sai Baba through live Darshan from Shirdi.',
             },
             {
@@ -55,7 +55,7 @@ export class GetLiveDarshansUseCase {
                 location: 'Vrindavan, Uttar Pradesh',
                 image: 'https://images.unsplash.com/photo-1605663711906-8dce2eac85ff?q=80&w=800&auto=format&fit=crop',
                 status: 'Live Now',
-                videoUrl: 'https://www.youtube.com/embed/TSs6sUyIjqo',
+                video_url: 'https://www.youtube.com/embed/TSs6sUyIjqo',
                 description: 'Live Darshan and Kirtan from the Krishna Balaram Mandir in Vrindavan.',
             },
             {
@@ -64,7 +64,7 @@ export class GetLiveDarshansUseCase {
                 location: 'Amritsar, Punjab',
                 image: 'https://images.unsplash.com/photo-1577908955375-397a67d74db1?q=80&w=800&auto=format&fit=crop',
                 status: 'Live Now',
-                videoUrl: 'https://www.youtube.com/embed/_R-ZdlhVIcs',
+                video_url: 'https://www.youtube.com/embed/_R-ZdlhVIcs',
                 description: 'Experience the divine live Gurbani from the holy Golden Temple in Amritsar.',
             },
             {
@@ -73,7 +73,7 @@ export class GetLiveDarshansUseCase {
                 location: 'Vrindavan, Uttar Pradesh',
                 image: 'https://images.unsplash.com/photo-1628178652458-7fba0b77da37?q=80&w=800&auto=format&fit=crop',
                 status: 'Live Now',
-                videoUrl: 'https://www.youtube.com/embed/WynCMVud6Po',
+                video_url: 'https://www.youtube.com/embed/WynCMVud6Po',
                 description: 'Live Darshan from the beautiful Prem Mandir, dedicated to Radha Krishna and Sita Ram.',
             },
         ];

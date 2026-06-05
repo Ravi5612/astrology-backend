@@ -37,7 +37,7 @@ export class ChatController {
     @CurrentUser() user: User,
     @Body() dto: InitiateChatDto,
   ) {
-    const session = await this.chatFacade.initiateChat(user.id as any, dto.expertId, dto.metadata);
+    const session = await this.chatFacade.initiateChat(user.id as any, dto.expert_id, dto.metadata);
 
     const expiryTime = parseInt(
       process.env.CHAT_REQUEST_EXPIRY_MS || '120000',
@@ -57,7 +57,7 @@ export class ChatController {
     const sessionWithExpiry = { ...session, expiresAt, maxMinutes };
 
     // Notify expert with the full session object (including expiresAt and maxMinutes)
-    this.chatGateway.notifyExpertNewRequest(dto.expertId, sessionWithExpiry);
+    this.chatGateway.notifyExpertNewRequest(dto.expert_id, sessionWithExpiry);
 
     setTimeout(async () => {
       const expiredSession = await this.chatFacade.expireSession(session.id);
@@ -173,13 +173,13 @@ export class ChatController {
   }
 
   /**
-   * User-facing endpoint: GET /api/v1/chat/user-session/:expertId?sessionId=<id>
+   * User-facing endpoint: GET /api/v1/chat/user-session/:expert_id?sessionId=<id>
    * Returns { success, expert, session } shape expected by the client chat room page.
    */
-  @Get('user-session/:expertId')
+  @Get('user-session/:expert_id')
   @Header('Cache-Control', 'no-store')
   async getUserSession(
-    @Param('expertId', ParseUUIDPipe) expertId: string,
+    @Param('expert_id', ParseUUIDPipe) expert_id: string,
     @Query('sessionId') sessionIdStr?: string,
   ) {
     let session: any;
@@ -199,8 +199,8 @@ export class ChatController {
     const expert = session.expert
       ? {
           id: session.expert.id,
-          name: session.expert.client?.name || '',
-          image: session.expert.client?.avatar || '/images/dummy-expert.jpg',
+          name: session.expert.user?.name || '',
+          image: session.expert.user?.avatar || '/images/dummy-expert.jpg',
           expertise: session.expert.specialization || '',
           language: session.expert.languages || '',
           experience: session.expert.experience || 0,
@@ -239,14 +239,14 @@ export class ChatController {
   @Get('sessions/pending')
   @Header('Cache-Control', 'no-store')
   async getPendingSessions(@CurrentUser() user: User) {
-    const { data: sessions, totalCount } = await this.chatFacade.getExpertSessions(
+    const { data: sessions, total_count } = await this.chatFacade.getExpertSessions(
       user.id as any, ExpertSessionFilter.PENDING,
     );
     const data = await this.processSessions(sessions);
     return {
       success: true,
       data,
-      meta: { totalCount, limit: 20, offset: 0 }
+      meta: { totalCount: total_count, limit: 20, offset: 0 }
     };
   }
 
@@ -267,37 +267,37 @@ export class ChatController {
       sortBy,
       order,
     };
-    const { data: sessions, totalCount } = await this.chatFacade.getExpertSessions(user.id as any, ExpertSessionFilter.COMPLETED, options);
+    const { data: sessions, total_count } = await this.chatFacade.getExpertSessions(user.id as any, ExpertSessionFilter.COMPLETED, options);
     const data = await this.processSessions(sessions);
     return {
       success: true,
       data,
-      meta: { totalCount, limit: options.limit, offset: options.offset }
+      meta: { totalCount: total_count, limit: options.limit, offset: options.offset }
     };
   }
 
   @Get('sessions/appointments/pending')
   @Header('Cache-Control', 'no-store')
   async getRecentPendingSessions(@CurrentUser() user: User) {
-    const { data: sessions, totalCount } =
+    const { data: sessions, total_count } =
       await this.chatFacade.getExpertSessions(user.id as any, ExpertSessionFilter.RECENT_PENDING);
     const data = await this.processSessions(sessions);
     return {
       success: true,
       data,
-      meta: { totalCount, limit: 20, offset: 0 }
+      meta: { totalCount: total_count, limit: 20, offset: 0 }
     };
   }
 
   @Get('sessions/appointments/completed')
   @Header('Cache-Control', 'no-store')
   async getRecentCompletedSessions(@CurrentUser() user: User) {
-    const { data: sessions, totalCount } = await this.chatFacade.getExpertSessions(user.id as any, ExpertSessionFilter.RECENT_COMPLETED);
+    const { data: sessions, total_count } = await this.chatFacade.getExpertSessions(user.id as any, ExpertSessionFilter.RECENT_COMPLETED);
     const data = await this.processSessions(sessions);
     return {
       success: true,
       data,
-      meta: { totalCount, limit: 20, offset: 0 }
+      meta: { totalCount: total_count, limit: 20, offset: 0 }
     };
   }
 
@@ -318,14 +318,14 @@ export class ChatController {
       sortBy,
       order,
     };
-    const { data: sessions, totalCount } = await this.chatFacade.getExpertSessions(user.id as any, ExpertSessionFilter.ALL, options);
+    const { data: sessions, total_count } = await this.chatFacade.getExpertSessions(user.id as any, ExpertSessionFilter.ALL, options);
     const data = await this.processSessions(sessions);
 
     return {
       success: true,
       data,
       meta: {
-        totalCount,
+        totalCount: total_count,
         limit: options.limit,
         offset: options.offset,
       }
@@ -459,7 +459,7 @@ export class ChatController {
         ? session.free_minutes
         : price > 0
           ? Math.floor(totalAffordableBalance / price)
-          : 0;
+          : 60; // fallback 60 mins if price is 0 to avoid auto-terminate
 
       const totalAllowedSeconds = maxMinutes * 60;
       remainingSeconds = Math.max(0, totalAllowedSeconds - elapsedSeconds);

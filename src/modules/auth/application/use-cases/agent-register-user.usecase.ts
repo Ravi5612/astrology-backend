@@ -7,13 +7,13 @@ import { RegistrationPolicy } from '../../domain/policies/registration.policy';
 import * as crypto from 'crypto';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
 import { AgentRegisterUserDto } from '../../api/dto';
-import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { UpdateProfileWithQueryRunnerUseCase as UpdateMerchantProfileWithQueryRunnerUseCase } from '@/modules/merchant/profile/application/use-cases/update-profile-with-query-runner.usecase';
+import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
+import { AgentFacade } from '@/modules/agent/application/agent.facade';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { ConfigService } from '@nestjs/config';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
@@ -32,6 +32,10 @@ export class AgentRegisterUserUseCase {
         private readonly tokenCrypto: TokenCryptoService,
         private readonly configService: ConfigService,
         private readonly walletFacade: WalletFacade,
+        private readonly expertProfileFacade: ExpertProfileFacade,
+        private readonly updateMerchantProfileWithQueryRunnerUseCase: UpdateMerchantProfileWithQueryRunnerUseCase,
+        private readonly clientProfileFacade: ClientProfileFacade,
+        private readonly agentFacade: AgentFacade,
     ) { }
 
     async execute(dto: AgentRegisterUserDto, agentId: string) {
@@ -66,59 +70,40 @@ export class AgentRegisterUserUseCase {
                 // Handle Expert-specific logic (Lock Commission Rate)
                 if (hasRoles(dto.roles, 'EXPERT')) {
                     const agentCommissionRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_ASTROLOGER');
-                    await queryRunner.manager.update(ProfileExpert, { user: { id: createdUser.id } }, {
-                        agent_commission_rate: agentCommissionRate,
-                        ...(dto.phone ? { phone_number: dto.phone } : {})
-                    });
+                    await this.expertProfileFacade.updateProfileWithQueryRunner(
+                        createdUser.id,
+                        {
+                            agent_commission_rate: agentCommissionRate,
+                            ...(dto.phone ? { phone_number: dto.phone } : {})
+                        },
+                        queryRunner
+                    );
                 } else if (hasRoles(dto.roles, 'MERCHANT')) {
                     const agentCommissionRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISSION_FROM_PUJA_SHOP') || 
                                          await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_PUJA_SHOP');
-                    await queryRunner.manager.update(ProfileMerchant, { user_id: createdUser.id }, {
-                        agent_commission_rate: agentCommissionRate,
-                        ...(dto.phone ? { phone: dto.phone } : {})
-                    });
-                } else if (dto.phone) {
-                    // Update phone for clients if provided
-                    await queryRunner.manager.update(ProfileClient, { user: { id: createdUser.id } }, {
-                        phone: dto.phone
-                    });
-                }
-                
-                // For Merchants, also update shopName if it's set to user's name initially
-                if (hasRoles(dto.roles, 'MERCHANT')) {
-                    await queryRunner.manager.update(ProfileMerchant, { user_id: createdUser.id }, {
-                        shopName: dto.name
-                    });
-                }
-
-                // Update agent stats
-                const agentProfile = await queryRunner.manager.findOne(ProfileAgent, {
-                    where: { user_id: agentId }
-                });
-
-                if (agentProfile) {
-                    const isExpert = hasRoles(dto.roles, 'EXPERT');
-                    const arrayField = isExpert ? 'registered_astrologer_ids' : 'registered_user_ids';
-
-                    // Initialize array if null (though default is '{}')
-                    if (!agentProfile[arrayField]) {
-                        agentProfile[arrayField] = [];
-                    }
-
-                    // Add the new ID to the array
-                    agentProfile[arrayField].push(createdUser.id);
-
-                    await queryRunner.manager.save(ProfileAgent, agentProfile);
-
-                    await queryRunner.manager.increment(
-                        ProfileAgent,
-                        { user_id: agentId },
-                        'total_registrations',
-                        1
+                    await this.updateMerchantProfileWithQueryRunnerUseCase.execute(
+                        createdUser.id,
+                        {
+                            agent_commission_rate: agentCommissionRate,
+                            shopName: dto.name,
+                            ...(dto.phone ? { phone: dto.phone } : {})
+                        },
+                        queryRunner
                     );
-                } else {
-                    this.logger.warn(`Agent profile not found for agent ID: ${agentId}. Skipping registration count increment.`);
+                } else if (dto.phone) {
+                    await this.clientProfileFacade.updateProfileWithQueryRunner(
+                        createdUser.id,
+                        { phone: dto.phone },
+                        queryRunner
+                    );
                 }
+
+                await this.agentFacade.incrementRegistrationsWithQueryRunner(
+                    agentId,
+                    createdUser.id,
+                    hasRoles(dto.roles, 'EXPERT'),
+                    queryRunner
+                );
 
                 return createdUser;
             });
@@ -215,8 +200,8 @@ export class AgentRegisterUserUseCase {
         return {
             success: true,
             user: createdUser,
-            emailSent,
-            emailError
+            email_sent: emailSent,
+            email_error: emailError
         };
     }
 }

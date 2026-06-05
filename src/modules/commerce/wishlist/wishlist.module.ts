@@ -23,13 +23,16 @@ import { AddMerchantToWishlistUseCase } from './application/use-cases/add-mercha
 import { RemoveMerchantFromWishlistUseCase } from './application/use-cases/remove-merchant-from-wishlist.use-case';
 import { GetMerchantWishlistUseCase } from './application/use-cases/get-merchant-wishlist.use-case';
 import { MerchantLikeController } from './api/controllers/merchant-like.controller';
-import { ProfileMerchant } from '../../merchant/profile/infrastructure/entities/profile-merchant.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
+import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profile/profile.module';
+import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Wishlist, Product, ExpertPuja, User, ProfileMerchant, ProfileClient, ProfileExpert]),
+    TypeOrmModule.forFeature([Wishlist, Product, User]),
+    ClientProfileModule,
+    MerchantProfileModule,
+    ExpertProfileModule,
     UsersModule,
     ExpertModule,
   ],

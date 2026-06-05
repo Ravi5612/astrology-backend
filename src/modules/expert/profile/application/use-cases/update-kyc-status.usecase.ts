@@ -19,15 +19,15 @@ export class UpdateKycStatusUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  async execute(expertId: string, status: string, reason?: string) {
+  async execute(expert_id: string, status: string, reason?: string) {
     const user = await this.userRepo.findOne({
-      where: { id: expertId as any }
+      where: { id: expert_id as any }
     });
 
     // Map 'active' (from UI) to 'approved' (for DB)
     const targetStatus = status === 'active' ? 'approved' : status;
 
-    let profile = await this.profileRepo.findOne({ where: { user: { id: expertId as any } } });
+    let profile = await this.profileRepo.findOne({ where: { user: { id: expert_id as any } } });
 
     if (!user || (!profile && targetStatus !== 'approved')) {
       ProfilePolicy.ensureProfileExists(null);
@@ -35,7 +35,7 @@ export class UpdateKycStatusUseCase {
 
     // If profile is missing and we are approving, create it
     if (!profile && targetStatus === 'approved') {
-      this.logger.log(`Creating missing profile for expert ${expertId} during approval`);
+      this.logger.log(`Creating missing profile for expert ${expert_id} during approval`);
       profile = this.profileRepo.create({
         user: { id: user!.id } as any,
         kyc_status: 'approved',

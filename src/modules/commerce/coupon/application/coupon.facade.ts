@@ -6,6 +6,7 @@ import { UpdateCouponUseCase } from './use-cases/update-coupon.use-case';
 import { DeleteCouponUseCase } from './use-cases/delete-coupon.use-case';
 import { MarkCouponAsUsedUseCase } from './use-cases/mark-coupon-as-used.use-case';
 import { ApplyCouponUseCase } from './use-cases/apply-coupon.use-case';
+import { BulkAssignCouponUseCase } from './use-cases/bulk-assign-coupon.use-case';
 
 @Injectable()
 export class CouponFacade {
@@ -17,6 +18,7 @@ export class CouponFacade {
         private readonly deleteCouponUseCase: DeleteCouponUseCase,
         private readonly applyCouponUseCase: ApplyCouponUseCase,
         private readonly markCouponAsUsedUseCase: MarkCouponAsUsedUseCase,
+        private readonly bulkAssignCouponUseCase: BulkAssignCouponUseCase,
     ) { }
 
     async applyCoupon(userId: string, code: string, amount: number) {
@@ -45,5 +47,9 @@ export class CouponFacade {
 
     async deleteCoupon(id: string) {
         return this.deleteCouponUseCase.execute(id);
+    }
+
+    async bulkAssign(couponCode: string, userIds: string[]) {
+        return this.bulkAssignCouponUseCase.execute(couponCode, userIds);
     }
 }

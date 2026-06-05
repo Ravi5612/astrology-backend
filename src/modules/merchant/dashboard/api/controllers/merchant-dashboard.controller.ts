@@ -29,7 +29,6 @@ import { GetMerchantPerformanceUseCase } from '../../application/use-cases/get-m
 import { GetMerchantAnalyticsUseCase } from '../../application/use-cases/get-merchant-analytics.usecase';
 import { SendOrderOtpUseCase } from '../../application/use-cases/send-order-otp.usecase';
 import { VerifyOrderOtpUseCase } from '../../application/use-cases/verify-order-otp.usecase';
-import { GetMerchantTransactionsUseCase } from '../../application/use-cases/get-merchant-transactions.usecase';
 import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
 import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
 
@@ -47,7 +46,6 @@ export class MerchantDashboardController {
     private readonly getActivity: GetMerchantActivityUseCase,
     private readonly getPerformance: GetMerchantPerformanceUseCase,
     private readonly getAnalytics: GetMerchantAnalyticsUseCase,
-    private readonly getTransactions: GetMerchantTransactionsUseCase,
     private readonly sendOtp: SendOrderOtpUseCase,
     private readonly verifyOtp: VerifyOrderOtpUseCase,
     private readonly orderFacade: OrderFacade,

@@ -11,7 +11,8 @@ import { CallPolicy } from '../../domain/policies/call.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CallEndedEvent } from '../../domain/events/call.events';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { UsersFacade } from '@/modules/users/application/users.facade';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
@@ -23,12 +24,12 @@ export class EndCallUseCase {
   constructor(
     @InjectRepository(CallSession)
     private readonly sessionRepo: Repository<CallSession>,
-    @InjectRepository(ProfileExpert)
-    private readonly expertRepo: Repository<ProfileExpert>,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
+    @Inject(forwardRef(() => ExpertProfileFacade))
+    private readonly expertProfileFacade: ExpertProfileFacade,
+    private readonly usersFacade: UsersFacade,
     @Inject(forwardRef(() => CallGateway))
     private readonly callGateway: CallGateway,
+    @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
     private readonly notificationFacade: NotificationFacade,
     private readonly eventEmitter: EventEmitter2,
@@ -78,12 +79,9 @@ export class EndCallUseCase {
     const buyerAgentRateSetting = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FOR_BUYER_AGENT');
 
     // Fetch Expert with User to check for referral
-    const expert = await this.expertRepo.findOne({
-        where: { id: session.expert_id },
-        relations: ['user'],
-    });
+    const expert = await this.expertProfileFacade.getExpertById(session.expert_id);
 
-    const expertUser = expert?.user;
+    const expertUser = await this.usersFacade.findById(expert?.user_id);
     let agent_commission = 0;
     let agent_id: string | undefined = undefined;
 
@@ -98,10 +96,7 @@ export class EndCallUseCase {
     let buyer_agent_commission = 0;
     let buyer_agent_id: string | undefined = undefined;
     
-    const buyerUser = await this.userRepo.findOne({
-        where: { id: session.user_id },
-        select: ['id', 'referred_by_id']
-    });
+    const buyerUser = await this.usersFacade.findById(session.user_id);
 
     if (buyerUser?.referred_by_id) {
         buyer_agent_id = buyerUser.referred_by_id;
@@ -226,15 +221,13 @@ export class EndCallUseCase {
 
     // 🔔 Notify User
     try {
-      const expert = await this.expertRepo.findOne({
-        where: { id: savedSession.expert_id },
-        relations: ['user'],
-      });
+      const expert = await this.expertProfileFacade.getExpertById(savedSession.expert_id);
+      const expertUser = expert ? await this.usersFacade.findById(expert.user_id) : null;
 
       if (expert) {
         const startTime = savedSession.start_time ? savedSession.start_time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
         const endTime = savedSession.end_time ? savedSession.end_time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
-        const expertName = expert.user?.name || 'Astrologer';
+        const expertName = expertUser?.name || 'Astrologer';
         const duration = savedSession.duration_seconds ? (savedSession.duration_seconds / 60).toFixed(1) : '0';
         const typeLabel = savedSession.type === CallType.VIDEO ? 'Video Call' : 'Call';
         

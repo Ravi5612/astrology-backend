@@ -8,6 +8,7 @@ import { UploadDocumentUseCase } from './use-cases/upload-document.usecase';
 import { SendPhoneOtpUseCase } from './use-cases/send-phone-otp.usecase';
 import { VerifyPhoneOtpUseCase } from './use-cases/verify-phone-otp.usecase';
 import { CreateProfileClientDto, UpdateProfileClientDto } from '../infrastructure/dto/profile-client.dto';
+import { UpdateClientProfileWithQueryRunnerUseCase } from './use-cases/update-profile-with-query-runner.usecase';
 
 @Injectable()
 export class ClientProfileFacade {
@@ -19,6 +20,7 @@ export class ClientProfileFacade {
     private readonly uploadDocumentUseCase: UploadDocumentUseCase,
     private readonly sendPhoneOtpUseCase: SendPhoneOtpUseCase,
     private readonly verifyPhoneOtpUseCase: VerifyPhoneOtpUseCase,
+    private readonly updateClientProfileWithQueryRunnerUseCase: UpdateClientProfileWithQueryRunnerUseCase,
   ) { }
 
   async getProfile(userId: string, queryRunner?: QueryRunner) {
@@ -47,5 +49,9 @@ export class ClientProfileFacade {
 
   async verifyPhoneOtp(userId: string, phone: string, code: string) {
     return this.verifyPhoneOtpUseCase.execute(userId, phone, code);
+  }
+
+  async updateProfileWithQueryRunner(userId: string, updates: Partial<any>, queryRunner: QueryRunner) {
+    return this.updateClientProfileWithQueryRunnerUseCase.execute(userId, updates, queryRunner);
   }
 }

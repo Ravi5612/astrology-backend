@@ -1,17 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
-import { OrderItem } from '@/modules/commerce/order/infrastructure/entities/order-item.entity';
+import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
+import { ProductFacade } from '@/modules/commerce/product/application/product.facade';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 
 @Injectable()
 export class GetMerchantAnalyticsUseCase {
   constructor(
-    @InjectRepository(Product)
-    private readonly productRepo: Repository<Product>,
-    @InjectRepository(OrderItem)
-    private readonly orderItemRepo: Repository<OrderItem>,
+    private readonly orderFacade: OrderFacade,
+    private readonly productFacade: ProductFacade,
     @InjectRepository(ProfileMerchant)
     private readonly profileRepo: Repository<ProfileMerchant>,
   ) {}
@@ -24,36 +22,10 @@ export class GetMerchantAnalyticsUseCase {
       return { revenueTimeline: [], topProducts: [], stockLevels: [] };
     }
 
-    // 1. Revenue Timeline (Last 30 Days)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
-    thirtyDaysAgo.setHours(0, 0, 0, 0);
-
-    const revenueResult = await this.productRepo.query(`
-      SELECT 
-        TO_CHAR(oi.created_at, 'FMMon DD') as date,
-        SUM(oi.price * oi.quantity) as revenue
-      FROM commerce.order_items oi
-      INNER JOIN commerce.products p ON p.id = oi.product_id
-      WHERE p.merchant_id = $1
-      AND oi.created_at >= $2
-      GROUP BY TO_CHAR(oi.created_at, 'FMMon DD')
-      ORDER BY MIN(oi.created_at) ASC
-    `, [merchantId, thirtyDaysAgo]);
+    const revenueResult = await this.orderFacade.getMerchantRevenueTimeline(merchantId);
 
     // 2. Top Selling Products
-    const topProductsResult = await this.productRepo.query(`
-      SELECT 
-        p.name as "name",
-        SUM(oi.quantity) as "sales_count",
-        SUM(oi.price * oi.quantity) as "total_revenue"
-      FROM commerce.order_items oi
-      INNER JOIN commerce.products p ON p.id = oi.product_id
-      WHERE p.merchant_id = $1
-      GROUP BY p.name
-      ORDER BY sales_count DESC
-      LIMIT 10
-    `, [merchantId]);
+    const topProductsResult = await this.orderFacade.getMerchantTopProducts(merchantId);
 
     const totalSales = topProductsResult.reduce((acc, curr) => acc + Number(curr.sales_count), 0);
     const topProducts = topProductsResult.map(p => ({
@@ -64,13 +36,7 @@ export class GetMerchantAnalyticsUseCase {
     }));
 
     // 3. Stock Levels
-    const stockResult = await this.productRepo.query(`
-        SELECT name, stock 
-        FROM commerce.products 
-        WHERE merchant_id = $1
-        ORDER BY stock ASC
-        LIMIT 10
-    `, [merchantId]);
+    const stockResult = await this.productFacade.getMerchantStockLevels(merchantId);
 
     console.log(`[ANALYTICS_DEBUG] merchantId: ${merchantId}, pItems: ${topProducts.length}, stockItems: ${stockResult.length}`);
     console.log(`[ANALYTICS_DEBUG] Stock Result Sample:`, JSON.stringify(stockResult.slice(0, 2)));
@@ -78,11 +44,7 @@ export class GetMerchantAnalyticsUseCase {
     return {
       revenueTimeline: revenueResult.map(r => ({ date: r.date, revenue: Number(r.revenue) })),
       topProducts,
-      stockLevels: stockResult.map(p => ({
-          name: p.name,
-          stock: Number(p.stock),
-          status: p.stock > 10 ? 'Healthy' : p.stock > 0 ? 'Low Stock' : 'Out of Stock'
-      }))
+      stockLevels: stockResult
     };
   }
 }

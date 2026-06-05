@@ -1,44 +1,35 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PujaAppointment, PujaAppointmentStatus, PujaMode } from '../../infrastructure/entities/puja-appointment.entity';
 import { CreatePujaAppointmentDto } from '../dtos/create-puja-appointment.dto';
-import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { ExpertGateway } from '@/modules/expert/profile/api/gateways/expert.gateway';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 @Injectable()
 export class CreatePujaAppointmentUseCase {
   constructor(
     @InjectRepository(PujaAppointment)
     private pujaAppointmentRepository: Repository<PujaAppointment>,
-    @InjectRepository(ExpertPuja)
-    private expertPujaRepository: Repository<ExpertPuja>,
-    @InjectRepository(ProfileExpert)
-    private profileExpertRepository: Repository<ProfileExpert>,
-    @InjectRepository(ProfileClient)
-    private profileClientRepository: Repository<ProfileClient>,
-    private notificationFacade: NotificationFacade,
-    private expertGateway: ExpertGateway,
+    @Inject(forwardRef(() => ExpertProfileFacade))
+    private readonly expertProfileFacade: ExpertProfileFacade,
+    @Inject(forwardRef(() => ClientProfileFacade))
+    private readonly clientProfileFacade: ClientProfileFacade,
+    private readonly notificationFacade: NotificationFacade,
+    private readonly expertGateway: ExpertGateway,
   ) {}
 
   async execute(userId: string, dto: CreatePujaAppointmentDto): Promise<PujaAppointment> {
-    const puja = await this.expertPujaRepository.findOne({ 
-        where: { id: dto.puja_id },
-        relations: ['expert']
-    });
+    const puja = await this.expertProfileFacade.getPujaById(dto.puja_id);
 
     if (!puja) {
       throw new NotFoundException('Puja not found');
     }
 
-    const clientProfile = await this.profileClientRepository.findOne({
-      where: { user_id: userId },
-      relations: ['user']
-    });
+    const clientProfile = await this.clientProfileFacade.getProfile(userId);
 
     if (!clientProfile) {
       throw new NotFoundException('Client profile not found');
@@ -75,9 +66,7 @@ export class CreatePujaAppointmentUseCase {
     const saved = await this.pujaAppointmentRepository.save(appointment);
 
     // Notify Expert
-    const expertProfile = await this.profileExpertRepository.findOne({
-        where: { id: puja.expert_id }
-    });
+    const expertProfile = puja.expert;
     
     if (expertProfile && expertProfile.user_id as any) {
         try {

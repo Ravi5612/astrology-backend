@@ -3,25 +3,23 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
-import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 
 @Injectable()
 export class TogglePujaWishlistUseCase {
   constructor(
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
-    @InjectRepository(ExpertPuja)
-    private readonly pujaRepository: Repository<ExpertPuja>,
-    @InjectRepository(ProfileClient)
-    private readonly clientRepository: Repository<ProfileClient>,
+    private readonly expertProfileFacade: ExpertProfileFacade,
+    private readonly clientProfileFacade: ClientProfileFacade,
   ) {}
 
   async execute(userId: string, pujaId: string): Promise<{ liked: boolean; total_likes: number }> {
-    const client = await this.clientRepository.findOne({ where: { user: { id: userId } } });
+    const client = await this.clientProfileFacade.getProfile(userId);
     if (!client) throw new NotFoundException('Client profile not found');
 
-    const puja = await this.pujaRepository.findOne({ where: { id: pujaId } });
+    const puja = await this.expertProfileFacade.getPujaById(pujaId);
     if (!puja) throw new NotFoundException('Puja not found');
 
     const existing = await this.wishlistRepository.findOne({
@@ -29,19 +27,21 @@ export class TogglePujaWishlistUseCase {
     });
 
     let liked = false;
+    let currentTotalLikes = puja.total_likes || 0;
+    
     if (existing) {
       await this.wishlistRepository.remove(existing);
-      puja.total_likes = Math.max(0, (puja.total_likes || 0) - 1);
+      await this.expertProfileFacade.updatePujaLikes(pujaId, -1);
+      currentTotalLikes = Math.max(0, currentTotalLikes - 1);
       liked = false;
     } else {
       const wishlist = this.wishlistRepository.create({ client, puja });
       await this.wishlistRepository.save(wishlist);
-      puja.total_likes = (puja.total_likes || 0) + 1;
+      await this.expertProfileFacade.updatePujaLikes(pujaId, 1);
+      currentTotalLikes = currentTotalLikes + 1;
       liked = true;
     }
 
-    await this.pujaRepository.save(puja);
-
-    return { liked, total_likes: puja.total_likes };
+    return { liked, total_likes: currentTotalLikes };
   }
 }

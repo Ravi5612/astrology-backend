@@ -1,59 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CalendarCache } from '../infrastructure/entities/calendar-cache.entity';
+import { CalendarCache } from '../../infrastructure/entities/calendar-cache.entity';
 import { ProkeralaService } from '@/external/prokerala/prokerala.service';
 
 @Injectable()
-export class CalendarService {
-  private readonly logger = new Logger(CalendarService.name);
+export class GetDailyPanchangUseCase {
+  private readonly logger = new Logger(GetDailyPanchangUseCase.name);
 
   constructor(
     @InjectRepository(CalendarCache)
     private readonly cacheRepository: Repository<CalendarCache>,
     private readonly prokeralaService: ProkeralaService,
   ) {}
-
-  async getMonthlyCalendar(year: number, month: number, lat: string, lon: string, lang: string = 'en') {
-    const type = 'monthly';
-    const cacheKey = `${year}-${month}-${lat}-${lon}-${lang}-v2`;
-    
-    const cached = await this.cacheRepository.findOne({ where: { type, cacheKey } });
-    if (cached) {
-      this.logger.log(`Serving cached monthly calendar for ${cacheKey}`);
-      return cached.response;
-    }
-
-    this.logger.log(`Fetching fresh monthly calendar for ${cacheKey}`);
-    
-    // Get last day of the month
-    const lastDay = new Date(year, month, 0).getDate();
-    const monthlyData: any[] = [];
-
-    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-    for (let day = 1; day <= lastDay; day++) {
-      const paddedDay = day.toString().padStart(2, '0');
-      const paddedMonth = month.toString().padStart(2, '0');
-      const dateStr = `${year}-${paddedMonth}-${paddedDay}`;
-      
-      this.logger.debug(`Fetching panchang for ${dateStr}`);
-      const dailyData = await this.getDailyPanchang(dateStr, lat, lon, lang);
-      monthlyData.push(dailyData);
-
-      // Avoid Prokerala rate limit (429) — wait 1s between each call
-      if (day < lastDay) await sleep(1000);
-    }
-
-    const newCache = this.cacheRepository.create({
-      type,
-      cacheKey,
-      response: monthlyData,
-    });
-    await this.cacheRepository.save(newCache);
-
-    return monthlyData;
-  }
 
   private formatTime(isoString: string): string {
     if (!isoString) return '';
@@ -105,12 +64,12 @@ export class CalendarService {
       karana: extractItem(panchang.karana) || { name: 'N/A', start: 'N/A', end: 'N/A' },
       yoga: extractItem(panchang.yoga) || { name: 'N/A', start: 'N/A', end: 'N/A' },
       
-      shubhMuhurat: {
+      shubh_muhurat: {
         abhijit: getMuhurat(auspicious, 'abhijit') || { start: 'N/A', end: 'N/A' },
         brahma: getMuhurat(auspicious, 'brahma') || { start: 'N/A', end: 'N/A' }
       },
-      ashubhMuhurat: {
-        rahuKalam: getMuhurat(inauspicious, 'rahu') || { start: 'N/A', end: 'N/A' },
+      ashubh_muhurat: {
+        rahu_kalam: getMuhurat(inauspicious, 'rahu') || { start: 'N/A', end: 'N/A' },
         yamaganda: getMuhurat(inauspicious, 'yamaganda') || { start: 'N/A', end: 'N/A' }
       },
 
@@ -120,7 +79,7 @@ export class CalendarService {
     };
   }
 
-  async getDailyPanchang(date: string, lat: string, lon: string, lang: string = 'en') {
+  async execute(date: string, lat: string, lon: string, lang: string = 'en') {
     const type = 'daily';
     const cacheKey = `${date}-${lat}-${lon}-${lang}-v3`; // Increment version to bypass old caches
 
@@ -146,29 +105,6 @@ export class CalendarService {
     
     console.log('[DEBUG] Mapped Response Tithi:', response.tithi);
     console.log('[DEBUG] Mapped Response Sunrise:', response.sunrise);
-
-    const newCache = this.cacheRepository.create({
-      type,
-      cacheKey,
-      response,
-    });
-    await this.cacheRepository.save(newCache);
-
-    return response;
-  }
-
-  async getYearlyFestivals(year: number, lang: string = 'en') {
-    const type = 'festivals';
-    const cacheKey = `${year}-${lang}`;
-
-    const cached = await this.cacheRepository.findOne({ where: { type, cacheKey } });
-    if (cached) {
-      this.logger.log(`Serving cached yearly festivals for ${cacheKey}`);
-      return cached.response;
-    }
-
-    this.logger.log(`Fetching fresh yearly festivals for ${cacheKey}`);
-    const response = await this.prokeralaService.getFestivals(year, lang);
 
     const newCache = this.cacheRepository.create({
       type,

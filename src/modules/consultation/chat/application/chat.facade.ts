@@ -17,6 +17,8 @@ import { AdminTerminateSessionUseCase } from './use-cases/admin-terminate-sessio
 import { GetChatSessionStatsUseCase } from './use-cases/get-chat-session-stats.use-case';
 import { RejectChatUseCase } from './use-cases/reject-chat.use-case';
 import { UpdateSessionMetadataUseCase } from './use-cases/update-session-metadata.use-case';
+import { GetChatEarningsUseCase } from './use-cases/get-chat-earnings.use-case';
+import { GetExpertSessionsByDateUseCase } from './use-cases/get-expert-sessions-by-date.use-case';
 import { MessageType } from '../infrastructure/entities/chat-message.entity';
 import { ChatSessionStatus } from '../infrastructure/entities/chat-session.entity';
 
@@ -41,10 +43,12 @@ export class ChatFacade {
         private readonly getChatSessionStatsUseCase: GetChatSessionStatsUseCase,
         private readonly rejectChatUseCase: RejectChatUseCase,
         private readonly updateSessionMetadataUseCase: UpdateSessionMetadataUseCase,
+        private readonly getChatEarningsUseCase: GetChatEarningsUseCase,
+        private readonly getExpertSessionsByDateUseCase: GetExpertSessionsByDateUseCase,
     ) { }
 
-    async initiateChat(userId: string, expertId: string, metadata?: any) {
-        return this.initiateChatUseCase.execute(userId, expertId, metadata);
+    async initiateChat(userId: string, expert_id: string, metadata?: any) {
+        return this.initiateChatUseCase.execute(userId, expert_id, metadata);
     }
 
     async activateSession(sessionId: string) {
@@ -97,8 +101,8 @@ export class ChatFacade {
         return this.getTotalSessionsCountUseCase.execute();
     }
 
-    async getExpertSessionCount(expertId: string, options: { status?: ChatSessionStatus | ChatSessionStatus[], startDate?: Date } = {}) {
-        return this.countExpertSessionsUseCase.execute(expertId, options);
+    async getExpertSessionCount(expert_id: string, options: { status?: ChatSessionStatus | ChatSessionStatus[], startDate?: Date } = {}) {
+        return this.countExpertSessionsUseCase.execute(expert_id, options);
     }
 
     async findAllSessions(filter?: string, page?: number, limit?: number) {
@@ -124,5 +128,13 @@ export class ChatFacade {
 
     async getExpertRevenueAndCount(expertProfileId: string) {
         return this.countExpertSessionsUseCase.getRevenueAndCount(expertProfileId);
+    }
+
+    async getEarnings(dateLimit: Date) {
+        return this.getChatEarningsUseCase.execute(dateLimit);
+    }
+
+    async getExpertSessionsByDate(expert_id: string, startDate: Date, endDate: Date) {
+        return this.getExpertSessionsByDateUseCase.execute(expert_id, startDate, endDate);
     }
 }

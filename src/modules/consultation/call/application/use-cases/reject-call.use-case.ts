@@ -13,6 +13,7 @@ export class RejectCallUseCase {
         private readonly sessionRepo: Repository<CallSession>,
         @Inject(forwardRef(() => CallGateway))
         private readonly callGateway: CallGateway,
+        @Inject(forwardRef(() => WalletFacade))
         private readonly walletFacade: WalletFacade,
     ) { }
 

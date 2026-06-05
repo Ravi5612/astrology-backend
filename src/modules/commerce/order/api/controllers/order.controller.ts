@@ -44,12 +44,12 @@ export class OrderController {
     ) {
         const limitNum = limit ? parseInt(limit, 10) : 10;
         const offsetNum = offset ? parseInt(offset, 10) : 0;
-        const { data, totalCount } = await this.orderFacade.getUserOrders(user.id, limitNum, offsetNum);
+        const { data, total_count } = await this.orderFacade.getUserOrders(user.id, limitNum, offsetNum);
         return {
             success: true,
             data,
             meta: {
-                totalCount,
+                total_count,
                 limit: limitNum,
                 offset: offsetNum,
             },
@@ -116,12 +116,12 @@ export class OrderSingularController {
     ) {
         const limitNum = limit ? parseInt(limit, 10) : 10;
         const offsetNum = offset ? parseInt(offset, 10) : 0;
-        const { data, totalCount } = await this.orderFacade.getUserOrders(user.id, limitNum, offsetNum);
+        const { data, total_count } = await this.orderFacade.getUserOrders(user.id, limitNum, offsetNum);
         return {
             success: true,
             data,
             meta: {
-                totalCount,
+                total_count,
                 limit: limitNum,
                 offset: offsetNum,
             },

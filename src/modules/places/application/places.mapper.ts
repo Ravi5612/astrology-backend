@@ -18,14 +18,14 @@ export class PlacesMapper {
 
     return rawResults
       .map((item, index) => {
-        const thumb = item.thumbnailUrl || item.imageUrl || item.thumbnail;
+        const thumb = item.thumbnail_url || item.image_url || item.thumbnail;
         return {
           id: `place_${Date.now()}_${index}`,
           title: item.title || 'N/A',
-          thumbnailUrl: thumb || 'https://via.placeholder.com/300?text=Sacred+Place',
+          thumbnail_url: thumb || 'https://via.placeholder.com/300?text=Sacred+Place',
           address: item.address || 'Address on request',
           rating: item.rating ? Number(item.rating) : 0,
-          ratingCount: item.ratingCount ? Number(item.ratingCount) : 0,
+          rating_count: item.ratingCount ? Number(item.ratingCount) : 0,
           category: item.category || 'Sacred Site',
         };
       });
@@ -38,13 +38,13 @@ export class PlacesMapper {
       .map((item, index) => ({
         id: `img_${Date.now()}_${index}`,
         title: item.title || 'Sacred Place View',
-        thumbnailUrl: this.filterImageUrl(item.imageUrl || item.thumbnailUrl),
+        thumbnail_url: this.filterImageUrl(item.image_url || item.thumbnail_url),
         address: 'N/A',
         rating: 0,
-        ratingCount: 0,
+        rating_count: 0,
         category: 'Image View',
       }))
-      .filter((item) => item.thumbnailUrl !== null);
+      .filter((item) => item.thumbnail_url !== null);
   }
 
   private filterImageUrl(url: string): string | null {

@@ -10,9 +10,9 @@ export class GetExpertReviewsUseCase {
     private readonly reviewRepository: Repository<Review>,
   ) { }
 
-  async execute(expertId: string, page: number = 1, limit: number = 20) {
+  async execute(expert_id: string, page: number = 1, limit: number = 20) {
     const [reviews, total] = await this.reviewRepository.findAndCount({
-      where: { expert_id: expertId as any },
+      where: { expert_id: expert_id as any },
       relations: ['client', 'client.user'],
       order: { created_at: 'DESC' },
       take: limit,

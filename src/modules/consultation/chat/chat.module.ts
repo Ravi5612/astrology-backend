@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChatSession } from './infrastructure/entities/chat-session.entity';
 import { ChatMessage } from './infrastructure/entities/chat-message.entity';
@@ -24,20 +24,23 @@ import { AdminTerminateSessionUseCase } from './application/use-cases/admin-term
 import { GetChatSessionStatsUseCase } from './application/use-cases/get-chat-session-stats.use-case';
 import { RejectChatUseCase } from './application/use-cases/reject-chat.use-case';
 import { UpdateSessionMetadataUseCase } from './application/use-cases/update-session-metadata.use-case';
+import { GetChatEarningsUseCase } from './application/use-cases/get-chat-earnings.use-case';
+import { GetExpertSessionsByDateUseCase } from './application/use-cases/get-expert-sessions-by-date.use-case';
 
 import { WalletModule } from '@/modules/wallet/wallet.module';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { CouponModule } from '@/modules/commerce/coupon/coupon.module';
+import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
+import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
 
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ChatSession, ChatMessage, ProfileExpert, ProfileClient, User]),
-    WalletModule,
+    TypeOrmModule.forFeature([ChatSession, ChatMessage]),
+    forwardRef(() => WalletModule),
     NotificationModule,
-    CouponModule,
+    forwardRef(() => CouponModule),
+    forwardRef(() => ExpertProfileModule),
+    forwardRef(() => ClientProfileModule),
   ],
   providers: [
     ChatGateway,
@@ -60,8 +63,10 @@ import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/
     GetChatSessionStatsUseCase,
     RejectChatUseCase,
     UpdateSessionMetadataUseCase,
+    GetChatEarningsUseCase,
+    GetExpertSessionsByDateUseCase,
   ],
   controllers: [ChatController, ConsultationController],
-  exports: [ChatFacade, FindAllSessionsUseCase, AdminTerminateSessionUseCase, GetChatSessionStatsUseCase, RejectChatUseCase],
+  exports: [ChatFacade, FindAllSessionsUseCase, AdminTerminateSessionUseCase, GetChatSessionStatsUseCase, RejectChatUseCase, GetChatEarningsUseCase],
 })
 export class ChatModule { }

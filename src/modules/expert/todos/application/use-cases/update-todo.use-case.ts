@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, forwardRef, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Todo } from '../../infrastructure/entities/todo.entity';
 import { UpdateTodoDto } from '../../infrastructure/dto/todo.dto';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { TodoNotFoundError } from '../../domain/errors/todo-not-found.error';
 
 @Injectable()
@@ -11,14 +11,12 @@ export class UpdateTodoUseCase {
   constructor(
     @InjectRepository(Todo)
     private readonly todoRepo: Repository<Todo>,
-    @InjectRepository(ProfileExpert)
-    private readonly profileRepo: Repository<ProfileExpert>,
+    @Inject(forwardRef(() => ExpertProfileFacade))
+    private readonly profileFacade: ExpertProfileFacade,
   ) { }
 
   private async getExpertProfile(userId: string) {
-    const profile = await this.profileRepo.findOne({
-      where: { user: { id: userId as any } },
-    });
+    const profile = await this.profileFacade.getExpertByUserId(userId);
     if (!profile) {
       throw new NotFoundException('Expert profile not found');
     }

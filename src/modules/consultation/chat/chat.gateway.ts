@@ -27,11 +27,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private logger: Logger = new Logger('ChatGateway');
   private sessionTimers = new Map<string, NodeJS.Timeout>();
-  private expertSockets = new Map<string, string>(); // expertId -> socketId
+  private expertSockets = new Map<string, string>(); // expert_id -> socketId
 
   constructor(
     @Inject(forwardRef(() => ChatFacade))
     private readonly chatFacade: ChatFacade,
+    @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
   ) { }
 
@@ -42,10 +43,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected from chat: ${client.id}`);
     // Remove from expert map if exists
-    for (const [expertId, socketId] of this.expertSockets.entries()) {
+    for (const [expert_id, socketId] of this.expertSockets.entries()) {
       if (socketId === client.id) {
-        this.expertSockets.delete(expertId);
-        this.logger.log(`Expert ${expertId} unregistered due to disconnect`);
+        this.expertSockets.delete(expert_id);
+        this.logger.log(`Expert ${expert_id} unregistered due to disconnect`);
         break;
       }
     }
@@ -54,13 +55,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('register_expert')
   handleRegisterExpert(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { expertId: string },
+    @MessageBody() payload: { expert_id: string },
   ) {
     
-    this.expertSockets.set(payload.expertId, client.id);
-    client.join(`expert_${payload.expertId}`); // Join a private notification room
+    this.expertSockets.set(payload.expert_id, client.id);
+    client.join(`expert_${payload.expert_id}`); // Join a private notification room
     this.logger.log(
-      `Expert ${payload.expertId} registered and joined expert_${payload.expertId}`,
+      `Expert ${payload.expert_id} registered and joined expert_${payload.expert_id}`,
     );
     
     return { status: 'registered' };
@@ -74,11 +75,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return this.walletFacade.getWallet(userId);
   }
 
-  notifyExpertNewRequest(expertId: string, session: any) {
+  notifyExpertNewRequest(expert_id: string, session: any) {
     
-    this.server.to(`expert_${expertId}`).emit('new_chat_request', session);
+    this.server.to(`expert_${expert_id}`).emit('new_chat_request', session);
     this.logger.log(
-      `Notified expert room expert_${expertId} of new session ${session.id}`,
+      `Notified expert room expert_${expert_id} of new session ${session.id}`,
     );
   }
 
@@ -86,14 +87,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * Notify an expert's dashboard about any session status change
    */
   notifyExpertStatusUpdate(
-    expertId: string,
+    expert_id: string,
     event: 'session_activated' | 'session_ended',
     data: any,
   ) {
     
-    this.server.to(`expert_${expertId}`).emit(event, data);
+    this.server.to(`expert_${expert_id}`).emit(event, data);
     this.logger.log(
-      `Status update ${event} sent to expert room expert_${expertId}`,
+      `Status update ${event} sent to expert room expert_${expert_id}`,
     );
   }
 
@@ -144,7 +145,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       ? session.free_minutes
       : price > 0
         ? Math.floor(totalAffordableBalance / price)
-        : 0;
+        : 60; // fallback 60 mins if price is 0
+
+    console.log(`[ChatGateway] activateSession Debug:`, {
+        sessionId,
+        is_free: session.is_free,
+        free_minutes: session.free_minutes,
+        price,
+        totalAffordableBalance,
+        maxMinutes
+    });
 
     const serverTime = new Date();
     const startTime = session.start_time

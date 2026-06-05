@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AdminController } from './api/controllers/admin.controller';
 import { AdminFacade } from './application/admin.facade';
 import { GetAdminDashboardStatsUseCase } from './application/use-cases/get-admin-dashboard-stats.use-case';
@@ -44,6 +44,7 @@ import { ProfileMerchant } from '../merchant/profile/infrastructure/entities/pro
 import { ProfileExpert } from '../expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { MerchantModule } from '../merchant/merchant.module';
+import { AgentModule } from '../agent/agent.module';
 
 import { SystemSetting } from './infrastructure/entities/system-setting.entity';
 import { SettingsController } from './api/controllers/settings.controller';
@@ -84,14 +85,15 @@ import { Argon2PasswordHasher } from '../auth/infrastructure/hashing/argon2-pass
 
     UsersModule,
     ExternalModule,
-    WalletModule,
-    ConsultationModule,
-    ProfileModule,
-    MerchantModule,
+    forwardRef(() => WalletModule),
+    forwardRef(() => ConsultationModule),
+    forwardRef(() => ProfileModule),
+    forwardRef(() => MerchantModule),
     CouponModule,
     SupportModule,
     PujaAppointmentModule,
     OrderModule,
+    forwardRef(() => AgentModule),
   ],
   controllers: [AdminController, SettingsController, PublicStatsController, PublicSettingsController],
   providers: [
@@ -121,6 +123,7 @@ import { Argon2PasswordHasher } from '../auth/infrastructure/hashing/argon2-pass
       useClass: Argon2PasswordHasher,
     }
   ],
+  exports: [AdminFacade],
 })
 export class AdminModule { }
 

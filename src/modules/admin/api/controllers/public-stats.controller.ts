@@ -69,7 +69,7 @@ export class PublicStatsController {
   @Get('expert-hub')
   async getExpertHubStats() {
     try {
-      const [totalExperts, servicesData] = await Promise.all([
+      const [total_experts, servicesData] = await Promise.all([
         this.userRepo
           .createQueryBuilder('user')
           .where(":role = Any(user.roles)", { role: RoleEnum.EXPERT })
@@ -85,9 +85,9 @@ export class PublicStatsController {
       return {
         success: true,
         data: {
-          totalExperts: totalExperts,
+          total_experts: total_experts,
           totalServices: totalServices,
-          realExperts: totalExperts,
+          realExperts: total_experts,
           realServices: totalServices
         }
       };
@@ -97,7 +97,7 @@ export class PublicStatsController {
         success: false,
         message: 'Failed to fetch expert stats',
         data: {
-          totalExperts: 1200,
+          total_experts: 1200,
           totalServices: 45000
         }
       };

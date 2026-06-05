@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TodosController } from './api/controllers/todos.controller';
 import { TodosFacade } from './application/todos.facade';
@@ -7,10 +7,10 @@ import { CreateTodoUseCase } from './application/use-cases/create-todo.use-case'
 import { UpdateTodoUseCase } from './application/use-cases/update-todo.use-case';
 import { RemoveTodoUseCase } from './application/use-cases/remove-todo.use-case';
 import { Todo } from './infrastructure/entities/todo.entity';
-import { ProfileExpert } from '../profile/infrastructure/entities/profile-expert.entity';
+import { ProfileModule } from '../profile/profile.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Todo, ProfileExpert])],
+    imports: [TypeOrmModule.forFeature([Todo]), forwardRef(() => ProfileModule)],
     controllers: [TodosController],
     providers: [
         TodosFacade,

@@ -73,7 +73,7 @@ export class ProductController {
   ) {
     const bodyAsAny = updateProductDto as any;
     if (!updateProductDto.image_url) {
-      updateProductDto.image_url = bodyAsAny?.imageUrl || bodyAsAny?.image;
+      updateProductDto.image_url = bodyAsAny?.image_url || bodyAsAny?.image;
     }
 
     if (file) {

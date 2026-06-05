@@ -13,7 +13,7 @@ export class GetExpertStatsUseCase {
   ) { }
 
   async execute() {
-    const totalExperts = await this.userRepository
+    const total_experts = await this.userRepository
       .createQueryBuilder('user')
       .where(":role = ANY(\"user\".roles)", { role: RoleEnum.EXPERT })
       .getCount();
@@ -58,7 +58,7 @@ export class GetExpertStatsUseCase {
       .getCount();
 
     return {
-      totalExperts,
+      total_experts,
       activeExperts,
       pendingExperts,
       rejectedExperts,

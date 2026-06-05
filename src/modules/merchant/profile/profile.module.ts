@@ -12,6 +12,10 @@ import { GetAllMerchantsUseCase } from './application/use-cases/get-all-merchant
 import { GetUniqueMerchantCitiesUseCase } from './application/use-cases/get-unique-merchant-cities.use-case';
 import { GetMerchantProfileUseCase } from './application/use-cases/get-merchant-profile.use-case';
 import { UpdateMerchantProfileUseCase } from './application/use-cases/update-merchant-profile.use-case';
+import { UpdateProfileWithQueryRunnerUseCase } from './application/use-cases/update-profile-with-query-runner.usecase';
+import { GetAdminMerchantsUseCase } from './application/use-cases/get-admin-merchants.use-case';
+import { UpdateMerchantStatusAdminUseCase } from './application/use-cases/update-merchant-status-admin.use-case';
+import { MerchantProfileFacade } from './application/profile.facade';
 
 import { MerchantPublicController } from './api/controllers/merchant-public.controller';
 import { MerchantProfileController } from './api/controllers/merchant-profile.controller';
@@ -32,6 +36,10 @@ import { EncryptionService } from '@/common/services/encryption.service';
     GetUniqueMerchantCitiesUseCase,
     GetMerchantProfileUseCase,
     UpdateMerchantProfileUseCase,
+    UpdateProfileWithQueryRunnerUseCase,
+    GetAdminMerchantsUseCase,
+    UpdateMerchantStatusAdminUseCase,
+    MerchantProfileFacade,
     MerchantGateway,
     EncryptionService,
   ],
@@ -42,6 +50,10 @@ import { EncryptionService } from '@/common/services/encryption.service';
     GetUniqueMerchantCitiesUseCase,
     GetMerchantProfileUseCase,
     UpdateMerchantProfileUseCase,
+    UpdateProfileWithQueryRunnerUseCase,
+    GetAdminMerchantsUseCase,
+    UpdateMerchantStatusAdminUseCase,
+    MerchantProfileFacade,
     EncryptionService,
   ],
 })

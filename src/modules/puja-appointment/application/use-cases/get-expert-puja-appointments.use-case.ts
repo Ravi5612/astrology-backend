@@ -1,22 +1,20 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PujaAppointment } from '../../infrastructure/entities/puja-appointment.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 
 @Injectable()
 export class GetExpertPujaAppointmentsUseCase {
   constructor(
     @InjectRepository(PujaAppointment)
     private pujaAppointmentRepository: Repository<PujaAppointment>,
-    @InjectRepository(ProfileExpert)
-    private profileExpertRepository: Repository<ProfileExpert>,
+    @Inject(forwardRef(() => ExpertProfileFacade))
+    private readonly expertProfileFacade: ExpertProfileFacade,
   ) {}
 
   async execute(userId: string): Promise<PujaAppointment[]> {
-    const expert = await this.profileExpertRepository.findOne({
-      where: { user_id: userId },
-    });
+    const expert = await this.expertProfileFacade.getExpertByUserId(userId);
 
     if (!expert) {
         // If user is not an expert, return empty list instead of throwing

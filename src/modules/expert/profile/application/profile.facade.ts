@@ -16,6 +16,9 @@ import { UpsertPujaUseCase } from './use-cases/puja/upsert-puja.usecase';
 import { DeletePujaUseCase } from './use-cases/puja/delete-puja.usecase';
 import { GetPujaByIdUseCase } from './use-cases/puja/get-puja-by-id.usecase';
 import { ListAllPujasUseCase } from './use-cases/puja/list-all-pujas.usecase';
+import { UpdatePujaLikesUseCase } from './use-cases/puja/update-puja-likes.usecase';
+import { UpdateProfileWithQueryRunnerUseCase } from './use-cases/update-profile-with-query-runner.usecase';
+import { GetExpertDetailUseCase } from './use-cases/get-admin-expert-detail.use-case';
 
 
 import { ExpertPujaDto } from '../api/dto/expert-puja.dto';
@@ -36,8 +39,9 @@ export class ExpertProfileFacade {
     private readonly deletePujaUseCase: DeletePujaUseCase,
     private readonly getPujaByIdUseCase: GetPujaByIdUseCase,
     private readonly listAllPujasUseCase: ListAllPujasUseCase,
-
-
+    private readonly updatePujaLikesUseCase: UpdatePujaLikesUseCase,
+    private readonly updateProfileWithQueryRunnerUseCase: UpdateProfileWithQueryRunnerUseCase,
+    private readonly getExpertDetailUseCase: GetExpertDetailUseCase,
   ) { }
 
   async getProfile(user: User, queryRunner?: QueryRunner) {
@@ -64,8 +68,8 @@ export class ExpertProfileFacade {
     return this.getExpertByIdUseCase.execute(id);
   }
 
-  async updateKycStatus(expertId: string, status: string, reason?: string) {
-    return this.updateKycStatusUseCase.execute(expertId, status, reason);
+  async updateKycStatus(expert_id: string, status: string, reason?: string) {
+    return this.updateKycStatusUseCase.execute(expert_id, status, reason);
   }
 
   async getTopRatedExperts(limit: number = 3) {
@@ -93,5 +97,15 @@ export class ExpertProfileFacade {
     return this.getPujaByIdUseCase.execute(id);
   }
 
+  async updateProfileWithQueryRunner(userId: string, updates: any, queryRunner: QueryRunner) {
+    return this.updateProfileWithQueryRunnerUseCase.execute(userId, updates, queryRunner);
+  }
 
+  async updatePujaLikes(pujaId: string, diff: number) {
+    return this.updatePujaLikesUseCase.execute(pujaId, diff);
+  }
+
+  async getAdminExpertDetails(id: string) {
+    return this.getExpertDetailUseCase.execute(id);
+  }
 }

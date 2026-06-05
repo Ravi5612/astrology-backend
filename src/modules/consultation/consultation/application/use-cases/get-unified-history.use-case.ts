@@ -1,12 +1,11 @@
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { ChatSession, ChatSessionStatus } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { CallSession, CallSessionStatus, CallType } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { Review } from '@/modules/consultation/reviews/infrastructure/entities/review.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { ConsultationHistoryDto, ConsultationType, ConsultationStatus } from '../../api/dto/consultation-history.dto';
 
 @Injectable()
@@ -18,17 +17,13 @@ export class GetUnifiedHistoryUseCase {
     private readonly callRepo: Repository<CallSession>,
     @InjectRepository(Review)
     private readonly reviewRepo: Repository<Review>,
-    @InjectRepository(ProfileExpert)
-    private readonly expertRepo: Repository<ProfileExpert>,
-    @InjectRepository(ProfileClient)
-    private readonly clientRepo: Repository<ProfileClient>,
+    @Inject(forwardRef(() => ExpertProfileFacade))
+    private readonly expertProfileFacade: ExpertProfileFacade,
   ) {}
 
   async execute(userId: string, limit: number = 20, offset: number = 0) {
     // 1. Detect Role: Check if the user is an Expert
-    const expertProfile = await this.expertRepo.findOne({
-        where: { user: { id: userId as any } }
-    });
+    const expertProfile = await this.expertProfileFacade.getExpertByUserId(userId);
 
     const isExpert = !!expertProfile;
 
@@ -137,7 +132,7 @@ export class GetUnifiedHistoryUseCase {
       expert: {
         id: session.expert?.id || '',
         name: session.expert?.user?.name || session.expert?.name || 'Expert',
-        profileImage: (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-astrologer.jpg',
+        profile_image: (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-astrologer.jpg',
       },
       metadata: {
         terminatedBy: session.terminated_by,
@@ -177,7 +172,7 @@ export class GetUnifiedHistoryUseCase {
       expert: {
         id: session.expert?.id || '',
         name: session.expert?.user?.name || 'Expert',
-        profileImage: (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-expert.jpg',
+        profile_image: (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-expert.jpg',
       },
       metadata: {
         callSid: session.twilio_sid,

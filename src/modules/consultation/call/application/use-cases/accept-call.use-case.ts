@@ -21,24 +21,25 @@ export class AcceptCallUseCase {
     @InjectRepository(CallSession)
     private readonly sessionRepo: Repository<CallSession>,
     private readonly twilioService: TwilioService,
+    @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
     @Inject(forwardRef(() => CallGateway))
     private readonly callGateway: CallGateway,
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
-  async execute(expertId: string, sessionId: string) {
+  async execute(expert_id: string, sessionId: string) {
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId as any },
       relations: ['user', 'expert', 'expert.user'],
     });
 
     CallPolicy.ensureSessionExists(session);
-    CallPolicy.ensureExpertAssignedToSession(session.expert.user.id, expertId);
+    CallPolicy.ensureExpertAssignedToSession(session.expert.user.id, expert_id);
 
     if (session.status === CallSessionStatus.ACTIVE) {
       // If already active and it's the same expert, just return the session/token
-      const identity = `expert_${expertId}_${sessionId}`;
+      const identity = `expert_${expert_id}_${sessionId}`;
       const roomName = `call_room_${sessionId}`;
       const token = this.twilioService.generateToken(
         identity,
@@ -65,7 +66,7 @@ export class AcceptCallUseCase {
     this.logger.log(`Session activated: id=${savedSession.id}`);
 
     // Generate token for expert
-    const identity = `expert_${expertId}_${sessionId}`;
+    const identity = `expert_${expert_id}_${sessionId}`;
     const roomName = `call_room_${sessionId}`;
     const token = this.twilioService.generateToken(
       identity,
@@ -95,7 +96,7 @@ export class AcceptCallUseCase {
     );
     this.eventEmitter.emit(
       'call.accepted',
-      new CallAcceptedEvent(savedSession.id, expertId, savedSession.type),
+      new CallAcceptedEvent(savedSession.id, expert_id, savedSession.type),
     );
 
     return result;

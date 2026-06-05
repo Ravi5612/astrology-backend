@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ExpertEarningsController } from './api/controllers/expert-earnings.controller';
 import { ExpertWalletController } from './api/controllers/expert-wallet.controller';
@@ -7,27 +7,22 @@ import { GetEarningsStatsUseCase } from './application/use-cases/get-earnings-st
 import { GetWalletBalanceUseCase } from './application/use-cases/get-wallet-balance.use-case';
 import { GetWalletTransactionsUseCase } from './application/use-cases/get-wallet-transactions.use-case';
 import { RequestWithdrawalUseCase } from './application/use-cases/request-withdrawal.use-case';
-import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
-import { CallSession } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
-import { Order } from '@/modules/commerce/order/infrastructure/entities/order.entity';
-import { OrderItem } from '@/modules/commerce/order/infrastructure/entities/order-item.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { WalletModule } from '@/modules/wallet/wallet.module';
-import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
-import { Review } from '@/modules/consultation/reviews/infrastructure/entities/review.entity';
+
+import { ConsultationModule } from '@/modules/consultation/consultation.module';
+import { OrderModule } from '@/modules/commerce/order/order.module';
+import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([
-            ChatSession,
-            CallSession,
-            Order,
-            OrderItem,
             ProfileExpert,
-            PujaAppointment,
-            Review,
         ]),
         WalletModule,
+        forwardRef(() => ConsultationModule),
+        forwardRef(() => OrderModule),
+        forwardRef(() => PujaAppointmentModule),
     ],
     controllers: [ExpertEarningsController, ExpertWalletController],
     providers: [

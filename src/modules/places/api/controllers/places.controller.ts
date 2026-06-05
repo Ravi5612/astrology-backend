@@ -1,10 +1,10 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { PlacesService } from '../../application/places.service';
+import { PlacesFacade } from '../../application/places.facade';
 import { Public } from '@/common/decorators/public.decorator';
 
 @Controller('places')
 export class PlacesController {
-  constructor(private readonly placesService: PlacesService) {}
+  constructor(private readonly placesFacade: PlacesFacade) {}
 
   @Public()
   @Get('search')
@@ -18,7 +18,7 @@ export class PlacesController {
       console.log(`[Places API] WARNING: Query is empty, returning empty array.`);
       return { places: [] };
     }
-    return this.placesService.searchPlaces(query, allQueries.location || 'India');
+    return this.placesFacade.searchPlaces(query, allQueries.location || 'India');
   }
 
   @Public()
@@ -33,6 +33,6 @@ export class PlacesController {
       console.log(`[Places API] WARNING: Query is empty, returning empty array.`);
       return { places: [] };
     }
-    return this.placesService.getPlaceImages(query);
+    return this.placesFacade.getPlaceImages(query);
   }
 }

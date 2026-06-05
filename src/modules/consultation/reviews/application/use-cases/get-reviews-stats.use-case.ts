@@ -1,20 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { Review } from '../../infrastructure/entities/review.entity';
 
 @Injectable()
 export class GetReviewsStatsUseCase {
   constructor(
-    @InjectRepository(ProfileExpert)
-    private readonly expertRepository: Repository<ProfileExpert>,
+    @Inject(forwardRef(() => ExpertProfileFacade))
+    private readonly expertProfileFacade: ExpertProfileFacade,
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
   ) { }
 
-  async execute(expertId: string) {
-    const expert = await this.expertRepository.findOne({ where: { id: expertId as any } });
+  async execute(expert_id: string) {
+    const expert = await this.expertProfileFacade.getExpertById(expert_id) || await this.expertProfileFacade.getExpertByUserId(expert_id);
     if (!expert) return null;
 
     // Get star-wise distribution counts
@@ -22,7 +22,7 @@ export class GetReviewsStatsUseCase {
       .createQueryBuilder('review')
       .select('CAST(review.rating AS INTEGER)', 'rating')
       .addSelect('COUNT(*)', 'count')
-      .where('review.expert_id = :expertId', { expertId })
+      .where('review.expert_id = :expert_id', { expert_id })
       .groupBy('review.rating')
       .getRawMany();
 

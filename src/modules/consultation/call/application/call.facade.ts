@@ -6,7 +6,10 @@ import { GetExpertCallSessionsUseCase, CallSessionFilter } from './use-cases/get
 import { GetCallSessionUseCase } from './use-cases/get-call-session.use-case';
 import { GetCallTokenUseCase } from './use-cases/get-call-token.use-case';
 import { RejectCallUseCase } from './use-cases/reject-call.use-case';
-import { CallType } from '../infrastructure/entities/call-session.entity';
+import { CountExpertCallSessionsUseCase } from './use-cases/count-expert-sessions.use-case';
+import { GetExpertCallsByDateUseCase } from './use-cases/get-expert-calls-by-date.use-case';
+import { GetCallEarningsUseCase } from './use-cases/get-call-earnings.use-case';
+import { CallType, CallSessionStatus } from '../infrastructure/entities/call-session.entity';
 
 @Injectable()
 export class CallFacade {
@@ -21,14 +24,17 @@ export class CallFacade {
         private readonly getCallSessionUseCase: GetCallSessionUseCase,
         private readonly getCallTokenUseCase: GetCallTokenUseCase,
         private readonly rejectCallUseCase: RejectCallUseCase,
+        private readonly countExpertCallSessionsUseCase: CountExpertCallSessionsUseCase,
+        private readonly getExpertCallsByDateUseCase: GetExpertCallsByDateUseCase,
+        private readonly getCallEarningsUseCase: GetCallEarningsUseCase,
     ) { }
 
-    async initiate(userId: string, expertId: string, type: CallType = CallType.AUDIO) {
-        return this.initiateCallUseCase.execute(userId, expertId, type);
+    async initiate(userId: string, expert_id: string, type: CallType = CallType.AUDIO) {
+        return this.initiateCallUseCase.execute(userId, expert_id, type);
     }
 
-    async accept(expertId: string, sessionId: string) {
-        return this.acceptCallUseCase.execute(expertId, sessionId);
+    async accept(expert_id: string, sessionId: string) {
+        return this.acceptCallUseCase.execute(expert_id, sessionId);
     }
 
     async end(sessionId: string, terminatedBy?: string, reason?: string) {
@@ -53,5 +59,17 @@ export class CallFacade {
 
     async getExpertRevenueAndCount(expertProfileId: number) {
         return this.getExpertCallSessionsUseCase.getRevenueAndCount(expertProfileId);
+    }
+
+    async getExpertSessionCount(expert_id: string, options: { status?: CallSessionStatus | CallSessionStatus[], startDate?: Date } = {}) {
+        return this.countExpertCallSessionsUseCase.execute(expert_id, options);
+    }
+
+    async getExpertCallsByDate(expert_id: string, startDate: Date, endDate: Date) {
+        return this.getExpertCallsByDateUseCase.execute(expert_id, startDate, endDate);
+    }
+
+    async getEarnings(dateLimit: Date, type: 'audio' | 'video') {
+        return this.getCallEarningsUseCase.execute(dateLimit, type);
     }
 }

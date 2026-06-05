@@ -1,9 +1,9 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { ProkeralaService } from '@/external/prokerala/prokerala.service';
+import { AstrologyFacade } from '../application/astrology.facade';
 
 @Controller('astrology')
 export class AstrologyController {
-  constructor(private readonly prokeralaService: ProkeralaService) {}
+  constructor(private readonly astrologyFacade: AstrologyFacade) {}
 
   @Get('guna-milan')
   async getGunaMilan(
@@ -16,7 +16,7 @@ export class AstrologyController {
     @Query('boy_lon') boy_lon: string,
     @Query('boy_tz') boy_tz: string,
   ) {
-    return this.prokeralaService.getGunaMilan(
+    return this.astrologyFacade.getGunaMilan(
       { datetime: girl_dob, location: { lat: girl_lat, lon: girl_lon, tz: girl_tz } },
       { datetime: boy_dob, location: { lat: boy_lat, lon: boy_lon, tz: boy_tz } }
     );
@@ -27,7 +27,7 @@ export class AstrologyController {
     @Query('sign') sign: string,
     @Query('lang') lang?: string,
   ) {
-    return this.prokeralaService.getDailyHoroscope(sign, lang);
+    return this.astrologyFacade.getDailyHoroscope(sign, lang);
   }
 
   @Get('mangal-dosha')
@@ -37,7 +37,7 @@ export class AstrologyController {
     @Query('lon') lon: string,
     @Query('lang') lang?: string,
   ) {
-    return this.prokeralaService.getMangalDosha({ datetime, lat, lon, lang });
+    return this.astrologyFacade.getMangalDosha({ datetime, lat, lon, lang });
   }
 
   @Get('birth-details')
@@ -47,7 +47,7 @@ export class AstrologyController {
     @Query('lon') lon: string,
     @Query('ayanamsa') ayanamsa?: string,
   ) {
-    return this.prokeralaService.getBirthDetails({
+    return this.astrologyFacade.getBirthDetails({
       datetime,
       lat,
       lon,
@@ -67,7 +67,7 @@ export class AstrologyController {
     @Query('boy_tz') boy_tz: string,
     @Query('ayanamsa') ayanamsa?: string,
   ) {
-    return this.prokeralaService.getKundliMatching(
+    return this.astrologyFacade.getKundliMatching(
       { datetime: girl_dob, lat: girl_lat, lon: girl_lon, tz: girl_tz },
       { datetime: boy_dob, lat: boy_lat, lon: boy_lon, tz: boy_tz },
       ayanamsa,

@@ -11,10 +11,13 @@ import { DeleteCouponUseCase } from './application/use-cases/delete-coupon.use-c
 import { GetMyRewardsUseCase } from './application/use-cases/get-my-rewards.use-case';
 import { ApplyCouponUseCase } from './application/use-cases/apply-coupon.use-case';
 import { MarkCouponAsUsedUseCase } from './application/use-cases/mark-coupon-as-used.use-case';
+import { BulkAssignCouponUseCase } from './application/use-cases/bulk-assign-coupon.use-case';
 import { CouponController } from './api/controllers/coupon.controller';
 
+import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
+
 @Module({
-    imports: [TypeOrmModule.forFeature([Coupon, UserCoupon])],
+    imports: [TypeOrmModule.forFeature([Coupon, UserCoupon]), ClientProfileModule],
 
     controllers: [CouponController],
 
@@ -28,6 +31,7 @@ import { CouponController } from './api/controllers/coupon.controller';
         GetMyRewardsUseCase,
         ApplyCouponUseCase,
         MarkCouponAsUsedUseCase,
+        BulkAssignCouponUseCase,
     ],
     exports: [CouponFacade],
 })

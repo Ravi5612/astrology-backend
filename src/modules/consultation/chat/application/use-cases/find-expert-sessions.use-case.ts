@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan, Brackets } from 'typeorm';
 import { ChatSession, ChatSessionStatus } from '../../infrastructure/entities/chat-session.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 
 export enum ExpertSessionFilter {
     PENDING = 'pending',
@@ -25,22 +25,19 @@ export class FindExpertSessionsUseCase {
     constructor(
         @InjectRepository(ChatSession)
         private sessionRepo: Repository<ChatSession>,
-        @InjectRepository(ProfileExpert)
-        private expertRepo: Repository<ProfileExpert>,
+        @Inject(forwardRef(() => ExpertProfileFacade)) private expertProfileFacade: ExpertProfileFacade,
     ) { }
 
     async execute(userId: string, filter: ExpertSessionFilter, options: FindExpertSessionsOptions = {}) {
-        const expert = await this.expertRepo.findOne({
-            where: { user: { id: userId as any } },
-        });
-        if (!expert) return { data: [], totalCount: 0 };
+        const expert = await this.expertProfileFacade.getExpertByUserId(userId);
+        if (!expert) return { data: [], total_count: 0 };
 
-        const expertId = expert.id;
+        const expert_id = expert.id;
         const { limit = 20, offset = 0, search, sortBy = 'created_at', order = 'DESC' } = options;
 
         const query = this.sessionRepo.createQueryBuilder('session')
             .leftJoinAndSelect('session.user', 'user')
-            .where('session.expert_id = :expertId', { expertId });
+            .where('session.expert_id = :expert_id', { expert_id });
 
         const now = new Date();
         const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
@@ -113,6 +110,6 @@ export class FindExpertSessionsUseCase {
 
         const [data, totalCount] = await query.getManyAndCount();
 
-        return { data, totalCount };
+        return { data, total_count: totalCount };
     }
 }

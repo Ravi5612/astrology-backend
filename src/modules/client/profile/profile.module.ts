@@ -12,12 +12,15 @@ import { UpdateProfilePictureUseCase } from './application/use-cases/update-prof
 import { UploadDocumentUseCase } from './application/use-cases/upload-document.usecase';
 import { SendPhoneOtpUseCase } from './application/use-cases/send-phone-otp.usecase';
 import { VerifyPhoneOtpUseCase } from './application/use-cases/verify-phone-otp.usecase';
+import { UpdateClientProfileWithQueryRunnerUseCase } from './application/use-cases/update-profile-with-query-runner.usecase';
 import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
+import { UsersModule } from '@/modules/users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ProfileClient, User, Address]),
     CloudinaryModule,
+    UsersModule,
   ],
   controllers: [ProfileController],
   providers: [
@@ -29,6 +32,7 @@ import { CloudinaryModule } from '@/external/cloudinary/cloudinary.module';
     UploadDocumentUseCase,
     SendPhoneOtpUseCase,
     VerifyPhoneOtpUseCase,
+    UpdateClientProfileWithQueryRunnerUseCase,
   ],
   exports: [ClientProfileFacade],
 })

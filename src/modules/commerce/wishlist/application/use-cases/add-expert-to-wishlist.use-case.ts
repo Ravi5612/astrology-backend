@@ -3,8 +3,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { DataSource } from 'typeorm';
 import {
   ExpertAlreadyInWishlistError,
   ExpertNotFoundError,
@@ -17,29 +18,28 @@ export class AddExpertToWishlistUseCase {
   constructor(
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
-    @InjectRepository(ProfileClient)
-    private readonly profileClientRepo: Repository<ProfileClient>,
-    @InjectRepository(ProfileExpert)
-    private readonly profileExpertRepo: Repository<ProfileExpert>,
+    private readonly clientProfileFacade: ClientProfileFacade,
+    private readonly expertProfileFacade: ExpertProfileFacade,
+    private readonly dataSource: DataSource,
   ) {}
 
-  async execute(userId: string, expertId: string): Promise<Wishlist> {
-    const client = await this.profileClientRepo.findOne({ where: { user: { id: userId } } });
+  async execute(userId: string, expert_id: string): Promise<Wishlist> {
+    const client = await this.clientProfileFacade.getProfile(userId);
     if (!client) {
       throw new UserNotFoundError();
     }
 
-    let expert = await this.profileExpertRepo.findOne({ where: { user: { id: expertId } } });
+    let expert = await this.expertProfileFacade.getExpertByUserId(expert_id);
     if (!expert) {
-      expert = await this.profileExpertRepo.findOne({ where: { id: expertId } });
+      expert = await this.expertProfileFacade.getExpertById(expert_id);
     }
     
     if (!expert) {
-      throw new ExpertNotFoundError(expertId);
+      throw new ExpertNotFoundError(expert_id);
     }
-
+    
     const existing = await this.wishlistRepository.findOne({
-      where: { client: { id: client.id }, expert: { id: expert.id } },
+      where: { client_id: client.id, expert_id: expert.id },
     });
 
     if (existing) {
@@ -47,16 +47,26 @@ export class AddExpertToWishlistUseCase {
     }
 
     const wishlist = this.wishlistRepository.create({
-      client: client,
-      expert: expert,
+      client_id: client.id,
+      expert_id: expert.id,
     });
 
     const savedWishlist = await this.wishlistRepository.save(wishlist);
 
-    // Update total_likes for the expert
-    const currentLikes = Number(expert.total_likes) || 0;
-    expert.total_likes = currentLikes + 1;
-    await this.profileExpertRepo.save(expert);
+    // Update total_likes for the expert using QueryRunner
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const currentLikes = Number(expert.total_likes) || 0;
+      await this.expertProfileFacade.updateProfileWithQueryRunner(expert.user_id || expert.id, { total_likes: currentLikes + 1 }, queryRunner);
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      console.error('Failed to update total likes:', err);
+    } finally {
+      await queryRunner.release();
+    }
 
     return savedWishlist;
   }

@@ -11,7 +11,7 @@ import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { hasRoles, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
 
@@ -26,6 +26,7 @@ export class RegisterUserUseCase {
     private readonly tokenCrypto: TokenCryptoService,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
     private readonly walletFacade: WalletFacade,
+    private readonly expertProfileFacade: ExpertProfileFacade,
   ) {}
 
   async execute(dto: RegisterDto, ip?: string, userAgent?: string) {
@@ -53,9 +54,11 @@ export class RegisterUserUseCase {
       // Lock Commission Rate for Experts if referred by an Agent
       if (hasRoles(dto.roles, 'EXPERT') && user.referred_by_id) {
         const agentCommissionRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_ASTROLOGER');
-        await queryRunner.manager.update(ProfileExpert, { user: { id: user.id } }, {
-          agent_commission_rate: agentCommissionRate
-        });
+        await this.expertProfileFacade.updateProfileWithQueryRunner(
+          user.id,
+          { agent_commission_rate: agentCommissionRate },
+          queryRunner
+        );
       }
 
       const tokens = await this.issueTokens.execute(

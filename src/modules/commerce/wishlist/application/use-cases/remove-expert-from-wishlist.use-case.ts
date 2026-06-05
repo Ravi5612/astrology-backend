@@ -3,21 +3,29 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ExpertNotInWishlistError } from '../../domain/errors/wishlist.errors';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
+import { ExpertNotInWishlistError, UserNotFoundError } from '../../domain/errors/wishlist.errors';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class RemoveExpertFromWishlistUseCase {
   constructor(
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
-    @InjectRepository(ProfileExpert)
-    private readonly profileExpertRepository: Repository<ProfileExpert>,
+    private readonly expertProfileFacade: ExpertProfileFacade,
+    private readonly clientProfileFacade: ClientProfileFacade,
+    private readonly dataSource: DataSource,
   ) {}
 
-  async execute(userId: string, expertId: string): Promise<{ message: string }> {
+  async execute(userId: string, expert_id: string): Promise<{ message: string }> {
+    const client = await this.clientProfileFacade.getProfile(userId);
+    if (!client) {
+      throw new UserNotFoundError();
+    }
+
     const wishlist = await this.wishlistRepository.findOne({
-      where: { client: { user: { id: userId } }, expert: { id: expertId } },
+      where: { client_id: client.id, expert_id: expert_id },
     });
 
     if (!wishlist) {
@@ -26,15 +34,26 @@ export class RemoveExpertFromWishlistUseCase {
 
     await this.wishlistRepository.remove(wishlist);
 
-    const profileExpert = await this.profileExpertRepository.findOne({
-      where: { user: { id: expertId } },
-    });
+    let profileExpert = await this.expertProfileFacade.getExpertByUserId(expert_id);
+    if (!profileExpert) {
+      profileExpert = await this.expertProfileFacade.getExpertById(expert_id);
+    }
     
     if (profileExpert) {
       const currentLikes = profileExpert.total_likes || 0;
       if (currentLikes > 0) {
-        profileExpert.total_likes = currentLikes - 1;
-        await this.profileExpertRepository.save(profileExpert);
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+        try {
+          await this.expertProfileFacade.updateProfileWithQueryRunner(profileExpert.user_id || profileExpert.id, { total_likes: currentLikes - 1 }, queryRunner);
+          await queryRunner.commitTransaction();
+        } catch (err) {
+          await queryRunner.rollbackTransaction();
+          console.error('Failed to decrement total likes:', err);
+        } finally {
+          await queryRunner.release();
+        }
       }
     }
 

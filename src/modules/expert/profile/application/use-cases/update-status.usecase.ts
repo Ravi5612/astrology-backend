@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileExpert } from '../../infrastructure/entities/profile-expert.entity';
@@ -18,6 +18,7 @@ export class UpdateStatusUseCase {
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
     private readonly eventEmitter: EventEmitter2,
+    @Inject(forwardRef(() => ChatFacade))
     private readonly chatFacade: ChatFacade,
   ) { }
 

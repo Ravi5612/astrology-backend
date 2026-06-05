@@ -46,18 +46,18 @@ export class ReviewsController {
   }
 
   // ─── Public: Expert reviews ─────────────────────────────────────────────────
-  @Get('expert/:expertId')
+  @Get('expert/:expert_id')
   async getReviews(
-    @Param('expertId', ParseUUIDPipe) expertId: string,
+    @Param('expert_id', ParseUUIDPipe) expert_id: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
-    return this.reviewsFacade.getExpertReviews(expertId, page, limit);
+    return this.reviewsFacade.getExpertReviews(expert_id, page, limit);
   }
 
-  @Get('expert/:expertId/stats')
-  async getStats(@Param('expertId', ParseUUIDPipe) expertId: string) {
-    return this.reviewsFacade.getReviewsStats(expertId);
+  @Get('expert/:expert_id/stats')
+  async getStats(@Param('expert_id', ParseUUIDPipe) expert_id: string) {
+    return this.reviewsFacade.getReviewsStats(expert_id);
   }
 
   // ─── Public: Merchant reviews ────────────────────────────────────────────────

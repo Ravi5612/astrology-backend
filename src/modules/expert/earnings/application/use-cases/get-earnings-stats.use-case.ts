@@ -1,33 +1,25 @@
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
-import { ChatSession, ChatSessionStatus } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
-import { CallSession, CallSessionStatus, CallType } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
-import { Order, OrderStatus } from '@/modules/commerce/order/infrastructure/entities/order.entity';
-import { OrderItem } from '@/modules/commerce/order/infrastructure/entities/order-item.entity';
+import { Repository } from 'typeorm';
+import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
+import { CallFacade } from '@/modules/consultation/call/application/call.facade';
+import { GetExpertPujasByDateUseCase } from '@/modules/puja-appointment/application/use-cases/get-expert-pujas-by-date.use-case';
+import { ReviewsFacade } from '@/modules/consultation/reviews/application/reviews.facade';
+import { CallType } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { PujaAppointment, PujaAppointmentStatus } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
-import { Review } from '@/modules/consultation/reviews/infrastructure/entities/review.entity';
 
 
 @Injectable()
 export class GetEarningsStatsUseCase {
     constructor(
-        @InjectRepository(ChatSession)
-        private sessionRepo: Repository<ChatSession>,
-        @InjectRepository(CallSession)
-        private callRepo: Repository<CallSession>,
-        @InjectRepository(OrderItem)
-        private orderItemRepo: Repository<OrderItem>,
         @InjectRepository(ProfileExpert)
         private expertRepo: Repository<ProfileExpert>,
-        @InjectRepository(PujaAppointment)
-        private pujaRepo: Repository<PujaAppointment>,
-        @InjectRepository(Review)
-        private reviewRepo: Repository<Review>,
+        private chatFacade: ChatFacade,
+        private callFacade: CallFacade,
+        private getExpertPujasByDateUseCase: GetExpertPujasByDateUseCase,
+        private reviewsFacade: ReviewsFacade,
         private walletFacade: WalletFacade,
     ) { }
 
@@ -37,7 +29,7 @@ export class GetEarningsStatsUseCase {
         });
         if (!expert) return null;
 
-        const expertId = expert.id;
+        const expert_id = expert.id;
         
         // --- Date Range Calculation ---
         const now = new Date();
@@ -91,34 +83,17 @@ export class GetEarningsStatsUseCase {
 
         // --- Data Fetching (Current Period) ---
         const [sessions, calls, pujas, reviews] = await Promise.all([
-            this.sessionRepo.find({
-                where: { expert_id: expertId, status: ChatSessionStatus.COMPLETED, created_at: Between(startDate, endDate) },
-                relations: ['user'],
-            }),
-            this.callRepo.find({
-                where: { expert_id: expertId, status: CallSessionStatus.COMPLETED, created_at: Between(startDate, endDate) },
-                relations: ['user'],
-            }),
-            this.pujaRepo.find({
-                where: { expert_id: expertId, status: PujaAppointmentStatus.CONFIRMED, created_at: Between(startDate, endDate) },
-                relations: ['client', 'client.user', 'puja'],
-            }),
-            this.reviewRepo.find({
-                where: { expert_id: expertId, created_at: Between(startDate, endDate) },
-            })
+            this.chatFacade.getExpertSessionsByDate(expert_id as any, startDate, endDate),
+            this.callFacade.getExpertCallsByDate(expert_id as any, startDate, endDate),
+            this.getExpertPujasByDateUseCase.execute(expert_id as any, startDate, endDate),
+            this.reviewsFacade.getExpertReviewsByDate(expert_id as any, startDate, endDate)
         ]);
 
         // --- Data Fetching (Previous Period for Growth) ---
         const [prevSessions, prevCalls, prevPujas] = await Promise.all([
-            this.sessionRepo.find({
-                where: { expert_id: expertId, status: ChatSessionStatus.COMPLETED, created_at: Between(prevStartDate, prevEndDate) },
-            }),
-            this.callRepo.find({
-                where: { expert_id: expertId, status: CallSessionStatus.COMPLETED, created_at: Between(prevStartDate, prevEndDate) },
-            }),
-            this.pujaRepo.find({
-                where: { expert_id: expertId, status: PujaAppointmentStatus.CONFIRMED, created_at: Between(prevStartDate, prevEndDate) },
-            })
+            this.chatFacade.getExpertSessionsByDate(expert_id as any, prevStartDate, prevEndDate),
+            this.callFacade.getExpertCallsByDate(expert_id as any, prevStartDate, prevEndDate),
+            this.getExpertPujasByDateUseCase.execute(expert_id as any, prevStartDate, prevEndDate)
         ]);
 
         const chatRevenue = sessions.reduce((acc, s) => acc + (s.total_cost || 0), 0);
@@ -133,7 +108,7 @@ export class GetEarningsStatsUseCase {
 
         const growth = prevTotalRevenue > 0 ? ((totalRevenue - prevTotalRevenue) / prevTotalRevenue) * 100 : 0;
         const consultationsCount = sessions.length + calls.length + pujas.length;
-        const averageRating = reviews.length > 0 ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length : 0;
+        const average_rating = reviews.length > 0 ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length : 0;
 
         // Service Color Mapping
         const serviceColors: Record<string, string> = {
@@ -225,7 +200,7 @@ export class GetEarningsStatsUseCase {
                 id: u.id,
                 name: u.name,
                 avatar: u.avatar,
-                totalSpent: u.amount,
+                total_spent: u.amount,
                 sessions: u.sessions
             }))
             .slice(0, 5);
@@ -252,7 +227,7 @@ export class GetEarningsStatsUseCase {
                 id: s.id,
                 name: s.name,
                 revenue: s.amount,
-                usageCount: s.usage,
+                usage_count: s.usage,
                 color: getColor(s.name)
             }));
 
@@ -272,8 +247,8 @@ export class GetEarningsStatsUseCase {
             .sort((a, b) => b.amount - a.amount);
 
         // Wallet and Stats
-        const walletBalance = await this.walletFacade.getBalance(userId as any);
-        const { totalWithdrawn } = await this.walletFacade.getWithdrawalsStatus(userId as any);
+        const wallet_balance = await this.walletFacade.getBalance(userId as any);
+        const { total_withdrawn } = await this.walletFacade.getWithdrawalsStatus(userId as any);
         const { data: transactions } = await this.walletFacade.getTransactions(userId as any, '5', '0', 'all');
         const recentTransactions = transactions.map(t => ({
             id: t.id.toString(),
@@ -286,20 +261,20 @@ export class GetEarningsStatsUseCase {
 
         return {
             stats: {
-                totalRevenue,
+                total_revenue: totalRevenue,
                 consultations: consultationsCount,
-                averageRating,
+                average_rating,
                 growth,
-                walletBalance: walletBalance || 0,
-                totalWithdrawn: totalWithdrawn || 0,
-                pujaRevenue,
-                revenueGrowth: growth,
+                wallet_balance: wallet_balance || 0,
+                total_withdrawn: total_withdrawn || 0,
+                puja_revenue: pujaRevenue,
+                revenue_growth: growth,
             },
-            incomeTrends,
-            revenueBreakdown,
-            topUsers,
-            topServices,
-            recentTransactions
+            income_trends: incomeTrends,
+            revenue_breakdown: revenueBreakdown,
+            top_users: topUsers,
+            top_services: topServices,
+            recent_transactions: recentTransactions
         };
     }
 }

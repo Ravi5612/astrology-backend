@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Dispute } from './infrastructure/entities/dispute.entity';
 import { DisputeMessage } from './infrastructure/entities/dispute-message.entity';
@@ -13,9 +13,15 @@ import { GetAllDisputesUseCase } from './application/use-cases/get-all-disputes.
 import { UpdateDisputeStatusUseCase } from './application/use-cases/update-dispute-status.use-case';
 import { SupportController } from './api/controllers/support.controller';
 import { SupportGateway } from './api/support.gateway';
+import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
+import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Dispute, DisputeMessage])],
+    imports: [
+        TypeOrmModule.forFeature([Dispute, DisputeMessage]),
+        forwardRef(() => ClientProfileModule),
+        forwardRef(() => ExpertProfileModule),
+    ],
     providers: [
         SupportFacade,
         SupportGateway,

@@ -1,5 +1,5 @@
 
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Withdrawal, WithdrawalStatus } from '../../infrastructure/entities/withdrawal.entity';
@@ -11,6 +11,10 @@ import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entit
 import { BankAccount } from '@/modules/expert/bank-accounts/infrastructure/entities/bank-account.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
+import { AgentFacade } from '@/modules/agent/application/agent.facade';
+import { UsersFacade } from '@/modules/users/application/users.facade';
 
 @Injectable()
 export class UpdateWithdrawalStatusUseCase {
@@ -20,6 +24,13 @@ export class UpdateWithdrawalStatusUseCase {
         private readonly dataSource: DataSource,
         private readonly razorpayPayoutService: RazorpayPayoutService,
         private readonly notificationFacade: NotificationFacade,
+        @Inject(forwardRef(() => ExpertProfileFacade))
+        private readonly expertFacade: ExpertProfileFacade,
+        @Inject(forwardRef(() => MerchantProfileFacade))
+        private readonly merchantFacade: MerchantProfileFacade,
+        @Inject(forwardRef(() => AgentFacade))
+        private readonly agentFacade: AgentFacade,
+        private readonly usersFacade: UsersFacade,
     ) { }
 
     async execute(id: string, status: WithdrawalStatus, adminId: string, remark?: string) {
@@ -61,49 +72,49 @@ export class UpdateWithdrawalStatusUseCase {
 
             // --- AUTO PAYOUT INTEGRATION ---
             if (status === WithdrawalStatus.APPROVED) {
-                // Try to find either Expert or Agent profile
+                // Try to find either Expert or Agent profile using Facades (read outside transaction)
                 let profile: any = null;
+                let user: any = null;
+
                 if (withdrawal.expert_id) {
-                    profile = await queryRunner.manager.findOne(ProfileExpert, {
-                        where: { id: withdrawal.expert_id },
-                        relations: ['user']
-                    });
+                    profile = await this.expertFacade.getExpertById(withdrawal.expert_id);
                 } else if (withdrawal.agent_profile_id) {
-                    profile = await queryRunner.manager.findOne('ProfileAgent', {
-                        where: { id: withdrawal.agent_profile_id },
-                        relations: ['user']
-                    });
+                    profile = await this.dataSource.getRepository('ProfileAgent').findOne({ where: { id: withdrawal.agent_profile_id } }); // Safe read fallback
                 } else if (withdrawal.merchant_id) {
-                    profile = await queryRunner.manager.findOne(ProfileMerchant, {
-                        where: { id: withdrawal.merchant_id },
-                        relations: ['user']
-                    });
+                    profile = await this.merchantFacade.getProfileById(withdrawal.merchant_id);
                 }
 
                 if (!profile) throw new BadRequestException('User profile (Expert, Agent or Merchant) not found');
 
+                user = await this.usersFacade.findById(profile.user_id);
+
                 // 1. Get or Create Razorpay Contact
                 if (!profile.razorpay_contact_id) {
-                    profile.razorpay_contact_id = await this.razorpayPayoutService.getOrCreateContact({
+                    const newContactId = await this.razorpayPayoutService.getOrCreateContact({
                         id: profile.user_id,
-                        name: profile.user?.name || 'Partner',
-                        email: profile.user?.email || undefined,
+                        name: user?.name || 'Partner',
+                        email: user?.email || undefined,
                         phone_number: profile.phone_number || profile.phone || undefined
                     });
                     
-                    // Save to the correct table
-                    let entityToSave: any = ProfileExpert;
-                    if (profile.hasOwnProperty('agent_id')) entityToSave = 'ProfileAgent';
-                    if (profile.hasOwnProperty('business_name') || profile.hasOwnProperty('merchant_id')) entityToSave = ProfileMerchant;
+                    // Save to the correct table via queryRunner
+                    if (withdrawal.expert_id) {
+                        await this.expertFacade.updateProfileWithQueryRunner(profile.id, { razorpay_contact_id: newContactId }, queryRunner);
+                    } else if (withdrawal.merchant_id) {
+                        await this.merchantFacade.updateProfileWithQueryRunner(profile.id, { razorpay_contact_id: newContactId }, queryRunner);
+                    } else if (withdrawal.agent_profile_id) {
+                        await this.agentFacade.updateProfileWithQueryRunner(profile.id, { razorpay_contact_id: newContactId }, queryRunner);
+                    }
                     
-                    await queryRunner.manager.save(entityToSave, profile);
+                    profile.razorpay_contact_id = newContactId;
                 }
 
 
                 // 2. Get or Create Fund Account
                 let bankAccount: any = null;
                 if (withdrawal.bank_account_id) {
-                    bankAccount = await queryRunner.manager.findOne(BankAccount, {
+                    // Safe read outside transaction, since bank account is largely immutable for the payout details
+                    bankAccount = await this.dataSource.getRepository('BankAccount').findOne({
                         where: { id: withdrawal.bank_account_id }
                     });
                 }
@@ -134,8 +145,7 @@ export class UpdateWithdrawalStatusUseCase {
 
                     // If we have a permanent BankAccount record, save the fund account ID there
                     if (bankAccount) {
-                        bankAccount.razorpay_fund_account_id = fundAccountId;
-                        await queryRunner.manager.save(BankAccount, bankAccount);
+                        await queryRunner.manager.update('BankAccount', { id: bankAccount.id }, { razorpay_fund_account_id: fundAccountId });
                     }
                     
                     // Temporary variable for the initiation step
@@ -262,13 +272,13 @@ export class UpdateWithdrawalStatusUseCase {
 
                 let userId = '';
                 if (withdrawal.expert_id) {
-                    const expert = await queryRunner.manager.findOne(ProfileExpert, { where: { id: withdrawal.expert_id } });
+                    const expert = await this.expertFacade.getExpertById(withdrawal.expert_id);
                     if(expert) userId = expert.user_id;
                 } else if (withdrawal.merchant_id) {
-                    const merchant = await queryRunner.manager.findOne(ProfileMerchant, { where: { id: withdrawal.merchant_id } });
+                    const merchant = await this.merchantFacade.getProfileById(withdrawal.merchant_id);
                     if(merchant) userId = merchant.user_id;
                 } else if (withdrawal.agent_profile_id) {
-                    const agent = await queryRunner.manager.findOne('ProfileAgent', { where: { id: withdrawal.agent_profile_id } });
+                    const agent = await this.dataSource.getRepository('ProfileAgent').findOne({ where: { id: withdrawal.agent_profile_id } });
                     if(agent) userId = (agent as any).user_id;
                 }
 

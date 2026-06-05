@@ -19,7 +19,7 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { MerchantProductsUseCase } from '../../application/use-cases/merchant-products.usecase';
+import { ProductFacade } from '@/modules/commerce/product/application/product.facade';
 import { CreateMerchantProductDto } from '../dto/create-merchant-product.dto';
 import { BulkUpdateStatusDto } from '../dto/bulk-update-status.dto';
 
@@ -27,7 +27,7 @@ import { BulkUpdateStatusDto } from '../dto/bulk-update-status.dto';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('MERCHANT', 'AGENT', 'EXPERT')
 export class MerchantProductsController {
-  constructor(private readonly merchantProducts: MerchantProductsUseCase) {}
+  constructor(private readonly productFacade: ProductFacade) {}
 
   // GET /api/v1/merchant/products?status=active&search=rudraksha&page=1&limit=20
   @Get()
@@ -39,7 +39,7 @@ export class MerchantProductsController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number = 20,
   ) {
-    const products = await this.merchantProducts.findAll(userId as any, { status, search, page, limit });
+    const products = await this.productFacade.findMerchantProducts(userId as any, { status, search, page, limit });
     return { success: true, data: products };
   }
 
@@ -50,7 +50,7 @@ export class MerchantProductsController {
     @CurrentUser('id') userId: string,
     @Param('id', ParseUUIDPipe) productId: string,
   ) {
-    const product = await this.merchantProducts.findOne(userId as any, productId);
+    const product = await this.productFacade.findOneMerchantProduct(userId as any, productId);
     return { success: true, data: product };
   }
 
@@ -61,7 +61,7 @@ export class MerchantProductsController {
     @CurrentUser('id') userId: string,
     @Body() dto: CreateMerchantProductDto,
   ) {
-    const product = await this.merchantProducts.create(userId as any, dto);
+    const product = await this.productFacade.createMerchantProduct(userId as any, dto);
     return { success: true, data: product };
   }
 
@@ -72,7 +72,7 @@ export class MerchantProductsController {
     @CurrentUser('id') userId: string,
     @Body() dto: BulkUpdateStatusDto,
   ) {
-    const result = await this.merchantProducts.bulkUpdateStatus(userId as any, dto.ids, dto.status);
+    const result = await this.productFacade.bulkUpdateMerchantProductStatus(userId as any, dto.ids, dto.status);
     return { success: true, data: result };
   }
 
@@ -84,7 +84,7 @@ export class MerchantProductsController {
     @Param('id', ParseUUIDPipe) productId: string,
     @Body() dto: CreateMerchantProductDto,
   ) {
-    const product = await this.merchantProducts.update(userId as any, productId, dto);
+    const product = await this.productFacade.updateMerchantProduct(userId as any, productId, dto);
     return { success: true, data: product };
   }
 
@@ -95,7 +95,7 @@ export class MerchantProductsController {
     @CurrentUser('id') userId: string,
     @Param('id', ParseUUIDPipe) productId: string,
   ) {
-    const result = await this.merchantProducts.remove(userId as any, productId);
+    const result = await this.productFacade.removeMerchantProduct(userId as any, productId);
     return { success: true, data: result };
   }
 }

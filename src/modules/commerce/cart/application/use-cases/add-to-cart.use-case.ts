@@ -5,8 +5,8 @@ import { Repository } from 'typeorm';
 import { Cart } from '../../infrastructure/entities/cart.entity';
 import { CartItem } from '../../infrastructure/entities/cart-item.entity';
 import { AddToCartDto } from '../../api/dto/create-cart.dto';
-import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { Product } from '../../../product/infrastructure/entities/product.entity';
+import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 
 @Injectable()
 export class AddToCartUseCase {
@@ -16,9 +16,8 @@ export class AddToCartUseCase {
     @InjectRepository(CartItem)
     private cartItemRepository: Repository<CartItem>,
     @InjectRepository(Product)
-    private productRepository: Repository<Product>,
-    @InjectRepository(ProfileClient)
-    private profileClientRepository: Repository<ProfileClient>,
+    private readonly productRepository: Repository<Product>,
+    private readonly clientFacade: ClientProfileFacade,
   ) {}
 
   async execute(userId: string, addToCartDto: AddToCartDto) {
@@ -38,9 +37,9 @@ export class AddToCartUseCase {
     });
 
     if (!cart) {
-      const client = await this.profileClientRepository.findOne({ where: { user: { id: userId } } });
+      const client = await this.clientFacade.getProfile(userId);
       if (!client) {
-        throw new NotFoundException('Client profile not found for user');
+        throw new NotFoundException('Client profile not found');
       }
       cart = this.cartRepository.create({ client });
       await this.cartRepository.save(cart);

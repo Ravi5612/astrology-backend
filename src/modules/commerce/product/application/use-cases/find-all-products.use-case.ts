@@ -3,15 +3,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from '../../infrastructure/entities/product.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
 
 @Injectable()
 export class FindAllProductsUseCase {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-    @InjectRepository(ProfileMerchant)
-    private readonly merchantRepository: Repository<ProfileMerchant>,
+    private readonly merchantFacade: MerchantProfileFacade,
   ) { }
 
   async execute(filters: { merchantId?: string; page?: number; limit?: number }) {
@@ -23,7 +22,7 @@ export class FindAllProductsUseCase {
 
     if (merchantId) {
       // Find the client_id associated with this merchant profile id
-      const merchant = await this.merchantRepository.findOne({ where: { id: merchantId } });
+      const merchant = await this.merchantFacade.getProfileById(merchantId);
       if (merchant) {
         query.andWhere('product.merchant_id = :userId', { userId: merchant.user_id });
       } else {
@@ -47,17 +46,17 @@ export class FindAllProductsUseCase {
       data: products.map(p => ({
         ...p,
         price: Number(p.price),
-        originalPrice: p.original_price ? Number(p.original_price) : Number(p.price),
-        imageUrl: p.image_url ?? '',
-        percentageOff: p.percentage_off ?? 0,
-        productName: p.name,
-        productImage: p.image_url ?? ''
+        original_price: p.original_price ? Number(p.original_price) : Number(p.price),
+        image_url: p.image_url ?? '',
+        percentage_off: p.percentage_off ?? 0,
+        product_name: p.name,
+        product_image: p.image_url ?? ''
       })),
       meta: {
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit),
+        total_pages: Math.ceil(total / limit),
       },
     };
   }

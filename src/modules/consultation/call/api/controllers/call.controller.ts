@@ -20,12 +20,12 @@ export class CallController {
     // ... (lines 14-24 remains same)
     async initiate(
         @Req() req: any,
-        @Body() body: { expertId: string; type?: CallType }
+        @Body() body: { expert_id: string; type?: CallType }
     ) {
-        console.log(`[CallController] Initiate call: userId=${req.user.id}, expertId=${body.expertId}, type=${body.type || CallType.AUDIO}`);
+        console.log(`[CallController] Initiate call: userId=${req.user.id}, expert_id=${body.expert_id}, type=${body.type || CallType.AUDIO}`);
         return this.callFacade.initiate(
             req.user.id,
-            body.expertId,
+            body.expert_id,
             body.type || CallType.AUDIO
         );
     }

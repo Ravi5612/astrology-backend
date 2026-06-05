@@ -7,7 +7,7 @@ import { UpdateProfileClientDto } from '../../infrastructure/dto/profile-client.
 import { ProfilePolicy } from '../../domain/policies/profile.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfileUpdatedEvent } from '../../domain/events/profile-events';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { UsersFacade } from '@/modules/users/application/users.facade';
 import { Address } from '@/common/address/address.entity';
 
 @Injectable()
@@ -17,8 +17,7 @@ export class UpdateProfileUseCase {
   constructor(
     @InjectRepository(ProfileClient)
     private readonly repo: Repository<ProfileClient>,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
+    private readonly usersFacade: UsersFacade,
     @InjectRepository(Address)
     private readonly addressRepo: Repository<Address>,
     private readonly eventEmitter: EventEmitter2,
@@ -52,7 +51,7 @@ export class UpdateProfileUseCase {
 
     // Update the user's name in the User table if full_name is provided
     if (full_name !== undefined) {
-      await this.userRepo.update(userId, { name: full_name });
+      await this.usersFacade.update(userId, { name: full_name });
     }
 
     // Apply scalar fields to the profile

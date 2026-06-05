@@ -31,9 +31,9 @@ export class ProductNotFoundError extends DomainError {
 }
 
 export class ExpertNotFoundError extends DomainError {
-  constructor(expertId: string, message?: string) {
+  constructor(expert_id: string, message?: string) {
     super();
-    this.message = message || `Expert with ID ${expertId} not found`;
+    this.message = message || `Expert with ID ${expert_id} not found`;
   }
   readonly code = 'EXPERT_NOT_FOUND';
   readonly message: string;
@@ -47,9 +47,9 @@ export class UserNotFoundError extends DomainError {
 }
 
 export class NotAnExpertError extends DomainError {
-  constructor(expertId: string, roleNames: string) {
+  constructor(expert_id: string, roleNames: string) {
     super();
-    this.message = `User with ID ${expertId} is not an expert (Roles: ${roleNames})`;
+    this.message = `User with ID ${expert_id} is not an expert (Roles: ${roleNames})`;
   }
   readonly code = 'NOT_AN_EXPERT';
   readonly message: string;

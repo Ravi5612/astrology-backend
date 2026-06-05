@@ -1,17 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 import { CallFacade } from '@/modules/consultation/call/application/call.facade';
-import { GetExpertPujaAppointmentsUseCase } from '@/modules/puja-appointment/application/use-cases/get-expert-puja-appointments.use-case';
+import { PujaAppointmentFacade } from '@/modules/puja-appointment/application/puja-appointment.facade';
 import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
 
 @Injectable()
 export class GetAdminTopExpertsUseCase {
   constructor(
+    @Inject(forwardRef(() => UsersFacade))
     private readonly usersFacade: UsersFacade,
+    @Inject(forwardRef(() => ChatFacade))
     private readonly chatFacade: ChatFacade,
+    @Inject(forwardRef(() => CallFacade))
     private readonly callFacade: CallFacade,
-    private readonly getExpertPujaAppointmentsUseCase: GetExpertPujaAppointmentsUseCase,
+    @Inject(forwardRef(() => PujaAppointmentFacade))
+    private readonly pujaFacade: PujaAppointmentFacade,
+    @Inject(forwardRef(() => OrderFacade))
     private readonly orderFacade: OrderFacade,
   ) { }
 
@@ -30,7 +35,7 @@ export class GetAdminTopExpertsUseCase {
       const callStats = await this.callFacade.getExpertRevenueAndCount(expertProfileId);
 
       // 3. Puja Revenue
-      const pujaStats = await this.getExpertPujaAppointmentsUseCase.getRevenueAndCount(expertProfileId);
+      const pujaStats = await this.pujaFacade.getExpertRevenueAndCount(expertProfileId);
 
       // 4. Product Revenue
       const productStats = await this.orderFacade.getExpertProductRevenueAndCount(expertProfileId);

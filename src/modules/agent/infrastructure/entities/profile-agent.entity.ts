@@ -24,10 +24,10 @@ export class ProfileAgent {
     commission_rate!: number;
 
     @Column({ type: 'uuid', array: true, default: '{}' })
-    registered_user_ids!: number[];
+    registered_user_ids!: string[];
 
     @Column({ type: 'uuid', array: true, default: '{}' })
-    registered_astrologer_ids!: number[];
+    registered_astrologer_ids!: string[];
 
     @Column({ type: 'character varying', length: 255,  nullable: true })
     bank_name!: string;

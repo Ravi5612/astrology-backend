@@ -17,8 +17,13 @@ export class GetAdminWithdrawalStatsUseCase {
                 .where('w.status IN (:...statuses)', { statuses });
             
             if (userRole) {
-                query.innerJoin('w.user', 'user')
-                    .andWhere(':roleName = ANY(user.roles)', { roleName: userRole });
+                if (userRole === RoleEnum.EXPERT) {
+                    query.andWhere('w.expert_id IS NOT NULL');
+                } else if (userRole === RoleEnum.MERCHANT) {
+                    query.andWhere('w.merchant_id IS NOT NULL');
+                } else if (userRole === RoleEnum.AGENT) {
+                    query.andWhere('w.agent_profile_id IS NOT NULL');
+                }
             }
             return query;
         };
@@ -40,12 +45,12 @@ export class GetAdminWithdrawalStatsUseCase {
             .getRawOne();
 
         return {
-            totalPending: pendingCount,
-            totalProcessing: processingCount,
-            totalSuccess: successCount,
-            totalRejected: rejectedCount,
-            totalAmountPending: Number(pendingAmountResult?.sum || 0),
-            totalAmountSuccess: Number(successAmountResult?.sum || 0),
+            total_pending: pendingCount,
+            total_processing: processingCount,
+            total_success: successCount,
+            total_rejected: rejectedCount,
+            total_amount_pending: Number(pendingAmountResult?.sum || 0),
+            total_amount_success: Number(successAmountResult?.sum || 0),
         };
 
     }

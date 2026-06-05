@@ -1,5 +1,5 @@
 
-import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
@@ -8,14 +8,12 @@ import { CartFacade } from '@/modules/commerce/cart/application/cart.facade';
 import { Cart } from '@/modules/commerce/cart/infrastructure/entities/cart.entity';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
+import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { CreateOrderDto } from '../../api/dto/create-order.dto';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
-import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
 
 @Injectable()
 export class CreateOrderFromCartUseCase {
@@ -26,13 +24,16 @@ export class CreateOrderFromCartUseCase {
     private orderRepo: Repository<Order>,
     @InjectRepository(OrderItem)
     private orderItemRepo: Repository<OrderItem>,
-    @InjectRepository(User)
-    private userRepo: Repository<User>,
     @InjectRepository(Product)
     private productRepo: Repository<Product>,
+    @Inject(forwardRef(() => CartFacade))
     private cartFacade: CartFacade,
+    @Inject(forwardRef(() => WalletFacade))
     private walletFacade: WalletFacade,
+    @Inject(forwardRef(() => CouponFacade))
     private couponFacade: CouponFacade,
+    @Inject(forwardRef(() => ClientProfileFacade))
+    private clientFacade: ClientProfileFacade,
     private dataSource: DataSource,
     private notificationGateway: NotificationGateway,
     private emailService: NodeMailerService,
@@ -184,7 +185,7 @@ export class CreateOrderFromCartUseCase {
       const deliveryOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
       // 3. Create Order record
-      const client = await queryRunner.manager.findOne(ProfileClient, { where: { user: { id: userId } } });
+      const client = await this.clientFacade.getProfile(userId, queryRunner);
       if (!client) {
         throw new BadRequestException('Client profile not found');
       }

@@ -5,8 +5,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, Like } from 'typeorm';
-import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
-import { CreateMerchantProductDto, MerchantProductStatus } from '../../api/dto/create-merchant-product.dto';
+import { Product } from '../../infrastructure/entities/product.entity';
+import { CreateMerchantProductDto, MerchantProductStatus } from '@/modules/merchant/dashboard/api/dto/create-merchant-product.dto';
 
 type ProductStatus = 'active' | 'draft' | 'out_of_stock';
 
@@ -35,7 +35,7 @@ export class MerchantProductsUseCase {
       price: Number(p.price),
       stock: p.stock,
       status,
-      imageUrl: p.image_url ?? '',
+      image_url: p.image_url ?? '',
       productImage: p.image_url ?? '',
       description: p.description,
       original_price: Number(p.original_price ?? p.price),
@@ -87,7 +87,7 @@ export class MerchantProductsUseCase {
       sku: dto.sku,
       price: dto.price,
       original_price: dto.original_price,
-      image_url: dto.imageUrl,
+      image_url: dto.image_url,
       stock: dto.stock ?? 0,
       is_active: isActive,
       merchant_id: merchantId as any,
@@ -111,7 +111,7 @@ export class MerchantProductsUseCase {
     if (dto.sku !== undefined) updates.sku = dto.sku;
     if (dto.price !== undefined) updates.price = dto.price;
     if (dto.original_price !== undefined) updates.original_price = dto.original_price;
-    if (dto.imageUrl !== undefined) updates.image_url = dto.imageUrl;
+    if (dto.image_url !== undefined) updates.image_url = dto.image_url;
     if (dto.stock !== undefined) updates.stock = dto.stock;
     if (dto.status !== undefined) {
       updates.is_active = dto.status === MerchantProductStatus.ACTIVE;
@@ -164,5 +164,22 @@ export class MerchantProductsUseCase {
       throw new ForbiddenException('You do not own this product');
     }
     return this.toResponse(p);
+  }
+
+  // 7. STOCK LEVELS
+  async getMerchantStockLevels(merchantId: string) {
+    const stockResult = await this.productRepo.query(`
+        SELECT name, stock 
+        FROM commerce.products 
+        WHERE merchant_id = $1
+        ORDER BY stock ASC
+        LIMIT 10
+    `, [merchantId]);
+
+    return stockResult.map(p => ({
+        name: p.name,
+        stock: Number(p.stock),
+        status: p.stock > 10 ? 'Healthy' : p.stock > 0 ? 'Low Stock' : 'Out of Stock'
+    }));
   }
 }

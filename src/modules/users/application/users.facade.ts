@@ -9,11 +9,15 @@ import { GetExpertStatsUseCase } from './use-cases/get-expert-stats.usecase';
 import { GetClientStatsUseCase } from './use-cases/get-client-stats.usecase';
 import { GetUserExpertGrowthStatsUseCase } from './use-cases/get-user-expert-growth-stats.usecase';
 import { FindUsersByRoleUseCase } from './use-cases/find-users-by-role.usecase';
+import { FindReferredUsersUseCase } from './use-cases/find-referred-users.usecase';
 import { CreateUserDto } from '../api/dto/user.dto';
 import { User } from '../infrastructure/entities/user.entity';
 
 import { QueryRunner } from 'typeorm';
 import { RoleEnum } from '../infrastructure/enums/Role.enum';
+
+import { GetFilteredUsersUseCase, FilterCriteria } from './use-cases/get-filtered-users.use-case';
+
 
 @Injectable()
 export class UsersFacade {
@@ -27,6 +31,8 @@ export class UsersFacade {
     private readonly getClientStatsUseCase: GetClientStatsUseCase,
     private readonly getUserExpertGrowthStatsUseCase: GetUserExpertGrowthStatsUseCase,
     private readonly findUsersByRoleUseCase: FindUsersByRoleUseCase,
+    private readonly findReferredUsersUseCase: FindReferredUsersUseCase,
+    private readonly getFilteredUsersUseCase: GetFilteredUsersUseCase,
   ) { }
 
   create(dto: CreateUserDto, queryRunner?: QueryRunner) {
@@ -79,5 +85,17 @@ export class UsersFacade {
 
   getExpertsForRevenue(queryRunner?: QueryRunner) {
     return this.findUserUseCase.getExpertsForRevenue(queryRunner);
+  }
+
+  findReferredUsers(roles: string[], search?: string) {
+    return this.findReferredUsersUseCase.execute(roles, search);
+  }
+
+  async getFilteredUsersCount(filters: FilterCriteria) {
+    return this.getFilteredUsersUseCase.executeCount(filters);
+  }
+
+  async getFilteredUsersList(filters: FilterCriteria) {
+    return this.getFilteredUsersUseCase.executeList(filters);
   }
 }

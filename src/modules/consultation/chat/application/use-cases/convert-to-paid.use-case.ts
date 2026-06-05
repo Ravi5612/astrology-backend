@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatSession } from '../../infrastructure/entities/chat-session.entity';
@@ -9,7 +9,7 @@ export class ConvertToPaidUseCase {
     constructor(
         @InjectRepository(ChatSession)
         private sessionRepo: Repository<ChatSession>,
-        private walletFacade: WalletFacade,
+        @Inject(forwardRef(() => WalletFacade)) private walletFacade: WalletFacade,
     ) { }
 
     async execute(sessionId: string) {

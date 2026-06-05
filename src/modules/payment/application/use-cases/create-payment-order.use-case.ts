@@ -8,6 +8,7 @@ import {
 } from '../../infrastructure/entities/payment-order.entity';
 import { CreateOrderDto } from '../../api/dto/create-order.dto';
 import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
+import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { ConfigService } from '@nestjs/config';
 import { DomainError } from '@/common/types/domain.error';
 import { PaymentOrderCreationFailedError } from '../../domain/errors/payment.errors';
@@ -22,6 +23,7 @@ export class CreatePaymentOrderUseCase {
     @Inject(PAYMENT_GATEWAY)
     private readonly paymentGateway: IPaymentGateway,
     private readonly orderFacade: OrderFacade,
+    private readonly clientProfileFacade: ClientProfileFacade,
     private readonly configService: ConfigService,
   ) { }
 
@@ -52,8 +54,7 @@ export class CreatePaymentOrderUseCase {
         notes: options.notes,
       });
 
-      const { ProfileClient } = await import('../../../client/profile/infrastructure/entities/profile-client.entity');
-      const clientProfile = await this.paymentOrderRepo.manager.findOne(ProfileClient, { where: { user: { id: userId } } });
+      const clientProfile = await this.clientProfileFacade.getProfile(userId);
 
       const paymentOrder = this.paymentOrderRepo.create({
         client_id: clientProfile ? clientProfile.id : null,

@@ -1,17 +1,17 @@
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
-import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
+import { PujaAppointmentFacade } from '@/modules/puja-appointment/application/puja-appointment.facade';
 
 @Injectable()
 export class GetUserOrdersUseCase {
   constructor(
     @InjectRepository(Order)
     private orderRepo: Repository<Order>,
-    @InjectRepository(PujaAppointment)
-    private pujaRepo: Repository<PujaAppointment>,
+    @Inject(forwardRef(() => PujaAppointmentFacade))
+    private pujaAppointmentFacade: PujaAppointmentFacade,
   ) { }
 
   async execute(userId: string, limit?: number, offset?: number) {
@@ -23,25 +23,21 @@ export class GetUserOrdersUseCase {
     });
 
     // 2. Fetch Puja Appointments (as Service Orders)
-    const pujaOrders = await this.pujaRepo.find({
-      where: { client: { user: { id: userId } } },
-      relations: ['puja', 'expert', 'expert.user', 'client', 'client.user'],
-      order: { created_at: 'DESC' },
-    });
+    const pujaOrders = await this.pujaAppointmentFacade.getUserAppointments(userId);
 
     // 3. Normalize and Combine
     const normalizedProducts = productOrders.map((o) => ({
       id: o.id,
-      trackingId: `ORD-${o.id}`,
+      tracking_id: `ORD-${o.id}`,
       type: 'product',
       name: o.items.length > 0 ? o.items[0].product.name : 'Product Order',
-      itemCount: o.items.length,
+      item_count: o.items.length,
       amount: Number(o.total_amount),
       status: o.status,
       date: o.created_at,
-      merchantId: o.items.length > 0 ? o.items[0].product.merchant_id : null,
-      paymentMethod: o.payment_method,
-      deliveryOtp: [OrderStatus.SHIPPED, OrderStatus.PACKED].includes(o.status) ? o.delivery_otp : null,
+      merchant_id: o.items.length > 0 ? o.items[0].product.merchant_id : null,
+      payment_method: o.payment_method,
+      delivery_otp: [OrderStatus.SHIPPED, OrderStatus.PACKED].includes(o.status) ? o.delivery_otp : null,
       items: o.items.map((i) => ({
         id: i.id,
         name: i.product.name,
@@ -53,18 +49,18 @@ export class GetUserOrdersUseCase {
 
     const normalizedPujas = pujaOrders.map((p) => ({
       id: p.id,
-      trackingId: `PUJA-${p.id}`,
+      tracking_id: `PUJA-${p.id}`,
       type: 'puja',
       name: p.puja?.name || 'Puja Service',
-      itemCount: 1,
+      item_count: 1,
       amount: Number(p.price),
       status: p.status,
       date: p.created_at,
-      paymentMethod: 'razorpay', // Default for now
-      expertName: p.expert?.user?.name || p.expert?.name || 'Expert',
-      expertId: p.expert?.id || p.expert_id,
-      scheduledDate: p.scheduled_date,
-      scheduledTime: p.scheduled_time,
+      payment_method: 'razorpay', // Default for now
+      expert_name: p.expert?.user?.name || p.expert?.name || 'Expert',
+      expert_id: p.expert?.id || p.expert_id,
+      scheduled_date: p.scheduled_date,
+      scheduled_time: p.scheduled_time,
       items: [{
         id: p.puja_id || (p.puja && p.puja.id),
         name: p.puja?.name || 'Puja Service',
@@ -88,7 +84,7 @@ export class GetUserOrdersUseCase {
 
     return {
       data: paginatedData,
-      totalCount,
+      total_count: totalCount,
     };
   }
 }

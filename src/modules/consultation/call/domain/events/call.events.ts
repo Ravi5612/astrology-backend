@@ -4,7 +4,7 @@ export class CallInitiatedEvent {
     constructor(
         public readonly sessionId: string,
         public readonly userId: string,
-        public readonly expertId: string,
+        public readonly expert_id: string,
         public readonly type: CallType,
     ) { }
 }
@@ -12,7 +12,7 @@ export class CallInitiatedEvent {
 export class CallAcceptedEvent {
     constructor(
         public readonly sessionId: string,
-        public readonly expertId: string,
+        public readonly expert_id: string,
         public readonly type: CallType,
     ) { }
 }
@@ -21,7 +21,7 @@ export class CallEndedEvent {
     constructor(
         public readonly sessionId: string,
         public readonly userId: string,
-        public readonly expertId: string,
+        public readonly expert_id: string,
         public readonly durationSeconds: number,
         public readonly finalPrice: number,
     ) { }

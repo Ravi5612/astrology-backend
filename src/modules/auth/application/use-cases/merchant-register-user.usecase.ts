@@ -9,7 +9,7 @@ import { UsersFacade } from '@/modules/users/application/users.facade';
 import { UserRegisteredEvent } from '../../domain/events/user-registered.event';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { AuthProfileCreationResolver } from '../strategies/create-profile/auth-profile-creation.resolver';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import { UpdateProfileWithQueryRunnerUseCase as UpdateMerchantProfileWithQueryRunnerUseCase } from '@/modules/merchant/profile/application/use-cases/update-profile-with-query-runner.usecase';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
 @Injectable()
@@ -22,6 +22,7 @@ export class MerchantRegisterUserUseCase {
     private readonly issueTokens: IssueAuthTokensUseCase,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly profileCreationResolver: AuthProfileCreationResolver,
+    private readonly updateMerchantProfileWithQueryRunnerUseCase: UpdateMerchantProfileWithQueryRunnerUseCase,
   ) {}
 
   async execute(dto: MerchantRegisterDto, ip?: string, userAgent?: string) {
@@ -46,38 +47,26 @@ export class MerchantRegisterUserUseCase {
         queryRunner,
       );
 
-      // We explicitly resolve basic profile if need be (might be handled by merchant profile creation strategy)
       await this.profileCreationResolver.ensureProfile(user, queryRunner);
 
-      // Now ensure we update the merchant profile with specific fields that were created by strategy, or create if it didn't
-      let profile = await queryRunner.manager.findOne(ProfileMerchant, {
-        where: { user_id: user.id }
-      });
-
-      if (profile) {
-        profile.shopName = dto.shopName;
-        profile.phone = dto.phone;
-        await queryRunner.manager.save(ProfileMerchant, profile);
-      } else {
-        profile = queryRunner.manager.create(ProfileMerchant, {
-          user: { id: user.id },
-          user_id: user.id,
+      await this.updateMerchantProfileWithQueryRunnerUseCase.execute(
+        user.id,
+        {
           shopName: dto.shopName,
           phone: dto.phone,
-        });
-        await queryRunner.manager.save(ProfileMerchant, profile);
-      }
+        },
+        queryRunner
+      );
 
-      
       this.sendEmail(user);
 
       // Instead of issuing tokens immediately (they need KYC or verification usually),
       // we just return user object but specs say 201 Created and return specific string.
       // Wait, spec for registration: Expected response with NO token, just merchantId, email, status.
       return { 
-        merchantId: profile.uid,
+        merchant_id: user.id, // Using user.id since profile.uid is not readily available without another query, or we can just return user.id which maps 1:1
         email: user.email,
-        status: profile.status
+        status: 'PENDING'
       };
     });
 

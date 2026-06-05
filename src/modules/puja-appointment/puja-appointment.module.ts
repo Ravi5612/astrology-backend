@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PujaAppointment } from './infrastructure/entities/puja-appointment.entity';
 import { PujaAppointmentController } from './api/controllers/puja-appointment.controller';
@@ -6,22 +6,23 @@ import { CreatePujaAppointmentUseCase } from './application/use-cases/create-puj
 import { GetUserPujaAppointmentsUseCase } from './application/use-cases/get-user-puja-appointments.use-case';
 import { GetExpertPujaAppointmentsUseCase } from './application/use-cases/get-expert-puja-appointments.use-case';
 import { UpdatePujaAppointmentStatusUseCase } from './application/use-cases/update-puja-appointment-status.use-case';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
-
-import { ProfileModule } from '@/modules/expert/profile/profile.module';
+import { GetPujaEarningsUseCase } from './application/use-cases/get-puja-earnings.use-case';
+import { GetExpertPujasByDateUseCase } from './application/use-cases/get-expert-pujas-by-date.use-case';
+import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { TodosModule } from '@/modules/expert/todos/todos.module';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
+
+import { PujaAppointmentFacade } from './application/puja-appointment.facade';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PujaAppointment, User, ProfileExpert, ExpertPuja, ProfileClient]),
-    ProfileModule,
+    TypeOrmModule.forFeature([PujaAppointment]),
+    forwardRef(() => ExpertProfileModule),
+    forwardRef(() => ClientProfileModule),
     NotificationModule,
-    WalletModule,
+    forwardRef(() => WalletModule),
     TodosModule
   ],
   controllers: [PujaAppointmentController],
@@ -30,7 +31,10 @@ import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/
     GetUserPujaAppointmentsUseCase,
     GetExpertPujaAppointmentsUseCase,
     UpdatePujaAppointmentStatusUseCase,
+    GetPujaEarningsUseCase,
+    GetExpertPujasByDateUseCase,
+    PujaAppointmentFacade,
   ],
-  exports: [GetUserPujaAppointmentsUseCase, GetExpertPujaAppointmentsUseCase],
+  exports: [PujaAppointmentFacade, GetUserPujaAppointmentsUseCase, GetExpertPujaAppointmentsUseCase, GetPujaEarningsUseCase, GetExpertPujasByDateUseCase],
 })
 export class PujaAppointmentModule {}
