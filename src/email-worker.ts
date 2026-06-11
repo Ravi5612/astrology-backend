@@ -6,8 +6,10 @@ import { EmailWorkerModule } from './modules/email-worker/email-worker.module';
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(EmailWorkerModule);
   await app.init();
-  console.log('🚀 Email Worker Process successfully started and listening for jobs...');
-  
+  console.log(
+    '🚀 Email Worker Process successfully started and listening for jobs...',
+  );
+
   // Handle graceful shutdown
   app.enableShutdownHooks();
 

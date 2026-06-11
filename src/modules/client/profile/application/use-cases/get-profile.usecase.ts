@@ -1,5 +1,4 @@
-
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+﻿import { Injectable, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
 import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
@@ -12,10 +11,12 @@ export class GetProfileUseCase {
     @InjectRepository(ProfileClient)
     private readonly repo: Repository<ProfileClient>,
     private readonly usersFacade: UsersFacade,
-  ) { }
+  ) {}
 
   async execute(userId: string, queryRunner?: QueryRunner) {
-    const profileRepo = queryRunner ? queryRunner.manager.getRepository(ProfileClient) : this.repo;
+    const profileRepo = queryRunner
+      ? queryRunner.manager.getRepository(ProfileClient)
+      : this.repo;
 
     const profile = await profileRepo.findOne({
       where: { user: { id: userId } },
@@ -26,13 +27,14 @@ export class GetProfileUseCase {
       // Check if user exists and what their role is
       const user = await this.usersFacade.findById(userId, queryRunner);
 
-      
       const roles = user?.roles || [];
       const hasClientRole = hasRoles(roles, 'CLIENT');
       const hasExpertRole = hasRoles(roles, 'EXPERT');
 
       if (hasExpertRole && !hasClientRole) {
-        throw new ForbiddenException('Aap ek Expert hain. Kripya Expert Dashboard se login karein.');
+        throw new ForbiddenException(
+          'Aap ek Expert hain. Kripya Expert Dashboard se login karein.',
+        );
       }
 
       // If it's a client but no profile, return null or a basic structure
@@ -41,9 +43,10 @@ export class GetProfileUseCase {
     }
 
     // Backend decides the final profile picture:
-    // 1. If user manually uploaded a picture → use that (profile.profile_picture)
+    // 1. If user manually uploaded a picture â†’ use that (profile.profile_picture)
     // 2. Otherwise fallback to Gmail/OAuth avatar (profile.user.avatar)
-    const resolvedProfilePicture = profile.profile_picture || profile.user?.avatar || null;
+    const resolvedProfilePicture =
+      profile.profile_picture || profile.user?.avatar || null;
 
     return {
       ...profile,

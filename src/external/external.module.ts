@@ -5,7 +5,17 @@ import { ProkeralaModule } from './prokerala/prokerala.module';
 import { PaymentGatewayModule } from './payment/payment-gateway.module';
 
 @Module({
-  imports: [CloudinaryModule, NodemailerModule, ProkeralaModule, PaymentGatewayModule],
-  exports: [CloudinaryModule, NodemailerModule, ProkeralaModule, PaymentGatewayModule],
+  imports: [
+    CloudinaryModule,
+    NodemailerModule,
+    ProkeralaModule,
+    PaymentGatewayModule,
+  ],
+  exports: [
+    CloudinaryModule,
+    NodemailerModule,
+    ProkeralaModule,
+    PaymentGatewayModule,
+  ],
 })
-export class ExternalModule { }
+export class ExternalModule {}

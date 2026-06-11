@@ -6,4 +6,4 @@ import { MerchantDashboardModule } from './dashboard/merchant-dashboard.module';
   imports: [ProfileModule, MerchantDashboardModule],
   exports: [ProfileModule, MerchantDashboardModule],
 })
-export class MerchantModule { }
+export class MerchantModule {}

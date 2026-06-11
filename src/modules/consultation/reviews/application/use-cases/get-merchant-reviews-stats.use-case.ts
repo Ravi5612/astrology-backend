@@ -8,15 +8,18 @@ export class GetMerchantReviewsStatsUseCase {
   constructor(
     @InjectRepository(Review)
     private readonly reviewRepo: Repository<Review>,
-  ) { }
+  ) {}
 
   async execute(merchantId: string) {
-    const statsResult = await this.reviewRepo
+    const statsResult = (await this.reviewRepo
       .createQueryBuilder('r')
       .where('r.merchant_id = :merchantId', { merchantId })
       .select('AVG(r.rating)', 'avg')
       .addSelect('COUNT(r.id)', 'count')
-      .getRawOne();
+      .getRawOne<{ avg: string | null; count: string | null }>()) ?? {
+      avg: null,
+      count: null,
+    };
 
     const distResult = await this.reviewRepo
       .createQueryBuilder('r')
@@ -24,17 +27,24 @@ export class GetMerchantReviewsStatsUseCase {
       .select('ROUND(r.rating)', 'rating')
       .addSelect('COUNT(r.id)', 'count')
       .groupBy('ROUND(r.rating)')
-      .getRawMany();
+      .getRawMany<{ rating: string | number; count: string | number }>();
 
-    const distribution = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 };
+    const distribution: Record<string, number> = {
+      '1': 0,
+      '2': 0,
+      '3': 0,
+      '4': 0,
+      '5': 0,
+    };
     distResult.forEach((d) => {
       const rating = Math.round(Number(d.rating)).toString();
-      if (distribution.hasOwnProperty(rating)) distribution[rating] = Number(d.count);
+      if (Object.prototype.hasOwnProperty.call(distribution, rating))
+        distribution[rating] = Number(d.count);
     });
 
     return {
-      average_rating: parseFloat(Number(statsResult.avg || 0).toFixed(1)),
-      totalReviews: Number(statsResult.count || 0),
+      average_rating: parseFloat(Number(statsResult.avg ?? 0).toFixed(1)),
+      totalReviews: Number(statsResult.count ?? 0),
       distribution,
     };
   }

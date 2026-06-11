@@ -5,7 +5,12 @@ import { LoveCalculatorService } from '../../infrastructure/services/love-calcul
 export class CalculateLovePercentageUseCase {
   constructor(private readonly loveCalculatorService: LoveCalculatorService) {}
 
-  execute(yourName: string, partnerName: string, yourGender?: string, partnerGender?: string) {
+  execute(
+    yourName: string,
+    partnerName: string,
+    yourGender?: string,
+    partnerGender?: string,
+  ) {
     const result = this.loveCalculatorService.calculateLove(
       yourName,
       partnerName,

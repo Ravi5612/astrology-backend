@@ -5,11 +5,12 @@ import { UserRepository } from '../../infrastructure/repositories/user.repositor
 
 @Injectable()
 export class DeleteUserUseCase {
-  constructor(
-    private readonly userRepository: UserRepository,
-  ) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
-  async execute(id: string, queryRunner?: QueryRunner): Promise<BooleanMessage> {
+  async execute(
+    id: string,
+    queryRunner?: QueryRunner,
+  ): Promise<BooleanMessage> {
     await this.userRepository.delete(id, queryRunner);
     return new BooleanMessage();
   }

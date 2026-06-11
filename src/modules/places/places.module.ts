@@ -12,10 +12,7 @@ import { SerperModule } from '@/external/serper/serper.module';
 import { PlacesMapper } from './application/places.mapper';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Place, PlaceImage]),
-    SerperModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Place, PlaceImage]), SerperModule],
   controllers: [PlacesController],
   providers: [
     PlacesFacade,

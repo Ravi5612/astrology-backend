@@ -29,53 +29,118 @@ export class GetDailyPanchangUseCase {
     return isoString;
   }
 
-  private mapPanchangToFrontendSchema(rawResponse: any) {
-    const data = rawResponse?.data || rawResponse || {};
-    const panchang = data.panchang || rawResponse?.panchang || {};
+  private mapPanchangToFrontendSchema(rawResponse: Record<string, unknown>) {
+    const data = (rawResponse?.data || rawResponse || {}) as Record<
+      string,
+      unknown
+    >;
+    const panchang = (data.panchang || rawResponse?.panchang || {}) as Record<
+      string,
+      unknown
+    >;
 
-    const extractItem = (arr: any[]) => {
+    const extractItem = (
+      arr: Array<{ name?: string; start: string; end: string }>,
+    ) => {
       if (!arr || !Array.isArray(arr) || !arr.length) return null;
       const item = arr[0];
       return {
         name: item.name || '',
         start: this.formatTime(item.start),
-        end: this.formatTime(item.end)
+        end: this.formatTime(item.end),
       };
     };
 
-    const getMuhurat = (periods: any[], searchName: string) => {
+    const getMuhurat = (
+      periods: Array<{
+        name?: string;
+        period?: Array<{ start: string; end: string }>;
+      }>,
+      searchName: string,
+    ) => {
       if (!periods || !Array.isArray(periods)) return null;
-      const period = periods.find((p: any) => p.name && p.name.toLowerCase().includes(searchName.toLowerCase()));
-      if (period && period.period && Array.isArray(period.period) && period.period.length > 0) {
+      const period = periods.find(
+        (p) =>
+          p.name && p.name.toLowerCase().includes(searchName.toLowerCase()),
+      );
+      if (
+        period &&
+        period.period &&
+        Array.isArray(period.period) &&
+        period.period.length > 0
+      ) {
         return {
           start: this.formatTime(period.period[0].start),
-          end: this.formatTime(period.period[0].end)
+          end: this.formatTime(period.period[0].end),
         };
       }
       return null;
     };
 
-    const auspicious = panchang.auspicious_period || [];
-    const inauspicious = panchang.inauspicious_period || [];
+    type PeriodType = Array<{
+      name?: string;
+      period?: Array<{ start: string; end: string }>;
+    }>;
+    type ItemType = Array<{ name?: string; start: string; end: string }>;
+
+    const auspicious = (panchang.auspicious_period || []) as PeriodType;
+    const inauspicious = (panchang.inauspicious_period || []) as PeriodType;
 
     return {
-      tithi: extractItem(panchang.tithi) || { name: 'N/A', start: 'N/A', end: 'N/A' },
-      nakshatra: extractItem(panchang.nakshatra) || { name: 'N/A', start: 'N/A', end: 'N/A' },
-      karana: extractItem(panchang.karana) || { name: 'N/A', start: 'N/A', end: 'N/A' },
-      yoga: extractItem(panchang.yoga) || { name: 'N/A', start: 'N/A', end: 'N/A' },
-      
-      shubh_muhurat: {
-        abhijit: getMuhurat(auspicious, 'abhijit') || { start: 'N/A', end: 'N/A' },
-        brahma: getMuhurat(auspicious, 'brahma') || { start: 'N/A', end: 'N/A' }
+      tithi: extractItem(panchang.tithi as ItemType) || {
+        name: 'N/A',
+        start: 'N/A',
+        end: 'N/A',
       },
-      ashubh_muhurat: {
-        rahu_kalam: getMuhurat(inauspicious, 'rahu') || { start: 'N/A', end: 'N/A' },
-        yamaganda: getMuhurat(inauspicious, 'yamaganda') || { start: 'N/A', end: 'N/A' }
+      nakshatra: extractItem(panchang.nakshatra as ItemType) || {
+        name: 'N/A',
+        start: 'N/A',
+        end: 'N/A',
+      },
+      karana: extractItem(panchang.karana as ItemType) || {
+        name: 'N/A',
+        start: 'N/A',
+        end: 'N/A',
+      },
+      yoga: extractItem(panchang.yoga as ItemType) || {
+        name: 'N/A',
+        start: 'N/A',
+        end: 'N/A',
       },
 
-      sunrise: this.formatTime(data.sunrise) || this.formatTime(panchang.sunrise) || 'N/A',
-      sunset: this.formatTime(data.sunset) || this.formatTime(panchang.sunset) || 'N/A',
-      moonrise: this.formatTime(data.moonrise) || this.formatTime(panchang.moonrise) || 'N/A'
+      shubh_muhurat: {
+        abhijit: getMuhurat(auspicious, 'abhijit') || {
+          start: 'N/A',
+          end: 'N/A',
+        },
+        brahma: getMuhurat(auspicious, 'brahma') || {
+          start: 'N/A',
+          end: 'N/A',
+        },
+      },
+      ashubh_muhurat: {
+        rahu_kalam: getMuhurat(inauspicious, 'rahu') || {
+          start: 'N/A',
+          end: 'N/A',
+        },
+        yamaganda: getMuhurat(inauspicious, 'yamaganda') || {
+          start: 'N/A',
+          end: 'N/A',
+        },
+      },
+
+      sunrise:
+        this.formatTime(data.sunrise as string) ||
+        this.formatTime(panchang.sunrise as string) ||
+        'N/A',
+      sunset:
+        this.formatTime(data.sunset as string) ||
+        this.formatTime(panchang.sunset as string) ||
+        'N/A',
+      moonrise:
+        this.formatTime(data.moonrise as string) ||
+        this.formatTime(panchang.moonrise as string) ||
+        'N/A',
     };
   }
 
@@ -83,7 +148,9 @@ export class GetDailyPanchangUseCase {
     const type = 'daily';
     const cacheKey = `${date}-${lat}-${lon}-${lang}-v3`; // Increment version to bypass old caches
 
-    const cached = await this.cacheRepository.findOne({ where: { type, cacheKey } });
+    const cached = await this.cacheRepository.findOne({
+      where: { type, cacheKey },
+    });
     if (cached) {
       this.logger.log(`Serving cached daily panchang for ${cacheKey}`);
       return cached.response;
@@ -98,11 +165,18 @@ export class GetDailyPanchangUseCase {
       lang,
     });
 
-    console.log('[DEBUG] Raw Prokerala Response Keys:', Object.keys(rawResponse || {}));
-    if (rawResponse?.data) console.log('[DEBUG] Raw Response Data Keys:', Object.keys(rawResponse.data));
+    console.log(
+      '[DEBUG] Raw Prokerala Response Keys:',
+      Object.keys(rawResponse || {}),
+    );
+    if (rawResponse?.data)
+      console.log(
+        '[DEBUG] Raw Response Data Keys:',
+        Object.keys(rawResponse.data),
+      );
 
     const response = this.mapPanchangToFrontendSchema(rawResponse);
-    
+
     console.log('[DEBUG] Mapped Response Tithi:', response.tithi);
     console.log('[DEBUG] Mapped Response Sunrise:', response.sunrise);
 

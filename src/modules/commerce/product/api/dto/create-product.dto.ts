@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsBoolean,
   Min,
+  IsArray,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
@@ -43,4 +44,17 @@ export class CreateProductDto {
   @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)
   is_active?: boolean;
+
+  @IsString()
+  @IsOptional()
+  category?: string;
+
+  @IsString()
+  @IsOptional()
+  status?: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  gallery?: string[];
 }

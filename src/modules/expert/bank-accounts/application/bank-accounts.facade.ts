@@ -5,7 +5,10 @@ import { GetBankAccountUseCase } from './use-cases/get-bank-account.usecase';
 import { UpdateBankAccountUseCase } from './use-cases/update-bank-account.usecase';
 import { SetPrimaryBankAccountUseCase } from './use-cases/set-primary-bank-account.usecase';
 import { RemoveBankAccountUseCase } from './use-cases/remove-bank-account.usecase';
-import { CreateBankAccountDto, UpdateBankAccountDto } from '../api/dto/bank-account.dto';
+import {
+  CreateBankAccountDto,
+  UpdateBankAccountDto,
+} from '../api/dto/bank-account.dto';
 
 @Injectable()
 export class BankAccountsFacade {

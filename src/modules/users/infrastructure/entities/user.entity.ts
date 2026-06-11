@@ -1,13 +1,10 @@
-// src/users/user.entity.ts
+﻿// src/users/user.entity.ts
 import {
   Entity,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-  ManyToMany,
-  JoinTable,
-  OneToOne,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -50,10 +47,10 @@ export class User {
   @OneToMany(() => Session, (c) => c.user)
   sessions!: Session[];
 
-  @CreateDateColumn({type: 'timestamptz'})
+  @CreateDateColumn({ type: 'timestamptz' })
   created_at!: Date;
 
-  @UpdateDateColumn({type: 'timestamptz'})
+  @UpdateDateColumn({ type: 'timestamptz' })
   updated_at!: Date;
 
   @Column({ nullable: true, type: 'uuid' })
@@ -72,5 +69,3 @@ export class User {
     this.email_verified_at = new Date();
   }
 }
-
-

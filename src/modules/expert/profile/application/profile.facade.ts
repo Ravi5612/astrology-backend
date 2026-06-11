@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { CreateProfileExpertDto, UpdateProfileExpertDto } from '../api/dto/profile-expert.dto';
+import {
+  CreateProfileExpertDto,
+  UpdateProfileExpertDto,
+} from '../api/dto/profile-expert.dto';
 import { QueryExpertDto } from '../api/dto/query-expert.dto';
 import { GetProfileUseCase } from './use-cases/get-profile.usecase';
 import { CreateProfileUseCase } from './use-cases/create-profile.usecase';
@@ -19,7 +22,6 @@ import { ListAllPujasUseCase } from './use-cases/puja/list-all-pujas.usecase';
 import { UpdatePujaLikesUseCase } from './use-cases/puja/update-puja-likes.usecase';
 import { UpdateProfileWithQueryRunnerUseCase } from './use-cases/update-profile-with-query-runner.usecase';
 import { GetExpertDetailUseCase } from './use-cases/get-admin-expert-detail.use-case';
-
 
 import { ExpertPujaDto } from '../api/dto/expert-puja.dto';
 
@@ -42,13 +44,17 @@ export class ExpertProfileFacade {
     private readonly updatePujaLikesUseCase: UpdatePujaLikesUseCase,
     private readonly updateProfileWithQueryRunnerUseCase: UpdateProfileWithQueryRunnerUseCase,
     private readonly getExpertDetailUseCase: GetExpertDetailUseCase,
-  ) { }
+  ) {}
 
   async getProfile(user: User, queryRunner?: QueryRunner) {
     return this.getProfileUseCase.execute(user, queryRunner);
   }
 
-  async createProfile(user: User, dto: CreateProfileExpertDto, queryRunner?: QueryRunner) {
+  async createProfile(
+    user: User,
+    dto: CreateProfileExpertDto,
+    queryRunner?: QueryRunner,
+  ) {
     return this.createProfileUseCase.execute(user, dto, queryRunner);
   }
 
@@ -88,7 +94,6 @@ export class ExpertProfileFacade {
     return this.deletePujaUseCase.execute(user, id);
   }
 
-
   async listAllPujas() {
     return this.listAllPujasUseCase.execute();
   }
@@ -97,8 +102,18 @@ export class ExpertProfileFacade {
     return this.getPujaByIdUseCase.execute(id);
   }
 
-  async updateProfileWithQueryRunner(userId: string, updates: any, queryRunner: QueryRunner) {
-    return this.updateProfileWithQueryRunnerUseCase.execute(userId, updates, queryRunner);
+  async updateProfileWithQueryRunner(
+    userId: string,
+    updates: import('typeorm/query-builder/QueryPartialEntity').QueryDeepPartialEntity<
+      import('../infrastructure/entities/profile-expert.entity').ProfileExpert
+    >,
+    queryRunner: QueryRunner,
+  ) {
+    return this.updateProfileWithQueryRunnerUseCase.execute(
+      userId,
+      updates,
+      queryRunner,
+    );
   }
 
   async updatePujaLikes(pujaId: string, diff: number) {

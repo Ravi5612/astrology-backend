@@ -8,12 +8,14 @@ export class GetExpertByUserIdUseCase {
   constructor(
     @InjectRepository(ProfileExpert)
     private readonly expertProfileRepo: Repository<ProfileExpert>,
-  ) { }
+  ) {}
 
   async execute(userId: string, queryRunner?: QueryRunner) {
-    const repo = queryRunner ? queryRunner.manager.getRepository(ProfileExpert) : this.expertProfileRepo;
+    const repo = queryRunner
+      ? queryRunner.manager.getRepository(ProfileExpert)
+      : this.expertProfileRepo;
     return repo.findOne({
-      where: { user: { id: userId as any } },
+      where: { user: { id: userId } },
     });
   }
 }

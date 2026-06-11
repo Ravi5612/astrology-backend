@@ -7,7 +7,6 @@ export class EmailNotVerifiedError extends DomainError {
   readonly httpStatus = HttpStatus.FORBIDDEN;
 }
 
-
 export class RequiredRoleMissingError extends DomainError {
   readonly code = 'AUTH_REQUIRED_ROLE_MISSING';
   readonly message = 'Forbidden';

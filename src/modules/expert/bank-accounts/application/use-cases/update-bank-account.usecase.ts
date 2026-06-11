@@ -15,15 +15,14 @@ export class UpdateBankAccountUseCase {
     private readonly bankAccountRepo: Repository<BankAccount>,
     private readonly getBankAccountUseCase: GetBankAccountUseCase,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async execute(userId: string, id: string, dto: UpdateBankAccountDto) {
     const account = await this.getBankAccountUseCase.execute(userId, id);
 
-    if(!account.expert || !account.expert_id){
-        throw new NotFoundException('No Expert profile associated');
+    if (!account.expert || !account.expert_id) {
+      throw new NotFoundException('No Expert profile associated');
     }
-    
 
     if (dto.is_primary && !account.is_primary) {
       await this.bankAccountRepo.update(
@@ -37,7 +36,7 @@ export class UpdateBankAccountUseCase {
 
     this.eventEmitter.emit(
       'expert.bank-account.updated',
-      new BankAccountUpdatedEvent(userId as any, updatedAccount.id),
+      new BankAccountUpdatedEvent(userId, updatedAccount.id),
     );
 
     return new BooleanMessage();

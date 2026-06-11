@@ -1,4 +1,3 @@
-
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -21,22 +20,47 @@ export class GetAdminMerchantSalesOverviewUseCase {
       const merchants = await this.merchantFacade.getRawProfiles();
 
       // 2. Aggregate sales data per merchant (grouped by user_id)
-      const sales_data = await this.orderItemRepository
+      const sales_data: Array<{
+        userId: string;
+        totalRevenue: string;
+        totalOrders: string;
+      }> = await this.orderItemRepository
         .createQueryBuilder('item')
         .leftJoin('item.product', 'product')
         .leftJoin('item.order', 'order')
         .select('product.merchant_id', 'userId')
-        .addSelect('SUM(CAST(item.quantity AS FLOAT) * CAST(item.price AS FLOAT))', 'totalRevenue')
+        .addSelect(
+          'SUM(CAST(item.quantity AS FLOAT) * CAST(item.price AS FLOAT))',
+          'totalRevenue',
+        )
         .addSelect('COUNT(DISTINCT item.order_id)', 'totalOrders')
-        .where('order.status NOT IN (:...invalidStatuses)', { 
-          invalidStatuses: [OrderStatus.CANCELLED, OrderStatus.PENDING] 
+        .where('order.status NOT IN (:...invalidStatuses)', {
+          invalidStatuses: [OrderStatus.CANCELLED, OrderStatus.PENDING],
         })
         .groupBy('product.merchant_id')
         .getRawMany();
 
       // 3. Map aggregation to merchant cards
+      const revenueByMerchantMap = sales_data.reduce(
+        (
+          acc: Record<
+            string,
+            { totalRevenue: number; totalOrders: number; userId: string }
+          >,
+          row: { userId: string; totalRevenue: string; totalOrders: string },
+        ) => {
+          acc[row.userId] = {
+            userId: row.userId,
+            totalRevenue: Number(row.totalRevenue) || 0,
+            totalOrders: Number(row.totalOrders) || 0,
+          };
+          return acc;
+        },
+        {},
+      );
+
       return merchants.map((merchant) => {
-        const stats = sales_data.find((s) => String(s.userId) === String(merchant.user_id));
+        const stats = revenueByMerchantMap[merchant.user_id];
         return {
           id: merchant.id,
           userId: merchant.user_id,

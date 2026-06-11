@@ -21,14 +21,23 @@ export class RefreshPlaceSearchCacheUseCase {
     const allPlaces = await this.placeRepository.find();
     for (const entry of allPlaces) {
       try {
-        const rawResults = await this.serperService.fetchPlaces(entry.query, entry.location);
-        const normalizedResults = this.placesMapper.mapSerperPlaces(rawResults.places || []);
+        const rawResults = await this.serperService.fetchPlaces(
+          entry.query,
+          entry.location,
+        );
+        const normalizedResults = this.placesMapper.mapSerperPlaces(
+          (rawResults.places as Record<string, unknown>[]) || [],
+        );
         entry.results = normalizedResults;
         entry.last_synced = new Date();
         await this.placeRepository.save(entry);
-        this.logger.log(`Refreshed places for: ${entry.query} in ${entry.location}`);
+        this.logger.log(
+          `Refreshed places for: ${entry.query} in ${entry.location}`,
+        );
       } catch (error) {
-        this.logger.error(`Failed to refresh places for ${entry.query}: ${error.message}`);
+        this.logger.error(
+          `Failed to refresh places for ${entry.query}: ${(error as Error).message}`,
+        );
       }
     }
   }

@@ -1,25 +1,20 @@
 // src/auth/oauth-account.entity.ts
-import {
-  Entity,
-  Column,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({
   schema: 'auth',
-  name: 'oauth_accounts'
+  name: 'oauth_accounts',
 })
 export class OAuthAccount {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @Column({type: 'character varying', length: 255})
+  @Column({ type: 'character varying', length: 255 })
   provider!: string;
 
-  @Column({type: 'character varying', length: 255})
+  @Column({ type: 'character varying', length: 255 })
   provider_id!: string;
 
   @Column({ nullable: true, type: 'text' })

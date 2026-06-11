@@ -1,4 +1,8 @@
-import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import {

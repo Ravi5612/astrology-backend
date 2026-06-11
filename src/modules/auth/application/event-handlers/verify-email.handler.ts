@@ -1,4 +1,4 @@
-import { OnEvent } from '@nestjs/event-emitter';
+﻿import { OnEvent } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
@@ -28,8 +28,10 @@ export class VerifyEmailHandler {
 
     this.logger.debug(`User roles: ${roles.join(', ')}. isExpert: ${isExpert}`);
 
-    const configKey = isExpert ? 'email.expertFrontendUrl' : 'email.frontendUrl';
-    let frontendUrl = this.configService.get(configKey);
+    const configKey = isExpert
+      ? 'email.expertFrontendUrl'
+      : 'email.frontendUrl';
+    let frontendUrl = this.configService.get<string>(configKey);
 
     if (!frontendUrl) {
       frontendUrl = isExpert

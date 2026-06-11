@@ -1,5 +1,19 @@
-
-import { Controller, Get, Query, Post, Body, UseGuards, Patch, Param, ParseUUIDPipe, UseInterceptors, UploadedFiles, Delete, ParseEnumPipe, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Post,
+  Body,
+  UseGuards,
+  Patch,
+  Param,
+  ParseUUIDPipe,
+  UseInterceptors,
+  UploadedFiles,
+  Delete,
+  ParseEnumPipe,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { AdminFacade } from '../../application/admin.facade';
@@ -16,7 +30,10 @@ import { CreateAgentDto } from '../dto/create-agent.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 import { ReviewsFacade } from '@/modules/consultation/reviews/application/reviews.facade';
-import { RoleEnum, RolePipe } from '@/modules/users/infrastructure/enums/Role.enum';
+import {
+  RoleEnum,
+  RolePipe,
+} from '@/modules/users/infrastructure/enums/Role.enum';
 import { MerchantStatus } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { DisputeStatus } from '@/modules/support/infrastructure/entities/dispute.entity';
 import { PaginationDto } from '@/common/dto/pagination.dto';
@@ -35,11 +52,11 @@ export class AdminController {
     private readonly chatFacade: ChatFacade,
     private readonly couponFacade: CouponFacade,
     private readonly reviewsFacade: ReviewsFacade,
-  ) { }
+  ) {}
 
   // Review Management
   @Get('reviews')
-  async getReviews(@Query() query: any) {
+  async getReviews(@Query() query: Record<string, unknown>) {
     return this.reviewsFacade.getAdminReviews(query);
   }
 
@@ -53,13 +70,13 @@ export class AdminController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body('status') status: string,
   ) {
-    const result = await this.reviewsFacade.updateReviewStatus(id, status);
+    const _result = await this.reviewsFacade.updateReviewStatus(id, status);
     return { success: true };
   }
 
   @Delete('reviews/:id')
   async deleteReview(@Param('id', ParseUUIDPipe) id: string) {
-    const result = await this.reviewsFacade.deleteReview(id);
+    const _result = await this.reviewsFacade.deleteReview(id);
     return { success: true };
   }
 
@@ -109,9 +126,14 @@ export class AdminController {
   @Get('clients')
   async getAllUsers(
     @Query('search') search: string | undefined,
-    @Query() pagination: PaginationDto
+    @Query() pagination: PaginationDto,
   ) {
-    return this.usersFacade.findAllByRole('client', search, pagination.page, pagination.limit);
+    return this.usersFacade.findAllByRole(
+      'client',
+      search,
+      pagination.page,
+      pagination.limit,
+    );
   }
 
   @Get('clients/:id')
@@ -125,7 +147,13 @@ export class AdminController {
     @Query() pagination: PaginationDto,
     @Query('status') status?: string,
   ) {
-    return this.usersFacade.findAllByRole('expert', search, pagination.page, pagination.limit, status);
+    return this.usersFacade.findAllByRole(
+      'expert',
+      search,
+      pagination.page,
+      pagination.limit,
+      status,
+    );
   }
 
   @Get('experts/:id')
@@ -138,7 +166,11 @@ export class AdminController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { status: string; reason?: string },
   ) {
-    const result = await this.profileFacade.updateKycStatus(id, body.status, body.reason);
+    const _result = await this.profileFacade.updateKycStatus(
+      id,
+      body.status,
+      body.reason,
+    );
     return { success: true };
   }
 
@@ -147,23 +179,28 @@ export class AdminController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { isBlocked: boolean },
   ) {
-    const result = await this.usersFacade.update(id, { is_blocked: body.isBlocked } as any);
+    const _result = await this.usersFacade.update(id, {
+      is_blocked: body.isBlocked,
+    } as Partial<User>);
     return { success: true };
   }
 
   @Get('live-sessions')
   async getLiveSessions(
     @Query('type') type: string | undefined,
-    @Query() pagination: PaginationDto
+    @Query() pagination: PaginationDto,
   ) {
-    return this.adminFacade.getLiveSessions(type, pagination.page, pagination.limit);
+    return this.adminFacade.getLiveSessions(
+      type,
+      pagination.page,
+      pagination.limit,
+    );
   }
 
   @Get('live-sessions/stats')
   async getLiveSessionStats() {
     return this.chatFacade.getSessionStats();
   }
-
 
   @Get('live-sessions/:id/history')
   async getChatHistory(@Param('id', ParseUUIDPipe) id: string) {
@@ -176,12 +213,27 @@ export class AdminController {
     @CurrentUser() admin: User,
     @Body() body: { userMessage?: string; expertMessage?: string },
   ) {
-    return this.adminFacade.terminateSession(id, admin.id, body.userMessage, body.expertMessage);
+    try {
+      return await this.adminFacade.terminateSession(
+        id,
+        admin.id,
+        body.userMessage,
+        body.expertMessage,
+      );
+    } catch (error: unknown) {
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Failed to update commission',
+      };
+    }
   }
 
   // Coupon Management
   @Get('coupons')
-  async getCoupons(@Query() query: any) {
+  async getCoupons(@Query() query: Record<string, unknown>) {
     return this.couponFacade.getCoupons(query);
   }
 
@@ -191,15 +243,18 @@ export class AdminController {
   }
 
   @Post('coupons')
-  async createCoupon(@Body() data: any) {
+  async createCoupon(@Body() data: Record<string, unknown>) {
     return this.couponFacade.createCoupon(data);
   }
 
   @Patch('coupons/:id')
-  async updateCoupon(@Param('id', ParseUUIDPipe) id: string, @Body() data: any) {
+  async updateCoupon(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() data: Record<string, unknown>,
+  ) {
     const result = await this.couponFacade.updateCoupon(id, data);
     if (result && result.success && 'data' in result) {
-      const { data, ...rest } = result as any;
+      const { data: _data, ...rest } = result as Record<string, unknown>;
       return rest;
     }
     return result;
@@ -209,18 +264,24 @@ export class AdminController {
   @Get('withdrawals')
   async getWithdrawals(
     @Query() pagination: PaginationDto,
-    @Query('status', new ParseEnumPipe(WithdrawalStatus, {optional: true})) status?: WithdrawalStatus,
-    @Query('role', RolePipe({optional: true})) role?: RoleEnum,
+    @Query('status', new ParseEnumPipe(WithdrawalStatus, { optional: true }))
+    status?: WithdrawalStatus,
+    @Query('role', RolePipe({ optional: true })) role?: RoleEnum,
   ) {
-    return this.adminFacade.getWithdrawals(pagination.page, pagination.limit, status, role);
+    return this.adminFacade.getWithdrawals(
+      pagination.page,
+      pagination.limit,
+      status,
+      role,
+    );
   }
-
 
   @Get('withdrawals/stats')
-  async getWithdrawalStats(@Query('role', RolePipe({optional: true})) role?: RoleEnum) {
+  async getWithdrawalStats(
+    @Query('role', RolePipe({ optional: true })) role?: RoleEnum,
+  ) {
     return this.adminFacade.getWithdrawalStats(role);
   }
-
 
   @Patch('withdrawals/:id/status')
   async updateWithdrawalStatus(
@@ -228,35 +289,47 @@ export class AdminController {
     @CurrentUser() admin: User,
     @Body() body: { status: WithdrawalStatus; remark?: string },
   ) {
-    const result = await this.adminFacade.updateWithdrawalStatus(id, body.status, admin.id, body.remark);
+    const _result = await this.adminFacade.updateWithdrawalStatus(
+      id,
+      body.status,
+      admin.id,
+      body.remark,
+    );
     return { success: true };
   }
 
   // Bulk Coupon Assignment Utilities
   @Post('clients/filter-count')
-  async getFilteredUsersCount(@Body() filters: any) {
+  async getFilteredUsersCount(@Body() filters: Record<string, unknown>) {
     const count = await this.adminFacade.getFilteredUsersCount(filters);
     return { count };
   }
 
   @Post('clients/filtered-list')
-  async getFilteredUsersList(@Body() filters: any) {
+  async getFilteredUsersList(@Body() filters: Record<string, unknown>) {
     return this.adminFacade.getFilteredUsersList(filters);
   }
 
   @Post('coupons/assign-bulk')
-  async assignCouponBulk(@Body() dto: { couponCode: string; filters: FilterCriteria }) {
+  async assignCouponBulk(
+    @Body() dto: { couponCode: string; filters: FilterCriteria },
+  ) {
     return this.adminFacade.assignCouponBulk(dto.couponCode, dto.filters);
   }
-
 
   @Get('merchants')
   async getAllMerchants(
     @Query('search') search: string | undefined,
-    @Query('status', new ParseEnumPipe(MerchantStatus, {optional: true})) status: MerchantStatus | undefined,
+    @Query('status', new ParseEnumPipe(MerchantStatus, { optional: true }))
+    status: MerchantStatus | undefined,
     @Query() pagination: PaginationDto,
   ) {
-    return this.adminFacade.getAllMerchants({ search, status, page: pagination.page, limit: pagination.limit });
+    return this.adminFacade.getAllMerchants({
+      search,
+      status,
+      page: pagination.page,
+      limit: pagination.limit,
+    });
   }
 
   @Patch('merchants/:id/status')
@@ -266,7 +339,7 @@ export class AdminController {
   ) {
     const result = await this.adminFacade.updateMerchantStatus(id, body);
     if (result && result.success && 'data' in result) {
-      const { data, ...rest } = result as any;
+      const { data: _data, ...rest } = result as Record<string, unknown>;
       return rest;
     }
     return result;
@@ -282,16 +355,19 @@ export class AdminController {
     return this.adminFacade.getMerchantSalesDetails(id);
   }
 
-  // ── Agents Endpoints ────────────────────────────────────────────────────────
+  // â”€â”€ Agents Endpoints â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @Post('agents')
-  @UseInterceptors(FileFieldsInterceptor([
-    { name: 'profile_pic', maxCount: 1 },
-    { name: 'aadhaar_doc', maxCount: 1 },
-    { name: 'pan_doc', maxCount: 1 },
-  ]))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'profile_pic', maxCount: 1 },
+      { name: 'aadhaar_doc', maxCount: 1 },
+      { name: 'pan_doc', maxCount: 1 },
+    ]),
+  )
   async createAgent(
     @Body() dto: CreateAgentDto,
-    @UploadedFiles() files: {
+    @UploadedFiles()
+    files: {
       profile_pic?: Express.Multer.File[];
       aadhaar_doc?: Express.Multer.File[];
       pan_doc?: Express.Multer.File[];
@@ -312,7 +388,12 @@ export class AdminController {
     @Query('search') search?: string,
     @Query('status') status?: string,
   ) {
-    return this.adminFacade.getAgents({ page: pagination.page, limit: pagination.limit, search, status });
+    return this.adminFacade.getAgents({
+      page: pagination.page,
+      limit: pagination.limit,
+      search,
+      status,
+    });
   }
 
   @Get('agents/stats')
@@ -326,7 +407,12 @@ export class AdminController {
     @Query('search') search: string | undefined,
     @Query() pagination: PaginationDto,
   ) {
-    return this.adminFacade.getListings({ type, search, page: pagination.page, limit: pagination.limit });
+    return this.adminFacade.getListings({
+      type,
+      search,
+      page: pagination.page,
+      limit: pagination.limit,
+    });
   }
 
   @Patch('listings/:id/status')
@@ -336,7 +422,7 @@ export class AdminController {
   ) {
     const result = await this.adminFacade.updateListingStatus(id, status);
     if (result && result.success && 'data' in result) {
-      const { data, ...rest } = result as any;
+      const { data: _data, ...rest } = result as Record<string, unknown>;
       return rest;
     }
     return result;
@@ -345,10 +431,15 @@ export class AdminController {
   // --- Support / Disputes Management ---
   @Get('support/disputes')
   async getAllDisputes(
-    @Query('status', new ParseEnumPipe(DisputeStatus, {optional: true})) status: DisputeStatus | undefined,
+    @Query('status', new ParseEnumPipe(DisputeStatus, { optional: true }))
+    status: DisputeStatus | undefined,
     @Query() pagination: PaginationDto,
   ) {
-    return this.adminFacade.getAllDisputes({ status, page: pagination.page, limit: pagination.limit });
+    return this.adminFacade.getAllDisputes({
+      status,
+      page: pagination.page,
+      limit: pagination.limit,
+    });
   }
 
   @Get('support/disputes/:id')
@@ -362,7 +453,11 @@ export class AdminController {
     @Body('status', new ParseEnumPipe(DisputeStatus)) status: DisputeStatus,
     @Body('notes') notes?: string,
   ) {
-    const result = await this.adminFacade.updateDisputeStatus(id, status, notes);
+    const _result = await this.adminFacade.updateDisputeStatus(
+      id,
+      status,
+      notes,
+    );
     return { success: true };
   }
 

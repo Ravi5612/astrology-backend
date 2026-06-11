@@ -8,9 +8,10 @@ export class JwtRefreshStrategy extends PassportStrategy(
   Strategy,
   'jwt-refresh',
 ) {
+  // eslint-disable-next-line @typescript-eslint/require-await
   async validate(req: Request) {
     const refreshToken =
-      req.cookies?.refreshToken ||
+      (req.cookies as Record<string, string> | undefined)?.refreshToken ||
       req.headers?.authorization?.replace('Bearer ', '');
 
     if (!refreshToken) {
@@ -18,7 +19,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
     }
 
     // Attach for downstream use
-    req['refreshToken'] = refreshToken;
+    (req as unknown as Record<string, unknown>)['refreshToken'] = refreshToken;
 
     return true;
   }

@@ -1,4 +1,13 @@
-import { Controller, Get, Param, Query, ParseUUIDPipe, DefaultValuePipe, UseGuards, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  ParseUUIDPipe,
+  DefaultValuePipe,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { GetMerchantDetailsUseCase } from '../../application/use-cases/get-merchant-details.use-case';
 import { GetAllMerchantsUseCase } from '../../application/use-cases/get-all-merchants.use-case';
 import { GetUniqueMerchantCitiesUseCase } from '../../application/use-cases/get-unique-merchant-cities.use-case';
@@ -25,7 +34,13 @@ export class MerchantPublicController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
   ) {
-    return this.getAllMerchants.execute({ search, city, page, limit, currentUserId: userId });
+    return this.getAllMerchants.execute({
+      search,
+      city,
+      page,
+      limit,
+      currentUserId: userId,
+    });
   }
 
   @Get('cities')

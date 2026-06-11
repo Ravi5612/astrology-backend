@@ -6,7 +6,11 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '@/common/decorators/roles.decorator';
-import { hasRoles, Role, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import {
+  hasRoles,
+  Role,
+  RoleEnum,
+} from '@/modules/users/infrastructure/enums/Role.enum';
 
 interface JwtUser {
   id: string;
@@ -15,7 +19,7 @@ interface JwtUser {
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) { }
+  constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles =
@@ -37,14 +41,14 @@ export class RolesGuard implements CanActivate {
 
     const isUserAdmin = hasRoles(userRoles, 'ADMIN');
 
-    const canPass =  isUserAdmin || hasRoles(userRoles, ...requiredRoles);
+    const canPass = isUserAdmin || hasRoles(userRoles, ...requiredRoles);
 
     console.log('[RolesGuard] Decision:', {
       userId: user.id,
       userRoles,
       requiredRoles,
       hasRole: canPass,
-      isUserAdmin
+      isUserAdmin,
     });
 
     if (!canPass) {

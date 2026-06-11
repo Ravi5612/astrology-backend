@@ -12,7 +12,6 @@ import { AddMerchantToWishlistUseCase } from './use-cases/add-merchant-to-wishli
 import { RemoveMerchantFromWishlistUseCase } from './use-cases/remove-merchant-from-wishlist.use-case';
 import { GetMerchantWishlistUseCase } from './use-cases/get-merchant-wishlist.use-case';
 
-
 @Injectable()
 export class WishlistFacade {
   constructor(

@@ -9,7 +9,7 @@ export class DeleteReviewUseCase {
   constructor(
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
-  ) { }
+  ) {}
 
   async execute(id: string) {
     const result = await this.reviewRepository.delete(id);

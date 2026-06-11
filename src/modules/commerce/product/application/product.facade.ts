@@ -17,13 +17,20 @@ export class ProductFacade {
     private readonly updateProductUseCase: UpdateProductUseCase,
     private readonly removeProductUseCase: RemoveProductUseCase,
     private readonly merchantProductsUseCase: MerchantProductsUseCase,
-  ) { }
+  ) {}
 
   create(dto: CreateProductDto) {
     return this.createProductUseCase.execute(dto);
   }
 
-  findAll(filters: { merchantId?: string; expert_id?: string; page?: number; limit?: number } = {}) {
+  findAll(
+    filters: {
+      merchantId?: string;
+      expert_id?: string;
+      page?: number;
+      limit?: number;
+    } = {},
+  ) {
     return this.findAllProductsUseCase.execute(filters);
   }
 
@@ -40,15 +47,24 @@ export class ProductFacade {
   }
 
   // Merchant Dashboard Specific Methods
-  findMerchantProducts(merchantId: string, opts: any) {
+  findMerchantProducts(merchantId: string, opts: Record<string, unknown>) {
     return this.merchantProductsUseCase.findAll(merchantId, opts);
   }
 
-  createMerchantProduct(merchantId: string, dto: any) {
+  createMerchantProduct(
+    merchantId: string,
+    dto: import('@/modules/merchant/dashboard/api/dto/create-merchant-product.dto').CreateMerchantProductDto,
+  ) {
     return this.merchantProductsUseCase.create(merchantId, dto);
   }
 
-  updateMerchantProduct(merchantId: string, productId: string, dto: any) {
+  updateMerchantProduct(
+    merchantId: string,
+    productId: string,
+    dto: Partial<
+      import('@/modules/merchant/dashboard/api/dto/create-merchant-product.dto').CreateMerchantProductDto
+    >,
+  ) {
     return this.merchantProductsUseCase.update(merchantId, productId, dto);
   }
 
@@ -56,8 +72,16 @@ export class ProductFacade {
     return this.merchantProductsUseCase.remove(merchantId, productId);
   }
 
-  bulkUpdateMerchantProductStatus(merchantId: string, ids: string[], status: any) {
-    return this.merchantProductsUseCase.bulkUpdateStatus(merchantId, ids, status);
+  bulkUpdateMerchantProductStatus(
+    merchantId: string,
+    ids: string[],
+    status: import('@/modules/merchant/dashboard/api/dto/create-merchant-product.dto').MerchantProductStatus,
+  ) {
+    return this.merchantProductsUseCase.bulkUpdateStatus(
+      merchantId,
+      ids,
+      status,
+    );
   }
 
   findOneMerchantProduct(merchantId: string, productId: string) {

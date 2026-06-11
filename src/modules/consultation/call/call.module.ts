@@ -22,31 +22,36 @@ import { TwimlController } from './api/controllers/twiml.controller';
 import { CallGateway } from './call.gateway';
 import { CallFacade } from './application/call.facade';
 
-
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([CallSession]),
-        forwardRef(() => WalletModule),
-        NotificationModule,
-        forwardRef(() => ExpertProfileModule),
-        forwardRef(() => UsersModule),
-    ],
-    controllers: [CallController, TwimlController],
-    providers: [
-        CallFacade,
-        TwilioService,
-        InitiateCallUseCase,
-        AcceptCallUseCase,
-        EndCallUseCase,
-        GetExpertCallSessionsUseCase,
-        GetCallSessionUseCase,
-        GetCallTokenUseCase,
-        RejectCallUseCase,
-        GetCallEarningsUseCase,
-        CountExpertCallSessionsUseCase,
-        GetExpertCallsByDateUseCase,
-        CallGateway,
-    ],
-    exports: [CallFacade, TwilioService, CallGateway, RejectCallUseCase, GetCallEarningsUseCase],
+  imports: [
+    TypeOrmModule.forFeature([CallSession]),
+    forwardRef(() => WalletModule),
+    NotificationModule,
+    forwardRef(() => ExpertProfileModule),
+    forwardRef(() => UsersModule),
+  ],
+  controllers: [CallController, TwimlController],
+  providers: [
+    CallFacade,
+    TwilioService,
+    InitiateCallUseCase,
+    AcceptCallUseCase,
+    EndCallUseCase,
+    GetExpertCallSessionsUseCase,
+    GetCallSessionUseCase,
+    GetCallTokenUseCase,
+    RejectCallUseCase,
+    GetCallEarningsUseCase,
+    CountExpertCallSessionsUseCase,
+    GetExpertCallsByDateUseCase,
+    CallGateway,
+  ],
+  exports: [
+    CallFacade,
+    TwilioService,
+    CallGateway,
+    RejectCallUseCase,
+    GetCallEarningsUseCase,
+  ],
 })
-export class CallModule { }
+export class CallModule {}

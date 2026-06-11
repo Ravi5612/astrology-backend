@@ -1,4 +1,3 @@
-
 import { Injectable } from '@nestjs/common';
 import { CreateUserUseCase } from './use-cases/create-user.usecase';
 import { FindUserUseCase } from './use-cases/find-user.usecase';
@@ -16,8 +15,10 @@ import { User } from '../infrastructure/entities/user.entity';
 import { QueryRunner } from 'typeorm';
 import { RoleEnum } from '../infrastructure/enums/Role.enum';
 
-import { GetFilteredUsersUseCase, FilterCriteria } from './use-cases/get-filtered-users.use-case';
-
+import {
+  GetFilteredUsersUseCase,
+  FilterCriteria,
+} from './use-cases/get-filtered-users.use-case';
 
 @Injectable()
 export class UsersFacade {
@@ -33,7 +34,7 @@ export class UsersFacade {
     private readonly findUsersByRoleUseCase: FindUsersByRoleUseCase,
     private readonly findReferredUsersUseCase: FindReferredUsersUseCase,
     private readonly getFilteredUsersUseCase: GetFilteredUsersUseCase,
-  ) { }
+  ) {}
 
   create(dto: CreateUserDto, queryRunner?: QueryRunner) {
     return this.createUserUseCase.execute(dto, queryRunner);
@@ -55,7 +56,7 @@ export class UsersFacade {
     return this.findUserUseCase.findById(id, queryRunner);
   }
 
-  update(id: any, dto: Partial<User>, queryRunner?: QueryRunner) {
+  update(id: string, dto: Partial<User>, queryRunner?: QueryRunner) {
     return this.updateUserUseCase.execute(id, dto, queryRunner);
   }
 
@@ -79,8 +80,20 @@ export class UsersFacade {
     return this.getUserExpertGrowthStatsUseCase.execute(days);
   }
 
-  findAllByRole(role: string, search?: string, page: number = 1, limit: number = 10, status?: string) {
-    return this.findUsersByRoleUseCase.execute(role, search, page, limit, status);
+  findAllByRole(
+    role: string,
+    search?: string,
+    page: number = 1,
+    limit: number = 10,
+    status?: string,
+  ) {
+    return this.findUsersByRoleUseCase.execute(
+      role,
+      search,
+      page,
+      limit,
+      status,
+    );
   }
 
   getExpertsForRevenue(queryRunner?: QueryRunner) {

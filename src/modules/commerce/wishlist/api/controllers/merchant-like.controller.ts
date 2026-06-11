@@ -1,4 +1,4 @@
-import {
+﻿import {
   Controller,
   Get,
   Post,
@@ -31,10 +31,7 @@ export class MerchantLikeController {
     @CurrentUser('id') userId: string,
     @Body() dto: AddMerchantWishlistDto,
   ) {
-    return this.wishlistFacade.addMerchantToWishlist(
-      userId,
-      dto.merchantId,
-    );
+    return this.wishlistFacade.addMerchantToWishlist(userId, dto.merchantId);
   }
 
   @Delete('remove/:merchantId')
@@ -42,7 +39,10 @@ export class MerchantLikeController {
     @CurrentUser('id') userId: string,
     @Param('merchantId', ParseUUIDPipe) merchantId: string,
   ) {
-    const result = await this.wishlistFacade.removeMerchantFromWishlist(userId, merchantId);
+    const _result = await this.wishlistFacade.removeMerchantFromWishlist(
+      userId,
+      merchantId,
+    );
     return { success: true };
   }
 }

@@ -10,9 +10,13 @@ export class UpdateProfileWithQueryRunnerUseCase {
     private readonly profileRepo: Repository<ProfileMerchant>,
   ) {}
 
-  async execute(userId: string, updates: Partial<ProfileMerchant>, queryRunner: QueryRunner) {
+  async execute(
+    userId: string,
+    updates: Partial<ProfileMerchant>,
+    queryRunner: QueryRunner,
+  ) {
     let profile = await queryRunner.manager.findOne(ProfileMerchant, {
-      where: { user_id: userId as any }
+      where: { user_id: userId as unknown as ProfileMerchant['user_id'] },
     });
 
     if (profile) {
@@ -20,9 +24,9 @@ export class UpdateProfileWithQueryRunnerUseCase {
       await queryRunner.manager.save(ProfileMerchant, profile);
     } else {
       profile = queryRunner.manager.create(ProfileMerchant, {
-        user: { id: userId as any },
-        user_id: userId as any,
-        ...updates
+        user: { id: userId },
+        user_id: userId,
+        ...updates,
       });
       await queryRunner.manager.save(ProfileMerchant, profile);
     }

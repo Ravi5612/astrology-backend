@@ -8,7 +8,7 @@ export class GetAdminReviewsUseCase {
   constructor(
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
-  ) { }
+  ) {}
 
   async execute(params: {
     page?: number;
@@ -18,9 +18,17 @@ export class GetAdminReviewsUseCase {
     ratingType?: string;
     review_type?: string;
   }) {
-    const { page = 1, limit = 15, status, search, ratingType, review_type } = params;
+    const {
+      page = 1,
+      limit = 15,
+      status,
+      search,
+      ratingType,
+      review_type,
+    } = params;
 
-    const queryBuilder = this.reviewRepository.createQueryBuilder('review')
+    const queryBuilder = this.reviewRepository
+      .createQueryBuilder('review')
       .leftJoinAndSelect('review.client', 'client')
       .leftJoinAndSelect('client.user', 'user')
       .leftJoinAndSelect('review.expert', 'expert')
@@ -42,12 +50,14 @@ export class GetAdminReviewsUseCase {
     if (search) {
       queryBuilder.andWhere(
         '(user.name ILIKE :search OR expertUser.name ILIKE :search OR review.comment ILIKE :search)',
-        { search: `%${search}%` }
+        { search: `%${search}%` },
       );
     }
 
     if (review_type && review_type !== 'all') {
-      queryBuilder.andWhere('review.review_type = :review_type', { review_type });
+      queryBuilder.andWhere('review.review_type = :review_type', {
+        review_type,
+      });
     }
 
     const [reviews, total] = await queryBuilder
@@ -57,18 +67,29 @@ export class GetAdminReviewsUseCase {
 
     const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:6543/';
 
-    const mappedReviews = reviews.map(r => {
-      const rawAvatar = r.client?.avatar || ((r.client as any))?.profile_client?.profile_picture;
-      const fullAvatar = rawAvatar 
-        ? (rawAvatar.startsWith('http') ? rawAvatar : `${baseUrl.replace(/\/$/, '')}/${rawAvatar.replace(/^\//, '')}`)
-        : null;
+    const mappedReviews = reviews.map((r) => {
+      const rawAvatar =
+        r.client?.avatar ||
+        ((
+          (r.client as unknown as Record<string, unknown>)?.profile_client as
+            | Record<string, unknown>
+            | undefined
+        )?.profile_picture as string | undefined);
+      const fullAvatar =
+        typeof rawAvatar === 'string'
+          ? rawAvatar.startsWith('http')
+            ? rawAvatar
+            : `${baseUrl.replace(/\/$/, '')}/${rawAvatar.replace(/^\//, '')}`
+          : null;
 
       return {
         ...r,
-        client: r.client ? {
-          ...r.client,
-          avatar: fullAvatar
-        } : null
+        client: r.client
+          ? {
+              ...r.client,
+              avatar: fullAvatar,
+            }
+          : null,
       };
     });
 

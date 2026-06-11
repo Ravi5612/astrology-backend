@@ -16,19 +16,21 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (req) => req?.cookies?.accessToken,
+        (req: { cookies?: { accessToken?: string } }) =>
+          req?.cookies?.accessToken ?? null,
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       secretOrKey: authConfig.jwtSecret,
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async validate(payload: IAccessTokenPayload) {
     // We return a simplified user object based on the JWT payload.
     // This avoids a database hit on every protected request.
     return {
       id: payload.sub,
-      ...payload
+      ...payload,
     };
   }
 }

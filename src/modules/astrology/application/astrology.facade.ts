@@ -4,6 +4,7 @@ import { GetDailyHoroscopeUseCase } from './use-cases/get-daily-horoscope.use-ca
 import { GetMangalDoshaUseCase } from './use-cases/get-mangal-dosha.use-case';
 import { GetBirthDetailsUseCase } from './use-cases/get-birth-details.use-case';
 import { GetKundliMatchingUseCase } from './use-cases/get-kundli-matching.use-case';
+import { ProkeralaPersonParam } from '@/external/prokerala/prokerala.service';
 
 @Injectable()
 export class AstrologyFacade {
@@ -15,7 +16,10 @@ export class AstrologyFacade {
     private readonly getKundliMatchingUseCase: GetKundliMatchingUseCase,
   ) {}
 
-  async getGunaMilan(girlParams: any, boyParams: any) {
+  async getGunaMilan(
+    girlParams: ProkeralaPersonParam,
+    boyParams: ProkeralaPersonParam,
+  ) {
     return this.getGunaMilanUseCase.execute(girlParams, boyParams);
   }
 
@@ -23,15 +27,33 @@ export class AstrologyFacade {
     return this.getDailyHoroscopeUseCase.execute(sign, lang);
   }
 
-  async getMangalDosha(params: { datetime: string; lat: string; lon: string; lang?: string }) {
+  async getMangalDosha(params: {
+    datetime: string;
+    lat: string;
+    lon: string;
+    lang?: string;
+  }) {
     return this.getMangalDoshaUseCase.execute(params);
   }
 
-  async getBirthDetails(params: { datetime: string; lat: string; lon: string; ayanamsa?: string }) {
+  async getBirthDetails(params: {
+    datetime: string;
+    lat: string;
+    lon: string;
+    ayanamsa?: string;
+  }) {
     return this.getBirthDetailsUseCase.execute(params);
   }
 
-  async getKundliMatching(girlParams: any, boyParams: any, ayanamsa?: string) {
-    return this.getKundliMatchingUseCase.execute(girlParams, boyParams, ayanamsa);
+  async getKundliMatching(
+    girlParams: ProkeralaPersonParam,
+    boyParams: ProkeralaPersonParam,
+    ayanamsa?: string,
+  ) {
+    return this.getKundliMatchingUseCase.execute(
+      girlParams,
+      boyParams,
+      ayanamsa,
+    );
   }
 }

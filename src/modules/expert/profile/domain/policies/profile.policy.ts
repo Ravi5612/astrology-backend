@@ -3,7 +3,9 @@ import { ProfileNotFoundError } from '../errors/profile-not-found.error';
 import { KycAlreadyVerifiedError } from '../errors/kyc-already-verified.error';
 
 export class ProfilePolicy {
-  static ensureProfileExists(profile: ProfileExpert | null | undefined): asserts profile is ProfileExpert {
+  static ensureProfileExists(
+    profile: ProfileExpert | null | undefined,
+  ): asserts profile is ProfileExpert {
     if (!profile) {
       throw new ProfileNotFoundError();
     }

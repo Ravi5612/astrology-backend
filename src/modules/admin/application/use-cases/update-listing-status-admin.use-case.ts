@@ -5,7 +5,7 @@ import { AgentFacade } from '@/modules/agent/application/agent.facade';
 export class UpdateListingStatusAdminUseCase {
   constructor(
     @Inject(forwardRef(() => AgentFacade))
-    private readonly agentFacade: AgentFacade
+    private readonly agentFacade: AgentFacade,
   ) {}
 
   async execute(id: string, data: { status: string }) {

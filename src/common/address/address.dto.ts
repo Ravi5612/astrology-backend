@@ -1,8 +1,14 @@
-import { IsOptional, IsString, IsPostalCode, IsEnum, IsBoolean } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsPostalCode,
+  IsEnum,
+  IsBoolean,
+} from 'class-validator';
 import { AddressTag } from './address.entity';
 
 export class AddressDto {
-  @IsOptional()       
+  @IsOptional()
   @IsString()
   id?: string;
 

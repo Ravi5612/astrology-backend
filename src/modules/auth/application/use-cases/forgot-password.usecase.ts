@@ -11,7 +11,7 @@ export class ForgotPasswordUseCase {
     private readonly usersFacade: UsersFacade,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async execute(email: string) {
     const existingUser = await this.usersFacade.findByEmail(email);

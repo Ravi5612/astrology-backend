@@ -15,7 +15,6 @@ export enum MerchantStatus {
   SUSPENDED = 'suspended',
 }
 
-
 @Entity({ schema: 'merchant', name: 'profile' })
 export class ProfileMerchant {
   @UuidPrimaryKeyColumn()
@@ -55,16 +54,16 @@ export class ProfileMerchant {
   @Column({ name: 'address', nullable: true, type: 'text' })
   address!: string | null;
 
-  @Column({ name: 'city',  type: 'text', nullable: true })
+  @Column({ name: 'city', type: 'text', nullable: true })
   city!: string | null;
 
-  @Column({ name: 'pincode',  type: 'text', nullable: true })
+  @Column({ name: 'pincode', type: 'text', nullable: true })
   pincode!: string | null;
 
-  @Column({ name: 'image',  type: 'text', nullable: true })
+  @Column({ name: 'image', type: 'text', nullable: true })
   image!: string | null;
 
-  @Column({ name: 'video',  type: 'text', nullable: true })
+  @Column({ name: 'video', type: 'text', nullable: true })
   video!: string | null;
 
   @Column({
@@ -73,7 +72,6 @@ export class ProfileMerchant {
     default: MerchantStatus.PENDING_VERIFICATION,
   })
   status!: MerchantStatus;
-
 
   @Column({ type: 'decimal', precision: 3, scale: 1, default: 0 })
   rating!: number;
@@ -102,46 +100,56 @@ export class ProfileMerchant {
   @Column({ type: 'text', nullable: true })
   gstin!: string | null;
 
-  @Column({  type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true })
   pan!: string | null;
 
   @Column({ name: 'is_gst_exempt', type: 'bool', default: false })
   isGstExempt!: boolean;
 
-  @Column({ name: 'bank_name',  type: 'text', nullable: true })
+  @Column({ name: 'bank_name', type: 'text', nullable: true })
   bankName!: string | null;
 
-  @Column({ name: 'account_holder',  type: 'text', nullable: true })
-  accountHolder!: string | null; 
+  @Column({ name: 'account_holder', type: 'text', nullable: true })
+  accountHolder!: string | null;
 
-  @Column({ name: 'account_number',  type: 'text', nullable: true })
+  @Column({ name: 'account_number', type: 'text', nullable: true })
   accountNumber!: string | null;
 
-  @Column({  type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true })
   ifsc!: string | null;
 
-  @Column({ name: 'gst_certificate',  type: 'text', nullable: true })
+  @Column({ name: 'gst_certificate', type: 'text', nullable: true })
   gstCertificate!: string | null;
 
-  @Column({ name: 'pan_front',  type: 'text', nullable: true })
+  @Column({ name: 'pan_front', type: 'text', nullable: true })
   panFront!: string | null;
 
-  @Column({ name: 'pan_back',  type: 'text', nullable: true })
+  @Column({ name: 'pan_back', type: 'text', nullable: true })
   panBack!: string | null;
 
-  @Column({ name: 'aadhar_front',  type: 'text', nullable: true })
-  aadharFront!: string | null; 
+  @Column({ name: 'aadhar_front', type: 'text', nullable: true })
+  aadharFront!: string | null;
 
-  @Column({ name: 'aadhar_back',  type: 'text', nullable: true })
+  @Column({ name: 'aadhar_back', type: 'text', nullable: true })
   aadharBack!: string | null;
 
-  @Column({ name: 'is_verified',  type: 'text', default: false })
+  @Column({ name: 'is_verified', type: 'text', default: false })
   isVerified!: boolean | null;
 
-  @Column({ name: 'operational_hours',  type: 'text', nullable: true, default: '10:00 AM - 08:30 PM' })
+  @Column({
+    name: 'operational_hours',
+    type: 'text',
+    nullable: true,
+    default: '10:00 AM - 08:30 PM',
+  })
   operationalHours!: string | null;
 
-  @Column({ name: 'trust_score',  type: 'text', nullable: true, default: '99.8' })
+  @Column({
+    name: 'trust_score',
+    type: 'text',
+    nullable: true,
+    default: '99.8',
+  })
   trustScore!: string | null;
 
   @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
@@ -157,8 +165,11 @@ export class ProfileMerchant {
   updated_at!: Date;
 
   @Column({ type: 'float', nullable: true, name: 'agent_commission_rate' })
-  agent_commission_rate!: number | null; 
+  agent_commission_rate!: number | null;
 
   @Column({ type: 'json', nullable: true, name: 'bank_accounts' })
-  bank_accounts!: any[];
+  bank_accounts!: Record<string, unknown>[];
+
+  @Column({ type: 'text', nullable: true, name: 'razorpay_contact_id' })
+  razorpay_contact_id!: string | null;
 }

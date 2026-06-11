@@ -1,6 +1,9 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { IFindProfileStrategy, FIND_PROFILE_STRATEGIES } from './find-profile.strategy';
+import {
+  IFindProfileStrategy,
+  FIND_PROFILE_STRATEGIES,
+} from './find-profile.strategy';
 
 @Injectable()
 export class FindProfileResolver {
@@ -9,7 +12,10 @@ export class FindProfileResolver {
     private readonly strategies: IFindProfileStrategy[],
   ) {}
 
-  async findProfile(userId: string, targetRole: RoleEnum): Promise<string | null> {
+  async findProfile(
+    userId: string,
+    targetRole: RoleEnum,
+  ): Promise<string | null> {
     const strategy = this.strategies.find((s) => s.supports(targetRole));
     if (!strategy) {
       return null;

@@ -1,5 +1,9 @@
-
-import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderItem } from '@/modules/commerce/order/infrastructure/entities/order-item.entity';
@@ -32,7 +36,7 @@ export class GetAdminMerchantSalesDetailsUseCase {
         .leftJoinAndSelect('order.client', 'client')
         .where('product.merchant_id = :userId', { userId: merchant.user_id })
         .andWhere('order.status NOT IN (:...invalidStatuses)', {
-          invalidStatuses: [OrderStatus.CANCELLED, OrderStatus.PENDING]
+          invalidStatuses: [OrderStatus.CANCELLED, OrderStatus.PENDING],
         })
         .orderBy('order.created_at', 'DESC')
         .getMany();

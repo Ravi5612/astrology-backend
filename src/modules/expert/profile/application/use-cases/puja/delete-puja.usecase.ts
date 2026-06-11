@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ExpertPuja } from '../../../infrastructure/entities/expert-puja.entity';
@@ -12,7 +12,7 @@ export class DeletePujaUseCase {
     private readonly pujaRepo: Repository<ExpertPuja>,
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
-  ) { }
+  ) {}
 
   async execute(user: User, id: string) {
     const profile = await this.profileRepo.findOne({
@@ -24,7 +24,7 @@ export class DeletePujaUseCase {
     }
 
     const puja = await this.pujaRepo.findOne({
-      where: { id: id as any, expert_id: profile.id },
+      where: { id, expert_id: profile.id },
     });
 
     if (!puja) {

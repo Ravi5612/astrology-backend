@@ -1,4 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards, HttpCode, HttpStatus, Query, DefaultValuePipe, ParseUUIDPipe, Headers, Ip, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+  Query,
+  DefaultValuePipe,
+  Headers,
+  Ip,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { GetMerchantFinanceStatsUseCase } from '../../application/use-cases/get-merchant-finance-stats.usecase';
@@ -34,7 +47,10 @@ export class MerchantFinanceController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
   ) {
-    const transactions = await this.walletFacade.getMerchantTransactions(userId, { search, page, limit });
+    const transactions = await this.walletFacade.getMerchantTransactions(
+      userId,
+      { search, page, limit },
+    );
     return { success: true, data: transactions };
   }
 
@@ -48,7 +64,13 @@ export class MerchantFinanceController {
     @Headers('user-agent') ua: string,
     @Headers('x-idempotency-key') idempotencyKey: string,
   ) {
-    const withdrawal = await this.walletFacade.requestWithdrawal(userId as any, amount, bankAccountId, idempotencyKey, { ip, ua });
+    const withdrawal = await this.walletFacade.requestWithdrawal(
+      userId,
+      amount,
+      bankAccountId,
+      idempotencyKey,
+      { ip, ua },
+    );
     return {
       success: true,
       message: 'Withdrawal request submitted successfully',
@@ -56,4 +78,3 @@ export class MerchantFinanceController {
     };
   }
 }
-

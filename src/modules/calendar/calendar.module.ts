@@ -9,10 +9,7 @@ import { CalendarCache } from './infrastructure/entities/calendar-cache.entity';
 import { ProkeralaModule } from '@/external/prokerala/prokerala.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([CalendarCache]),
-    ProkeralaModule,
-  ],
+  imports: [TypeOrmModule.forFeature([CalendarCache]), ProkeralaModule],
   controllers: [CalendarController],
   providers: [
     CalendarFacade,

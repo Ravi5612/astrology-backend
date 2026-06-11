@@ -1,4 +1,4 @@
-import { IsString, IsOptional, Matches, IsNotEmpty, IsBoolean } from 'class-validator';
+﻿import { IsString, IsOptional, Matches, IsNotEmpty } from 'class-validator';
 
 export class UpdateMerchantProfileDto {
   @IsString({ message: 'Store name must be a string' })
@@ -55,7 +55,9 @@ export class UpdateMerchantProfileDto {
 
   @IsOptional()
   @IsString()
-  @Matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i, { message: 'Invalid PAN card format' })
+  @Matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i, {
+    message: 'Invalid PAN card format',
+  })
   pan?: string;
 
   @IsOptional()

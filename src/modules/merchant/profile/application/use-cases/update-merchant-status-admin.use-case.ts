@@ -2,7 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProfileMerchant, MerchantStatus } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
+import {
+  ProfileMerchant,
+  MerchantStatus,
+} from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 
 @Injectable()
 export class UpdateMerchantStatusAdminUseCase {
@@ -21,7 +24,9 @@ export class UpdateMerchantStatusAdminUseCase {
       throw new NotFoundException('Merchant profile not found');
     }
 
-    const newStatus = data.status ? (data.status.toLowerCase() as MerchantStatus) : profile.status;
+    const newStatus = data.status
+      ? (data.status.toLowerCase() as MerchantStatus)
+      : profile.status;
     // Important: isVerified is now strictly tied to the overall status being ACTIVE
     const isVerified = newStatus === MerchantStatus.ACTIVE;
 
@@ -31,12 +36,14 @@ export class UpdateMerchantStatusAdminUseCase {
       .update(ProfileMerchant)
       .set({
         status: newStatus,
-        isVerified: isVerified
+        isVerified: isVerified,
       })
-      .where("id = :id", { id })
+      .where('id = :id', { id })
       .execute();
 
-    console.log(`[DEBUG] Force Updated merchant ${id} to status: ${newStatus}. isVerified: ${isVerified}`);
+    console.log(
+      `[DEBUG] Force Updated merchant ${id} to status: ${newStatus}. isVerified: ${isVerified}`,
+    );
 
     return new BooleanMessage(true, 'Merchant status updated successfully');
   }

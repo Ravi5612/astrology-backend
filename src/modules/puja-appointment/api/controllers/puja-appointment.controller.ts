@@ -1,4 +1,14 @@
-import { Controller, Post, Get, Body, Param, UseGuards, Request, Patch, ParseUUIDPipe } from '@nestjs/common';
+﻿import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Param,
+  UseGuards,
+  Request,
+  Patch,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CreatePujaAppointmentUseCase } from '../../application/use-cases/create-puja-appointment.use-case';
 import { CreatePujaAppointmentDto } from '../../application/dtos/create-puja-appointment.dto';
@@ -20,7 +30,10 @@ export class PujaAppointmentController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async createAppointment(@CurrentUser() user: User, @Body() dto: CreatePujaAppointmentDto) {
+  async createAppointment(
+    @CurrentUser() user: User,
+    @Body() dto: CreatePujaAppointmentDto,
+  ) {
     return await this.createPujaAppointmentUseCase.execute(user.id, dto);
   }
 
@@ -38,8 +51,16 @@ export class PujaAppointmentController {
 
   @Patch(':id/status')
   @UseGuards(JwtAuthGuard)
-  async updateStatus(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdatePujaAppointmentStatusDto) {
-    const result = await this.updatePujaAppointmentStatusUseCase.execute(id, user.id, dto);
+  async updateStatus(
+    @CurrentUser() user: User,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdatePujaAppointmentStatusDto,
+  ) {
+    const _result = await this.updatePujaAppointmentStatusUseCase.execute(
+      id,
+      user.id,
+      dto,
+    );
     return { success: true };
   }
 }

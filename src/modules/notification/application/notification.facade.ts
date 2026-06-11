@@ -7,36 +7,42 @@ import { NotificationType } from '../infrastructure/entities/notification.entity
 
 @Injectable()
 export class NotificationFacade {
-    constructor(
-        private readonly createNotificationUseCase: CreateNotificationUseCase,
-        private readonly getNotificationsUseCase: GetNotificationsUseCase,
-        private readonly markAsReadUseCase: MarkAsReadUseCase,
-        private readonly clearAllNotificationsUseCase: ClearAllNotificationsUseCase,
-    ) { }
+  constructor(
+    private readonly createNotificationUseCase: CreateNotificationUseCase,
+    private readonly getNotificationsUseCase: GetNotificationsUseCase,
+    private readonly markAsReadUseCase: MarkAsReadUseCase,
+    private readonly clearAllNotificationsUseCase: ClearAllNotificationsUseCase,
+  ) {}
 
-    async create(
-        userId: string,
-        type: NotificationType,
-        title: string,
-        message: string,
-        metadata?: any,
-    ) {
-        return this.createNotificationUseCase.execute(userId, type, title, message, metadata);
-    }
+  async create(
+    userId: string,
+    type: NotificationType,
+    title: string,
+    message: string,
+    metadata?: Record<string, unknown>,
+  ) {
+    return this.createNotificationUseCase.execute(
+      userId,
+      type,
+      title,
+      message,
+      metadata,
+    );
+  }
 
-    async getUserNotifications(userId: string, limit?: number, offset?: number) {
-        return this.getNotificationsUseCase.execute(userId, limit, offset);
-    }
+  async getUserNotifications(userId: string, limit?: number, offset?: number) {
+    return this.getNotificationsUseCase.execute(userId, limit, offset);
+  }
 
-    async markAsRead(id: string, userId: string) {
-        return this.markAsReadUseCase.execute(id, userId);
-    }
+  async markAsRead(id: string, userId: string) {
+    return this.markAsReadUseCase.execute(id, userId);
+  }
 
-    async getUnreadCount(userId: string) {
-        return this.getNotificationsUseCase.getUnreadCount(userId);
-    }
+  async getUnreadCount(userId: string) {
+    return this.getNotificationsUseCase.getUnreadCount(userId);
+  }
 
-    async clearAll(userId: string) {
-        return this.clearAllNotificationsUseCase.execute(userId);
-    }
+  async clearAll(userId: string) {
+    return this.clearAllNotificationsUseCase.execute(userId);
+  }
 }

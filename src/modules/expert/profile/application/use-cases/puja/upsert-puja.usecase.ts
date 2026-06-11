@@ -19,7 +19,7 @@ export class UpsertPujaUseCase {
     private readonly profileRepo: Repository<ProfileExpert>,
     private readonly getProfileUseCase: GetProfileUseCase,
     private readonly cloudinaryService: CloudinaryService,
-  ) { }
+  ) {}
 
   async execute(user: User, dto: ExpertPujaDto, id?: string) {
     const profile = await this.profileRepo.findOne({
@@ -34,7 +34,7 @@ export class UpsertPujaUseCase {
 
     if (id) {
       const existing = await this.pujaRepo.findOne({
-        where: { id: id as any, expert_id: profile.id },
+        where: { id, expert_id: profile.id },
       });
       if (!existing) {
         throw new NotFoundException('Puja service not found');
@@ -48,8 +48,11 @@ export class UpsertPujaUseCase {
 
     if (dto.puja_image) {
       try {
-        const uploadResult = await this.cloudinaryService.uploadBase64(dto.puja_image, 'pujas');
-        puja.puja_image_url = uploadResult.secure_url;
+        const uploadResult = (await this.cloudinaryService.uploadBase64(
+          dto.puja_image,
+          'pujas',
+        )) as Record<string, unknown>;
+        puja.puja_image_url = uploadResult.secure_url as string;
       } catch (error) {
         this.logger.error('Failed to upload puja image:', error);
       }
@@ -62,7 +65,8 @@ export class UpsertPujaUseCase {
     puja.max_duration_hours = dto.max_duration_hours;
     puja.online_cost = dto.online_cost ?? 0;
     puja.home_visit_with_samagri_cost = dto.home_visit_with_samagri_cost ?? 0;
-    puja.home_visit_without_samagri_cost = dto.home_visit_without_samagri_cost ?? 0;
+    puja.home_visit_without_samagri_cost =
+      dto.home_visit_without_samagri_cost ?? 0;
     puja.description = dto.description ?? null;
     puja.districts = puja.is_home_visit ? (dto.districts ?? []) : null;
     puja.samagri_list = dto.samagri_list ?? [];

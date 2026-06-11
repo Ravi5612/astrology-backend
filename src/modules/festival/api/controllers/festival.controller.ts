@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+﻿import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { FestivalFacade } from '../../application/festival.facade';
 import { CreateFestivalDto, UpdateFestivalDto } from '../dto/festival.dto';
 import { Public } from '@/common/decorators/public.decorator';
@@ -9,17 +18,17 @@ export class FestivalController {
 
   @Public()
   @Get()
-  findAll(
-    @Query('year') year?: number,
-    @Query('month') month?: number,
-  ) {
-    return this.festivalFacade.findAll(Number(year) || undefined, Number(month) || undefined);
+  findAll(@Query('year') year?: number, @Query('month') month?: number) {
+    return this.festivalFacade.findAll(
+      Number(year) || undefined,
+      Number(month) || undefined,
+    );
   }
 
   @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.festivalFacade.findOne(id as any);
+    return this.festivalFacade.findOne(id);
   }
 
   @Post()
@@ -29,13 +38,13 @@ export class FestivalController {
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() dto: UpdateFestivalDto) {
-    const result = await this.festivalFacade.update(id as any, dto);
+    const _result = await this.festivalFacade.update(id, dto);
     return { success: true };
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    const result = await this.festivalFacade.remove(id as any);
+    const _result = await this.festivalFacade.remove(id);
     return { success: true };
   }
 }

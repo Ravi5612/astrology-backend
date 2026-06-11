@@ -1,4 +1,3 @@
-
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, EntityManager } from 'typeorm';
@@ -16,14 +15,17 @@ export class MarkCouponAsUsedUseCase {
 
   async execute(userId: string, code: string, manager?: EntityManager) {
     const repo = manager ? manager.getRepository(Coupon) : this.couponRepo;
-    const userCouponRepo = manager ? manager.getRepository(UserCoupon) : this.userCouponRepo;
+    const userCouponRepo = manager
+      ? manager.getRepository(UserCoupon)
+      : this.userCouponRepo;
 
-    const coupon = await repo.createQueryBuilder('coupon')
+    const coupon = await repo
+      .createQueryBuilder('coupon')
       .where('LOWER(coupon.code) = LOWER(:code)', { code })
       .andWhere('coupon.is_active = :isActive', { isActive: true })
       .getOne();
-    
-      if (!coupon) {
+
+    if (!coupon) {
       throw new NotFoundException('Coupon not found');
     }
 

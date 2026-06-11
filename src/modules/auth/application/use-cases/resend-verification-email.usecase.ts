@@ -1,11 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+﻿import { BadRequestException, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { VerifyEmailEvent } from '../../domain/events/verify-email.event';
 import { EmailVerificationPolicy } from '../../domain/policies/email-verification.policy';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class ResendVerificationEmailUseCase {
@@ -13,7 +12,7 @@ export class ResendVerificationEmailUseCase {
     private readonly usersFacade: UsersFacade,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async execute(email: string) {
     const existingUser = await this.usersFacade.findByEmail(email);
@@ -42,11 +41,7 @@ export class ResendVerificationEmailUseCase {
 
     this.eventEmitter.emit(
       'auth.email.verify',
-      new VerifyEmailEvent(
-        user.email,
-        verification_token,
-        roleNames,
-      ),
+      new VerifyEmailEvent(user.email, verification_token, roleNames),
     );
   }
 }

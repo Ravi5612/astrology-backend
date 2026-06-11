@@ -3,7 +3,9 @@ import { PrimaryAccountDeletionError } from '../errors/primary-account-deletion.
 import { BankAccountNotFoundError } from '../errors/bank-account-not-found.error';
 
 export class BankAccountPolicy {
-  static ensureAccountExists(account: BankAccount | null | undefined): asserts account is BankAccount {
+  static ensureAccountExists(
+    account: BankAccount | null | undefined,
+  ): asserts account is BankAccount {
     if (!account) {
       throw new BankAccountNotFoundError();
     }

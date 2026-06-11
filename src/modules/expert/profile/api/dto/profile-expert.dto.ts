@@ -145,7 +145,7 @@ export class ProfileExpertDto {
   @Type(() => CustomServiceDto)
   custom_services?: CustomServiceDto[];
 }
-export class CreateProfileExpertDto extends ProfileExpertDto { }
+export class CreateProfileExpertDto extends ProfileExpertDto {}
 
 export class UpdateProfileExpertDto extends PartialType(ProfileExpertDto) {
   @IsOptional()
@@ -188,4 +188,3 @@ export class UpdateProfileExpertDto extends PartialType(ProfileExpertDto) {
   @Type(() => CustomServiceDto)
   custom_services?: CustomServiceDto[];
 }
-

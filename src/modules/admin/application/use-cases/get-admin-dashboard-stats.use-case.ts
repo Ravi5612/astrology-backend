@@ -12,7 +12,7 @@ export class GetAdminDashboardStatsUseCase {
     private readonly walletFacade: WalletFacade,
     @Inject(forwardRef(() => ChatFacade))
     private readonly chatFacade: ChatFacade,
-  ) { }
+  ) {}
 
   async execute() {
     const expertStats = await this.usersFacade.getExpertStats();
@@ -28,37 +28,61 @@ export class GetAdminDashboardStatsUseCase {
     ]);
 
     const activities = [
-      ...latestUsers.items.map((u: any) => ({
-        id: `client-${u.id}`,
-        name: u.name || u.email,
-        action: 'joined as a client',
-        createdAt: u.created_at,
-        avatar: (u.name || 'C').charAt(0).toUpperCase(),
-        color: 'bg-blue-500',
-      })),
-      ...latestExperts.items.map((u: any) => ({
-        id: `expert-${u.id}`,
-        name: u.name || u.email,
-        action: 'joined as an expert',
-        createdAt: u.created_at,
-        avatar: (u.name || 'E').charAt(0).toUpperCase(),
-        color: 'bg-purple-500',
-      })),
-      ...latestAgents.items.map((u: any) => ({
-        id: `agent-${u.id}`,
-        name: u.name || u.email,
-        action: 'joined as an agent',
-        createdAt: u.created_at,
-        avatar: (u.name || 'A').charAt(0).toUpperCase(),
-        color: 'bg-green-500',
-      })),
+      ...latestUsers.items.map(
+        (
+          u: import('@/modules/users/infrastructure/entities/user.entity').User,
+        ) => ({
+          id: `client-${u.id}`,
+          name: u.name || u.email,
+          action: 'joined as a client',
+          createdAt: u.created_at,
+          avatar: (u.name || 'C').charAt(0).toUpperCase(),
+          color: 'bg-blue-500',
+        }),
+      ),
+      ...latestExperts.items.map(
+        (
+          u: import('@/modules/users/infrastructure/entities/user.entity').User,
+        ) => ({
+          id: `expert-${u.id}`,
+          name: u.name || u.email,
+          action: 'joined as an expert',
+          createdAt: u.created_at,
+          avatar: (u.name || 'E').charAt(0).toUpperCase(),
+          color: 'bg-purple-500',
+        }),
+      ),
+      ...latestAgents.items.map(
+        (
+          u: import('@/modules/users/infrastructure/entities/user.entity').User,
+        ) => ({
+          id: `agent-${u.id}`,
+          name: u.name || u.email,
+          action: 'joined as an agent',
+          createdAt: u.created_at,
+          avatar: (u.name || 'A').charAt(0).toUpperCase(),
+          color: 'bg-green-500',
+        }),
+      ),
     ]
-      .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort(
+        (a: { createdAt: Date }, b: { createdAt: Date }) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
       .slice(0, 10)
-      .map((activity: any) => ({
-        ...activity,
-        time: this.formatTime(activity.createdAt),
-      }));
+      .map(
+        (activity: {
+          id: string;
+          name: string;
+          action: string;
+          createdAt: Date;
+          avatar: string;
+          color: string;
+        }) => ({
+          ...activity,
+          time: this.formatTime(activity.createdAt),
+        }),
+      );
 
     const admin_earnings = await this.walletFacade.getAdminCommission();
 

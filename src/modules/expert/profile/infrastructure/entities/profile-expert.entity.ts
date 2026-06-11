@@ -27,7 +27,7 @@ export class ProfileExpert {
   @JoinColumn({ name: 'user_id' })
   user!: User;
 
-  @Column({ name: 'user_id'})
+  @Column({ name: 'user_id' })
   user_id!: string;
 
   @Column({ type: 'text', unique: true, nullable: true })
@@ -81,7 +81,7 @@ export class ProfileExpert {
   @Column({
     type: 'int',
     default: 0,
-    name: 'total_reviews'
+    name: 'total_reviews',
   })
   total_reviews!: number;
 
@@ -122,13 +122,13 @@ export class ProfileExpert {
   horoscope_price!: number | null;
 
   @Column({ type: 'json', nullable: true })
-  custom_services!: Record<string, any>[] | null;
+  custom_services!: Record<string, unknown>[] | null;
 
   @Column({ type: 'text', nullable: true })
   bank_details!: string | null;
 
   @Column({ type: 'json', nullable: true })
-  documents!: Record<string, any>[] | null;
+  documents!: Record<string, unknown>[] | null;
 
   @Column({ type: 'simple-array', nullable: true })
   gallery!: string[] | null;
@@ -143,7 +143,7 @@ export class ProfileExpert {
   video!: string | null;
 
   @Column({ type: 'json', nullable: true })
-  detailed_experience!: Record<string, any>[] | null;
+  detailed_experience!: Record<string, unknown>[] | null;
 
   @Column({ type: 'boolean', default: false })
   is_available!: boolean;
@@ -176,7 +176,7 @@ export class ProfileExpert {
   total_earning!: number;
 
   @Column({ type: 'text', nullable: true, name: 'razorpay_contact_id' })
-  razorpay_contact_id!: string | null; 
+  razorpay_contact_id!: string | null;
 
   @Column({ type: 'float', nullable: true, name: 'agent_commission_rate' })
   agent_commission_rate!: number | null;

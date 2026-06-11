@@ -57,4 +57,4 @@ import { EncryptionService } from '@/common/services/encryption.service';
     EncryptionService,
   ],
 })
-export class ProfileModule { }
+export class ProfileModule {}

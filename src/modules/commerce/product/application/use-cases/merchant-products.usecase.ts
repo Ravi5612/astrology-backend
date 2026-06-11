@@ -4,9 +4,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In, Like } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Product } from '../../infrastructure/entities/product.entity';
-import { CreateMerchantProductDto, MerchantProductStatus } from '@/modules/merchant/dashboard/api/dto/create-merchant-product.dto';
+import {
+  CreateMerchantProductDto,
+  MerchantProductStatus,
+} from '@/modules/merchant/dashboard/api/dto/create-merchant-product.dto';
 
 type ProductStatus = 'active' | 'draft' | 'out_of_stock';
 
@@ -36,7 +39,9 @@ export class MerchantProductsUseCase {
       stock: p.stock,
       status,
       image_url: p.image_url ?? '',
+      imageUrl: p.image_url ?? '',
       productImage: p.image_url ?? '',
+      gallery: p.gallery ?? [],
       description: p.description,
       original_price: Number(p.original_price ?? p.price),
       created_at: p.created_at,
@@ -74,33 +79,44 @@ export class MerchantProductsUseCase {
     }
 
     const [products, total] = await qb.getManyAndCount();
-    return { products: products.map((p) => this.toResponse(p)), total };
+    return {
+      products: products.map((p: Product) => this.toResponse(p)),
+      total,
+    };
   }
 
   // 2. CREATE
   async create(merchantId: string, dto: CreateMerchantProductDto) {
     const isActive = dto.status === MerchantProductStatus.ACTIVE;
-    const product = this.productRepo.create({ ...dto, 
+    const product = this.productRepo.create({
+      ...dto,
       name: dto.name,
       description: dto.description,
       category: dto.category,
       sku: dto.sku,
       price: dto.price,
       original_price: dto.original_price,
-      image_url: dto.image_url,
+      image_url: dto.image_url ?? (dto as any).imageUrl,
+      gallery: dto.gallery ?? [],
       stock: dto.stock ?? 0,
       is_active: isActive,
-      merchant_id: merchantId as any,
+      merchant_id: merchantId,
     });
     const saved = await this.productRepo.save(product);
-    return this.toResponse(saved as any);
+    return this.toResponse(saved);
   }
 
   // 3. UPDATE
-  async update(merchantId: string, productId: string, dto: Partial<CreateMerchantProductDto>) {
-    const existing = await this.productRepo.findOneBy({ id: productId as any });
+  async update(
+    merchantId: string,
+    productId: string,
+    dto: Partial<CreateMerchantProductDto>,
+  ) {
+    const existing = await this.productRepo.findOneBy({
+      id: productId as unknown as string,
+    });
     if (!existing) throw new NotFoundException('Product not found');
-    if (existing.merchant_id !== (merchantId as any)) {
+    if (existing.merchant_id !== merchantId) {
       throw new ForbiddenException('You do not own this product');
     }
 
@@ -110,23 +126,30 @@ export class MerchantProductsUseCase {
     if (dto.category !== undefined) updates.category = dto.category;
     if (dto.sku !== undefined) updates.sku = dto.sku;
     if (dto.price !== undefined) updates.price = dto.price;
-    if (dto.original_price !== undefined) updates.original_price = dto.original_price;
+    if (dto.original_price !== undefined)
+      updates.original_price = dto.original_price;
     if (dto.image_url !== undefined) updates.image_url = dto.image_url;
+    else if ((dto as any).imageUrl !== undefined) updates.image_url = (dto as any).imageUrl;
+    if (dto.gallery !== undefined) updates.gallery = dto.gallery;
     if (dto.stock !== undefined) updates.stock = dto.stock;
     if (dto.status !== undefined) {
       updates.is_active = dto.status === MerchantProductStatus.ACTIVE;
     }
 
     await this.productRepo.update(productId, updates);
-    const updated = await this.productRepo.findOneBy({ id: productId as any });
+    const updated = await this.productRepo.findOneBy({
+      id: productId as unknown as string,
+    });
     return this.toResponse(updated!);
   }
 
   // 4. DELETE
   async remove(merchantId: string, productId: string) {
-    const existing = await this.productRepo.findOneBy({ id: productId as any });
+    const existing = await this.productRepo.findOneBy({
+      id: productId as unknown as string,
+    });
     if (!existing) throw new NotFoundException('Product not found');
-    if (existing.merchant_id !== (merchantId as any)) {
+    if (existing.merchant_id !== merchantId) {
       throw new ForbiddenException('You do not own this product');
     }
     await this.productRepo.delete(productId);
@@ -141,26 +164,28 @@ export class MerchantProductsUseCase {
   ) {
     // Ensure all products belong to the merchant
     const count = await this.productRepo.count({
-      where: { id: In(ids), merchant_id: merchantId as any },
+      where: { id: In(ids), merchant_id: merchantId },
     });
     if (count !== ids.length) {
       throw new ForbiddenException('Some products do not belong to you');
     }
 
     const isActive = status === MerchantProductStatus.ACTIVE;
-    await this.productRepo.update(
-      { id: In(ids) },
-      { is_active: isActive },
-    );
+    await this.productRepo.update({ id: In(ids) }, { is_active: isActive });
 
-    return { success: true, message: `${ids.length} products updated to ${status}` };
+    return {
+      success: true,
+      message: `${ids.length} products updated to ${status}`,
+    };
   }
 
   // 6. FIND ONE
   async findOne(merchantId: string, productId: string) {
-    const p = await this.productRepo.findOneBy({ id: productId as any });
+    const p = await this.productRepo.findOneBy({
+      id: productId as unknown as string,
+    });
     if (!p) throw new NotFoundException('Product not found');
-    if (p.merchant_id !== (merchantId as any)) {
+    if (p.merchant_id !== merchantId) {
       throw new ForbiddenException('You do not own this product');
     }
     return this.toResponse(p);
@@ -168,18 +193,23 @@ export class MerchantProductsUseCase {
 
   // 7. STOCK LEVELS
   async getMerchantStockLevels(merchantId: string) {
-    const stockResult = await this.productRepo.query(`
+    const stockResult: Array<{ name: string; stock: string }> =
+      await this.productRepo.query(
+        `
         SELECT name, stock 
         FROM commerce.products 
         WHERE merchant_id = $1
         ORDER BY stock ASC
         LIMIT 10
-    `, [merchantId]);
+    `,
+        [merchantId],
+      );
 
-    return stockResult.map(p => ({
-        name: p.name,
-        stock: Number(p.stock),
-        status: p.stock > 10 ? 'Healthy' : p.stock > 0 ? 'Low Stock' : 'Out of Stock'
+    return stockResult.map((p) => ({
+      name: p.name,
+      stock: Number(p.stock),
+      status:
+        Number(p.stock) > 10 ? 'Healthy' : Number(p.stock) > 0 ? 'Low Stock' : 'Out of Stock',
     }));
   }
 }

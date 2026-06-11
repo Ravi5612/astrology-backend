@@ -5,7 +5,7 @@ import { Festival } from '../../infrastructure/entities/festival.entity';
 
 @Injectable()
 export class GetAllFestivalsUseCase {
-  private readonly cache = new Map<string, any[]>();
+  private readonly cache = new Map<string, Record<string, unknown>[]>();
 
   constructor(
     @InjectRepository(Festival)
@@ -31,7 +31,10 @@ export class GetAllFestivalsUseCase {
           throw new Error('Failed to fetch from external source');
         }
 
-        const data = await response.json();
+        const data = (await response.json()) as Record<
+          string,
+          Record<string, Record<string, Record<string, string | undefined>>>
+        >;
 
         // The API returns a nested object: { "2026": { "January 2026": { "Date String": { ... } } } }
         const yearData = data[targetYear] || data[`${targetYear}`];
@@ -41,7 +44,7 @@ export class GetAllFestivalsUseCase {
           );
           festivals = [];
         } else {
-          const flattened: any[] = [];
+          const flattened: Record<string, unknown>[] = [];
           // Loop through months
           Object.keys(yearData).forEach((monthKey) => {
             const monthData = yearData[monthKey];
@@ -71,16 +74,21 @@ export class GetAllFestivalsUseCase {
           `[GetAllFestivalsUseCase] Processed ${festivals.length} items from API`,
         );
         this.cache.set(cacheKey, festivals);
-      } catch (error) {
-        console.error('[GetAllFestivalsUseCase] Fetch Error:', error.message);
+      } catch (error: unknown) {
+        console.error(
+          '[GetAllFestivalsUseCase] Fetch Error:',
+          (error as Error).message,
+        );
         // Fallback to database
-        festivals = await this.festivalRepo.find({ order: { date: 'ASC' } });
+        festivals = (await this.festivalRepo.find({
+          order: { date: 'ASC' },
+        })) as unknown as Record<string, unknown>[];
       }
     }
 
     if (month) {
-      return festivals.filter((f) => {
-        const d = new Date(f.date);
+      return (festivals || []).filter((f: Record<string, unknown>) => {
+        const d = new Date(f.date as string | Date);
         return d.getMonth() + 1 === month;
       });
     }

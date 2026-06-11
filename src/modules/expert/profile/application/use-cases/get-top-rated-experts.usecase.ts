@@ -10,7 +10,7 @@ export class GetTopRatedExpertsUseCase {
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
     private readonly expertGateway: ExpertGateway,
-  ) { }
+  ) {}
 
   async execute(limit: number = 3) {
     const queryBuilder = this.profileRepo
@@ -24,17 +24,17 @@ export class GetTopRatedExpertsUseCase {
     const experts = await queryBuilder.getMany();
 
     return experts.map((ex) => {
-      const plain = { ...ex } as any;
+      const plain: Record<string, unknown> = { ...ex };
       plain.languages = ex.languages
         ? ex.languages
-          .split(',')
-          .map((s: string) => s.trim())
-          .filter(Boolean)
+            .split(',')
+            .map((s: string) => s.trim())
+            .filter(Boolean)
         : [];
       plain.userId = ex.user?.id;
       plain.isAvailable = ex.is_available;
       plain.is_online = ex.user?.id
-        ? this.expertGateway.isExpertOnline(ex.user.id as any)
+        ? this.expertGateway.isExpertOnline(ex.user.id.toString())
         : false;
       return plain;
     });

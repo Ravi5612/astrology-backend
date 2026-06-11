@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BankAccount } from '../../infrastructure/entities/bank-account.entity';
@@ -16,11 +21,11 @@ export class CreateBankAccountUseCase {
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   private async getExpertProfile(userId: string) {
     const profile = await this.profileRepo.findOne({
-      where: { user: { id: userId as any } },
+      where: { user: { id: userId as unknown as string } },
     });
     if (!profile) throw new NotFoundException('Expert profile not found');
     return profile;
@@ -29,7 +34,7 @@ export class CreateBankAccountUseCase {
   async execute(userId: string, dto: CreateBankAccountDto) {
     this.logger.log(`Starting bank account creation for user ${userId}`);
     this.logger.debug(`Incoming DTO: ${JSON.stringify(dto)}`);
-    
+
     try {
       const profile = await this.getExpertProfile(userId);
       this.logger.log(`Found expert profile ID ${profile.id}`);
@@ -54,22 +59,34 @@ export class CreateBankAccountUseCase {
         expert_id: profile.id,
       });
 
-      const savedAccount = (await this.bankAccountRepo.save(account)) as BankAccount;
+      const savedAccount = await this.bankAccountRepo.save(account);
       this.logger.log(`Successfully saved bank account ID ${savedAccount.id}`);
 
       // Emit event
       this.eventEmitter.emit(
         'expert.bank-account.created',
-        new BankAccountCreatedEvent(userId as any, savedAccount.id, savedAccount.account_holder_name),
+        new BankAccountCreatedEvent(
+          userId as unknown as string,
+          savedAccount.id,
+          savedAccount.account_holder_name,
+        ),
       );
 
       return savedAccount;
-    } catch (error) {
-      this.logger.error(`Failed to create bank account: ${error.message}`, error.stack);
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+    } catch (error: unknown) {
+      this.logger.error(
+        `Failed to create bank account: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
-      throw new BadRequestException(`Bank Account Error: ${error.message}`);
+      throw new BadRequestException(
+        `Bank Account Error: ${(error as Error).message}`,
+      );
     }
   }
 }

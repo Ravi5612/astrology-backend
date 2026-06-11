@@ -1,4 +1,4 @@
-import {
+﻿import {
   Controller,
   Get,
   Post,
@@ -21,13 +21,13 @@ export class PujaLikeController {
   constructor(private readonly wishlistFacade: WishlistFacade) {}
 
   @Get()
-  findAllPujas(@CurrentUser("id") userId: string) {
+  findAllPujas(@CurrentUser('id') userId: string) {
     return this.wishlistFacade.getPujaWishlist(userId);
   }
 
   @Post('add')
   createPuja(
-    @CurrentUser("id") userId: string,
+    @CurrentUser('id') userId: string,
     @Body() addPujaToWishlistDto: AddPujaToWishlistDto,
   ) {
     return this.wishlistFacade.addPujaToWishlist(
@@ -38,10 +38,13 @@ export class PujaLikeController {
 
   @Delete('remove/:pujaId')
   async removePuja(
-    @CurrentUser("id") userId: string,
+    @CurrentUser('id') userId: string,
     @Param('pujaId') pujaId: string,
   ) {
-    const result = await this.wishlistFacade.removePujaFromWishlist(userId, pujaId);
+    const _result = await this.wishlistFacade.removePujaFromWishlist(
+      userId,
+      pujaId,
+    );
     return { success: true };
   }
 }

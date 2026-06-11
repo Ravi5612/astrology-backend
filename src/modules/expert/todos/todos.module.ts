@@ -10,15 +10,15 @@ import { Todo } from './infrastructure/entities/todo.entity';
 import { ProfileModule } from '../profile/profile.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Todo]), forwardRef(() => ProfileModule)],
-    controllers: [TodosController],
-    providers: [
-        TodosFacade,
-        FindAllTodosUseCase,
-        CreateTodoUseCase,
-        UpdateTodoUseCase,
-        RemoveTodoUseCase,
-    ],
-    exports: [TodosFacade],
+  imports: [TypeOrmModule.forFeature([Todo]), forwardRef(() => ProfileModule)],
+  controllers: [TodosController],
+  providers: [
+    TodosFacade,
+    FindAllTodosUseCase,
+    CreateTodoUseCase,
+    UpdateTodoUseCase,
+    RemoveTodoUseCase,
+  ],
+  exports: [TodosFacade],
 })
-export class TodosModule { }
+export class TodosModule {}

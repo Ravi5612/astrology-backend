@@ -1,8 +1,11 @@
-import { Module, forwardRef } from '@nestjs/common';
+﻿import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order } from './infrastructure/entities/order.entity';
 import { OrderItem } from './infrastructure/entities/order-item.entity';
-import { OrderController, OrderSingularController } from './api/controllers/order.controller';
+import {
+  OrderController,
+  OrderSingularController,
+} from './api/controllers/order.controller';
 import { OrderFacade } from './application/order.facade';
 import { CreateOrderFromCartUseCase } from './application/use-cases/create-order-from-cart.use-case';
 import { MarkOrderAsPaidUseCase } from './application/use-cases/mark-order-as-paid.use-case';
@@ -18,11 +21,9 @@ import { GetAdminMerchantSalesDetailsUseCase } from './application/use-cases/get
 import { CartModule } from '@/modules/commerce/cart/cart.module';
 import { NotificationModule } from '@/modules/notification/notification.module';
 import { UsersModule } from '@/modules/users/users.module';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { CouponModule } from '@/modules/commerce/coupon/coupon.module';
-import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
 import { ProductModule } from '@/modules/commerce/product/product.module';
 import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
 import { AdminModule } from '@/modules/admin/admin.module';
@@ -62,4 +63,4 @@ import { ProfileModule as MerchantProfileModule } from '@/modules/merchant/profi
   ],
   exports: [OrderFacade, GetOrderEarningsUseCase],
 })
-export class OrderModule { }
+export class OrderModule {}

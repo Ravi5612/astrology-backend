@@ -55,7 +55,12 @@ export class Transaction {
   @Column({ name: 'reference_id', type: 'text', nullable: true })
   reference_id!: string | null; // To link with session or external payment ID
 
-  @Column({ name: 'transaction_no', type: 'text', nullable: true, unique: true })
+  @Column({
+    name: 'transaction_no',
+    type: 'text',
+    nullable: true,
+    unique: true,
+  })
   transaction_no!: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

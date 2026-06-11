@@ -9,7 +9,7 @@ import { AuthConfig } from '../../config/auth.config';
     NestJwtModule.registerAsync({
       global: true,
       imports: [ConfigModule],
-      useFactory: async (config: ConfigService) => {
+      useFactory: (config: ConfigService) => {
         const jwtConfig = config.get<AuthConfig>('auth');
 
         if (!jwtConfig) {

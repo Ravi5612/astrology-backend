@@ -21,13 +21,17 @@ export class RefreshPlaceImagesCacheUseCase {
     for (const entry of allImages) {
       try {
         const rawResults = await this.serperService.fetchImages(entry.query);
-        const normalizedResults = this.placesMapper.mapSerperImages(rawResults.images || []);
+        const normalizedResults = this.placesMapper.mapSerperImages(
+          (rawResults.images as Record<string, unknown>[]) || [],
+        );
         entry.results = normalizedResults;
         entry.last_synced = new Date();
         await this.imageRepository.save(entry);
         this.logger.log(`Refreshed images for: ${entry.query}`);
       } catch (error) {
-        this.logger.error(`Failed to refresh images for ${entry.query}: ${error.message}`);
+        this.logger.error(
+          `Failed to refresh images for ${entry.query}: ${(error as Error).message}`,
+        );
       }
     }
   }

@@ -11,11 +11,22 @@ export class CalendarFacade {
     private readonly getYearlyFestivalsUseCase: GetYearlyFestivalsUseCase,
   ) {}
 
-  async getDailyPanchang(date: string, lat: string, lon: string, lang: string = 'en') {
+  async getDailyPanchang(
+    date: string,
+    lat: string,
+    lon: string,
+    lang: string = 'en',
+  ) {
     return this.getDailyPanchangUseCase.execute(date, lat, lon, lang);
   }
 
-  async getMonthlyCalendar(year: number, month: number, lat: string, lon: string, lang: string = 'en') {
+  async getMonthlyCalendar(
+    year: number,
+    month: number,
+    lat: string,
+    lon: string,
+    lang: string = 'en',
+  ) {
     return this.getMonthlyCalendarUseCase.execute(year, month, lat, lon, lang);
   }
 

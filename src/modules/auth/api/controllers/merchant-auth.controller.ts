@@ -1,4 +1,3 @@
-
 import { CookieOptions, Request, Response } from 'express';
 import {
   Controller,
@@ -19,7 +18,7 @@ import { MerchantLoginDto } from '../dto/merchant-login.dto';
 import { AuthFacade } from '../../application/auth.facade';
 import { JwtAuthGuard } from '../guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { hasRoles, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 import { DataSource } from 'typeorm';
 
 @Controller({
@@ -30,7 +29,7 @@ export class MerchantAuthController {
   private readonly logger = new Logger(MerchantAuthController.name);
   constructor(
     private readonly authFacade: AuthFacade,
-    private readonly dataSource: DataSource
+    private readonly dataSource: DataSource,
   ) {}
 
   @Post('register')
@@ -45,15 +44,17 @@ export class MerchantAuthController {
 
       return {
         success: true,
-        message: 'Merchant account created successfully. Please verify your email.',
+        message:
+          'Merchant account created successfully. Please verify your email.',
         data,
       };
-    } catch (error) {
-      
-      this.logger.error(`Merchant registration failed: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(
+        `Merchant registration failed: ${(error as Error).message}`,
+      );
       return {
         success: false,
-        error: error.message,
+        error: (error as Error).message,
       };
     }
   }
@@ -80,10 +81,14 @@ export class MerchantAuthController {
 
       this.setCookies(res, tokens);
 
-      const { ProfileMerchant } = await import('../../../merchant/profile/infrastructure/entities/profile-merchant.entity');
-      const merchantProfile = await this.dataSource.getRepository(ProfileMerchant).findOne({
-        where: { user: { id: user.id } }
-      });
+      const { ProfileMerchant } = await import(
+        '../../../merchant/profile/infrastructure/entities/profile-merchant.entity'
+      );
+      const merchantProfile = await this.dataSource
+        .getRepository(ProfileMerchant)
+        .findOne({
+          where: { user: { id: user.id } },
+        });
 
       return {
         success: true,
@@ -93,15 +98,17 @@ export class MerchantAuthController {
           merchantId: user.id.toString(),
           shopName: merchantProfile?.shopName || user.name,
           email: user.email,
-          roles: user.roles
+          roles: user.roles,
         },
       };
-    } catch (error) {
-      this.logger.error(`Merchant login failed: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(`Merchant login failed: ${(error as Error).message}`);
       if (error instanceof ForbiddenException) {
         throw error;
       }
-      throw new UnauthorizedException(error.message || 'Invalid credentials');
+      throw new UnauthorizedException(
+        (error as Error).message || 'Invalid credentials',
+      );
     }
   }
 
@@ -115,10 +122,10 @@ export class MerchantAuthController {
         success: true,
         data: profile,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         success: false,
-        error: error.message,
+        error: (error as Error).message,
       };
     }
   }
@@ -138,10 +145,10 @@ export class MerchantAuthController {
         success: true,
         message: 'Logout successful',
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         success: false,
-        error: error.message,
+        error: (error as Error).message,
       };
     }
   }
@@ -158,10 +165,10 @@ export class MerchantAuthController {
         success: true,
         message: 'Password reset link sent successfully.',
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         success: false,
-        error: error.message,
+        error: (error as Error).message,
       };
     }
   }

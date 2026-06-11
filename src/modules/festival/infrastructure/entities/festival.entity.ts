@@ -1,17 +1,12 @@
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
-import {
-  Entity,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity({ schema: 'content', name: 'festivals' })
 export class Festival {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @Column({type: 'character varying', length: '255'})
+  @Column({ type: 'character varying', length: '255' })
   name!: string;
 
   @Column({ type: 'text', nullable: true })

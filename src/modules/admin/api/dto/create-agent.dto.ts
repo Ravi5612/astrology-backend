@@ -1,4 +1,10 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class CreateAgentDto {
   @IsNotEmpty()
@@ -39,11 +45,11 @@ export class CreateAgentDto {
   pan_no?: string;
 
   @IsOptional()
-  profile_pic?: any;
+  profile_pic?: unknown;
 
   @IsOptional()
-  aadhaar_doc?: any;
+  aadhaar_doc?: unknown;
 
   @IsOptional()
-  pan_doc?: any;
+  pan_doc?: unknown;
 }

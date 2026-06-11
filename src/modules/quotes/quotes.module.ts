@@ -22,4 +22,3 @@ import { RemoveQuoteUseCase } from './application/use-cases/remove-quote.use-cas
   ],
 })
 export class QuotesModule {}
-

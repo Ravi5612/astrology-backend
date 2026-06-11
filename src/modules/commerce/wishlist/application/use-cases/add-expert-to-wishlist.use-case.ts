@@ -5,12 +5,12 @@ import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
 import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { DataSource } from 'typeorm';
 import {
   ExpertAlreadyInWishlistError,
   ExpertNotFoundError,
   UserNotFoundError,
-  NotAnExpertError,
 } from '../../domain/errors/wishlist.errors';
 
 @Injectable()
@@ -31,13 +31,15 @@ export class AddExpertToWishlistUseCase {
 
     let expert = await this.expertProfileFacade.getExpertByUserId(expert_id);
     if (!expert) {
-      expert = await this.expertProfileFacade.getExpertById(expert_id);
+      expert = (await this.expertProfileFacade.getExpertById(
+        expert_id,
+      )) as unknown as ProfileExpert;
     }
-    
+
     if (!expert) {
       throw new ExpertNotFoundError(expert_id);
     }
-    
+
     const existing = await this.wishlistRepository.findOne({
       where: { client_id: client.id, expert_id: expert.id },
     });
@@ -51,7 +53,7 @@ export class AddExpertToWishlistUseCase {
       expert_id: expert.id,
     });
 
-    const savedWishlist = await this.wishlistRepository.save(wishlist);
+    const _savedWishlist = await this.wishlistRepository.save(wishlist);
 
     // Update total_likes for the expert using QueryRunner
     const queryRunner = this.dataSource.createQueryRunner();
@@ -59,7 +61,11 @@ export class AddExpertToWishlistUseCase {
     await queryRunner.startTransaction();
     try {
       const currentLikes = Number(expert.total_likes) || 0;
-      await this.expertProfileFacade.updateProfileWithQueryRunner(expert.user_id || expert.id, { total_likes: currentLikes + 1 }, queryRunner);
+      await this.expertProfileFacade.updateProfileWithQueryRunner(
+        expert.user_id || expert.id,
+        { total_likes: currentLikes + 1 },
+        queryRunner,
+      );
       await queryRunner.commitTransaction();
     } catch (err) {
       await queryRunner.rollbackTransaction();

@@ -65,11 +65,16 @@ export class Review {
 
   @Column({ type: 'text', nullable: true })
   comment!: string;
-  
+
   @Column({ type: 'varchar', length: 20, default: 'pending' })
   status!: string;
 
-  @Column({ type: 'varchar', length: 20, default: 'expert', name: 'review_type' })
+  @Column({
+    type: 'varchar',
+    length: 20,
+    default: 'expert',
+    name: 'review_type',
+  })
   review_type!: string; // 'expert' | 'merchant' | 'platform'
 
   @Column({ type: 'simple-array', nullable: true })

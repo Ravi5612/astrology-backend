@@ -1,4 +1,5 @@
-import { ParseUUIDPipe, 
+﻿import {
+  ParseUUIDPipe,
   Controller,
   Get,
   Post,
@@ -7,9 +8,7 @@ import { ParseUUIDPipe,
   Param,
   Delete,
   UseGuards,
-  Query,
-  ParseEnumPipe,
- } from '@nestjs/common';
+} from '@nestjs/common';
 import { CreateUserDto } from '../dto/user.dto';
 import { UsersFacade } from '../../application/users.facade';
 import { JwtAuthGuard } from '../../../auth/api/guards/auth.guard';
@@ -43,26 +42,35 @@ export class UsersController {
 
   @Get(':id')
   async getUserById(@Param('id', ParseUUIDPipe) id: string) {
-    return this.usersFacade.findById(id as any);
+    return this.usersFacade.findById(id);
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateUserDto: Partial<CreateUserDto>) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto: Partial<CreateUserDto>,
+  ) {
     // TODO: Handle role updates properly or separate them
-    const result = await this.usersFacade.update(id as any, updateUserDto as unknown as Partial<User>);
+    const _result = await this.usersFacade.update(
+      id,
+      updateUserDto as unknown as Partial<User>,
+    );
     return { success: true };
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    const result = await this.usersFacade.delete(id as any);
+    const _result = await this.usersFacade.delete(id);
     return { success: true };
   }
 
   @Post(':id/roles')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
-  async assignRole(@Param('id', ParseUUIDPipe) id: string, @Body('role', RolePipe({optional: true})) role: RoleEnum) {
-      return this.usersFacade.assignRole(id as any, role);
+  async assignRole(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('role', RolePipe({ optional: true })) role: RoleEnum,
+  ) {
+    return this.usersFacade.assignRole(id, role);
   }
 }

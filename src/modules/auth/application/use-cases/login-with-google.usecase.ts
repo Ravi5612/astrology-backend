@@ -1,5 +1,8 @@
 import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
-import { hasRoles, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+import {
+  hasRoles,
+  RoleEnum,
+} from '@/modules/users/infrastructure/enums/Role.enum';
 import { Profile } from 'passport-google-oauth20';
 import { DatabaseService } from '@/core/database/database.service';
 import { OAuthService } from '../../infrastructure/services/oauth.service';
@@ -28,8 +31,7 @@ export class LoginWithGoogleUseCase {
     userAgent?: string;
     role?: RoleEnum;
   }) {
-
-    const roleToAdd = input.role ||RoleEnum.CLIENT;
+    const roleToAdd = input.role || RoleEnum.CLIENT;
 
     return this.db.transaction(async (qr) => {
       // 1. Check if user exists first to handle role restrictions
@@ -59,7 +61,7 @@ export class LoginWithGoogleUseCase {
           email: input.email,
           name: input.name,
           profile: input.profile,
-          roles: [roleToAdd]
+          roles: [roleToAdd],
         },
         qr,
       );

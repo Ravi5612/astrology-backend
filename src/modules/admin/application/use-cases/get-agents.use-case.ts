@@ -5,8 +5,8 @@ import { AgentFacade } from '@/modules/agent/application/agent.facade';
 export class GetAgentsUseCase {
   constructor(
     @Inject(forwardRef(() => AgentFacade))
-    private readonly agentFacade: AgentFacade
-  ) { }
+    private readonly agentFacade: AgentFacade,
+  ) {}
 
   async execute(params: {
     page?: number;

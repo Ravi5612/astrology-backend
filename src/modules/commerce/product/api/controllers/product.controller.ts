@@ -1,15 +1,12 @@
-
 import {
   Controller,
   Get,
-  Post,
   Body,
   UseGuards,
   Patch,
   Param,
   Delete,
   UploadedFile,
-  UploadedFiles,
   UseInterceptors,
   InternalServerErrorException,
   Query,
@@ -18,12 +15,11 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { ProductFacade } from '../../application/product.facade';
-import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
-import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { CloudinaryService } from '@/external/cloudinary/cloudinary.service';
 import { UploadApiResponse } from 'cloudinary';
@@ -36,9 +32,7 @@ export class ProductController {
   constructor(
     private readonly productFacade: ProductFacade,
     private readonly cloudinaryService: CloudinaryService,
-  ) { }
-
-  
+  ) {}
 
   @Get()
   findAll(
@@ -71,9 +65,10 @@ export class ProductController {
     @Body() updateProductDto: UpdateProductDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const bodyAsAny = updateProductDto as any;
+    const bodyAsAny = updateProductDto as Record<string, unknown>;
     if (!updateProductDto.image_url) {
-      updateProductDto.image_url = bodyAsAny?.image_url || bodyAsAny?.image;
+      updateProductDto.image_url =
+        (bodyAsAny?.image_url as string) || (bodyAsAny?.image as string);
     }
 
     if (file) {
@@ -95,7 +90,7 @@ export class ProductController {
         );
       }
     }
-    const result = await this.productFacade.update(id, updateProductDto);
+    const _result = await this.productFacade.update(id, updateProductDto);
     return { success: true };
   }
 
@@ -103,7 +98,7 @@ export class ProductController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   async remove(@Param('id', ParseUUIDPipe) id: string) {
-    const result = await this.productFacade.remove(id);
+    const _result = await this.productFacade.remove(id);
     return { success: true };
   }
 }

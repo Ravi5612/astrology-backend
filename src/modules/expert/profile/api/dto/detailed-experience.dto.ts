@@ -1,5 +1,11 @@
-import { Type } from "class-transformer";
-import { IsArray, IsBoolean, IsOptional, IsString, ValidateNested } from "class-validator";
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsBoolean,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 
 export class DetailedExperienceDto {
   @IsOptional()
@@ -40,7 +46,6 @@ export class DetailedExperienceDto {
   @IsString()
   location?: string;
 }
-
 
 export class UpdateExperienceExpertDto {
   @IsOptional()

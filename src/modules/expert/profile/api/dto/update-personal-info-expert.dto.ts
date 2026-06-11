@@ -1,7 +1,17 @@
-import { IsArray, IsBoolean, IsDateString, IsEnum, IsNumber, IsOptional, IsString, Min, ValidateNested } from "class-validator";
-import { Gender } from "./profile-expert.dto";
-import { AddressDto } from "@/common/address/address.dto";
-import { Type } from "class-transformer";
+import {
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateNested,
+} from 'class-validator';
+import { Gender } from './profile-expert.dto';
+import { AddressDto } from '@/common/address/address.dto';
+import { Type } from 'class-transformer';
 
 export class UpdatePersonalInfoExpertDto {
   @IsOptional()

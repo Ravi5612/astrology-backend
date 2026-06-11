@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { CreateProfileExpertDto } from '@/modules/expert/profile/api/dto/profile-expert.dto';
 import { QueryRunner } from 'typeorm';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
@@ -23,8 +24,8 @@ export class ExpertAuthProfileCreationStrategy
         user,
         {
           full_name: user.name || '',
-          avatar: user.avatar,
-        } as any,
+          profile_picture: user.avatar,
+        } as unknown as CreateProfileExpertDto,
         queryRunner,
       );
     }

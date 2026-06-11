@@ -1,4 +1,3 @@
-
 import {
   Controller,
   Post,
@@ -30,14 +29,15 @@ export class ChatController {
   constructor(
     private readonly chatFacade: ChatFacade,
     private readonly chatGateway: ChatGateway,
-  ) { }
+  ) {}
 
   @Post('initiate')
-  async initiateChat(
-    @CurrentUser() user: User,
-    @Body() dto: InitiateChatDto,
-  ) {
-    const session = await this.chatFacade.initiateChat(user.id as any, dto.expert_id, dto.metadata);
+  async initiateChat(@CurrentUser() user: User, @Body() dto: InitiateChatDto) {
+    const session = await this.chatFacade.initiateChat(
+      user.id,
+      dto.expert_id,
+      dto.metadata,
+    );
 
     const expiryTime = parseInt(
       process.env.CHAT_REQUEST_EXPIRY_MS || '120000',
@@ -50,7 +50,7 @@ export class ChatController {
     // Calculate affordable minutes for paid chat or use freeMinutes
     let maxMinutes = session.is_free ? session.free_minutes : 0;
     if (!session.is_free && session.price_per_minute > 0) {
-      const balance = await this.chatGateway.getWalletBalance(user.id as any);
+      const balance = await this.chatGateway.getWalletBalance(user.id);
       maxMinutes = Math.floor(balance / session.price_per_minute);
     }
 
@@ -59,6 +59,7 @@ export class ChatController {
     // Notify expert with the full session object (including expiresAt and maxMinutes)
     this.chatGateway.notifyExpertNewRequest(dto.expert_id, sessionWithExpiry);
 
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
       const expiredSession = await this.chatFacade.expireSession(session.id);
       if (expiredSession) {
@@ -85,15 +86,18 @@ export class ChatController {
 
   @Post('activate/:sessionId')
   async activateSession(@Param('sessionId', ParseUUIDPipe) sessionId: string) {
-    const { session, introCard } = await this.chatFacade.activateSession(sessionId);
+    const { session, introCard } =
+      await this.chatFacade.activateSession(sessionId);
     if (session) {
-      const enrichedSession = await this.enrichSessionTimers(session);
+      const enrichedSession = await this.enrichSessionTimers(
+        session as unknown as Record<string, unknown>,
+      );
 
       // Notify the specific chat room
       this.chatGateway.server
         .to(`room_${sessionId}`)
         .emit('session_activated', enrichedSession);
-      
+
       // Notify about intro card if created
       if (introCard) {
         this.chatGateway.server
@@ -135,34 +139,55 @@ export class ChatController {
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Body('status') status: string,
   ) {
-    
-    
     if (status === 'accepted') {
-        const { session, introCard } = await this.chatFacade.activateSession(sessionId);
-        if (session) {
-            const enrichedSession = await this.chatGateway.activateSession(sessionId, session, introCard);
-            const res = enrichedSession || session;
-            if (res && res.success && 'data' in res) {
-                const { data, ...rest } = res as any;
-                return rest;
-            }
-            return res;
+      const { session, introCard } =
+        await this.chatFacade.activateSession(sessionId);
+      if (session) {
+        const enrichedSession = await this.chatGateway.activateSession(
+          sessionId,
+          session,
+          introCard,
+        );
+        const res = enrichedSession || session;
+        if (
+          res &&
+          typeof res === 'object' &&
+          'success' in res &&
+          'data' in res
+        ) {
+          const rest = { ...(res as Record<string, unknown>) };
+          delete rest['data'];
+          return rest;
         }
-        return session;
+        return res;
+      }
+      return session;
     }
 
     if (status === 'rejected' || status === 'cancelled') {
-        const session = await this.chatFacade.expireSession(sessionId); // Or similar logic for manual rejection
-        if (session) {
-            this.chatGateway.server.to(`room_${sessionId}`).emit('session_ended', { status: 'rejected', id: sessionId });
-            this.chatGateway.notifyExpertStatusUpdate(session.expert_id, 'session_ended', { status: 'rejected', id: sessionId });
-            const res = session as any;
-            if (res && res.success && 'data' in res) {
-                const { data, ...rest } = res;
-                return rest;
-            }
+      const session = await this.chatFacade.expireSession(sessionId); // Or similar logic for manual rejection
+      if (session) {
+        this.chatGateway.server
+          .to(`room_${sessionId}`)
+          .emit('session_ended', { status: 'rejected', id: sessionId });
+        this.chatGateway.notifyExpertStatusUpdate(
+          session.expert_id,
+          'session_ended',
+          { status: 'rejected', id: sessionId },
+        );
+        const res = session;
+        if (
+          res &&
+          typeof res === 'object' &&
+          'success' in res &&
+          'data' in res
+        ) {
+          const rest = { ...(res as Record<string, unknown>) };
+          delete rest['data'];
+          return rest;
         }
-        return session;
+      }
+      return session;
     }
 
     return { success: false, message: 'Invalid status update for chat' };
@@ -174,7 +199,9 @@ export class ChatController {
     const session = await this.chatFacade.getSession(sessionId);
     if (!session) return null;
 
-    return this.enrichSessionTimers(session);
+    return this.enrichSessionTimers(
+      session as unknown as Record<string, unknown>,
+    );
   }
 
   @Get('history/:sessionId')
@@ -192,11 +219,13 @@ export class ChatController {
     @Param('expert_id', ParseUUIDPipe) expert_id: string,
     @Query('sessionId') sessionIdStr?: string,
   ) {
-    let session: any;
+    let session: Record<string, unknown> | null = null;
 
     if (sessionIdStr) {
-      // sessionId is a UUID string — do NOT parseInt it
-      session = await this.chatFacade.getSession(sessionIdStr);
+      // sessionId is a UUID string â€” do NOT parseInt it
+      session = (await this.chatFacade.getSession(
+        sessionIdStr,
+      )) as unknown as Record<string, unknown>;
     }
 
     if (!session) {
@@ -206,37 +235,39 @@ export class ChatController {
     const enrichedSession = await this.enrichSessionTimers(session);
 
     // Build the expert object in the shape the frontend Astrologer type expects
-    const expert = session.expert
+    const expertInfo = session.expert as Record<string, unknown> | null;
+    const userInfo = expertInfo?.user as Record<string, unknown> | null;
+    const expert = expertInfo
       ? {
-          id: session.expert.id,
-          name: session.expert.user?.name || '',
-          image: session.expert.user?.avatar || '/images/dummy-expert.jpg',
-          expertise: session.expert.specialization || '',
-          language: session.expert.languages || '',
-          experience: session.expert.experience || 0,
-          ratings: session.expert.rating || 0,
-          price: session.expert.price_per_minute || 0,
-          is_available: session.expert.is_available || false,
-          video: session.expert.intro_video || null,
-          total_likes: session.expert.total_likes || 0,
+          id: expertInfo.id,
+          name: userInfo?.name || '',
+          image: userInfo?.avatar || '/images/dummy-expert.jpg',
+          expertise: expertInfo.specialization || '',
+          language: expertInfo.languages || '',
+          experience: expertInfo.experience || 0,
+          ratings: expertInfo.rating || 0,
+          price: expertInfo.price_per_minute || 0,
+          is_available: expertInfo.is_available || false,
+          video: expertInfo.intro_video || null,
+          total_likes: expertInfo.total_likes || 0,
         }
       : null;
 
     // Build session object in the shape the frontend expects
     const sessionData = {
-      id: enrichedSession.id,
-      status: enrichedSession.status,
-      isFree: enrichedSession.is_free ?? false,
-      freeMinutes: enrichedSession.free_minutes ?? 0,
-      is_free: enrichedSession.is_free ?? false,
-      free_minutes: enrichedSession.free_minutes ?? 0,
-      messages: [],  // Will be populated via socket events
-      expiresAt: enrichedSession.expiresAt,
-      startedAt: enrichedSession.startedAt,
-      expires_at: enrichedSession.expiresAt,
-      started_at: enrichedSession.startedAt,
-      remainingSeconds: enrichedSession.remainingSeconds,
-      elapsedSeconds: enrichedSession.elapsedSeconds,
+      id: enrichedSession!.id,
+      status: enrichedSession!.status,
+      isFree: enrichedSession!.is_free ?? false,
+      freeMinutes: enrichedSession!.free_minutes ?? 0,
+      is_free: enrichedSession!.is_free ?? false,
+      free_minutes: enrichedSession!.free_minutes ?? 0,
+      messages: [], // Will be populated via socket events
+      expiresAt: enrichedSession!.expiresAt,
+      startedAt: enrichedSession!.startedAt,
+      expires_at: enrichedSession!.expiresAt,
+      started_at: enrichedSession!.startedAt,
+      remainingSeconds: enrichedSession!.remainingSeconds,
+      elapsedSeconds: enrichedSession!.elapsedSeconds,
     };
 
     return {
@@ -249,14 +280,18 @@ export class ChatController {
   @Get('sessions/pending')
   @Header('Cache-Control', 'no-store')
   async getPendingSessions(@CurrentUser() user: User) {
-    const { data: sessions, total_count } = await this.chatFacade.getExpertSessions(
-      user.id as any, ExpertSessionFilter.PENDING,
+    const { data: sessions, total_count } =
+      await this.chatFacade.getExpertSessions(
+        user.id,
+        ExpertSessionFilter.PENDING,
+      );
+    const data = await this.processSessions(
+      sessions as unknown as Record<string, unknown>[],
     );
-    const data = await this.processSessions(sessions);
     return {
       success: true,
       data,
-      meta: { totalCount: total_count, limit: 20, offset: 0 }
+      meta: { totalCount: total_count, limit: 20, offset: 0 },
     };
   }
 
@@ -277,12 +312,23 @@ export class ChatController {
       sortBy,
       order,
     };
-    const { data: sessions, total_count } = await this.chatFacade.getExpertSessions(user.id as any, ExpertSessionFilter.COMPLETED, options);
-    const data = await this.processSessions(sessions);
+    const { data: sessions, total_count } =
+      await this.chatFacade.getExpertSessions(
+        user.id,
+        ExpertSessionFilter.COMPLETED,
+        options,
+      );
+    const data = await this.processSessions(
+      sessions as unknown as Record<string, unknown>[],
+    );
     return {
       success: true,
       data,
-      meta: { totalCount: total_count, limit: options.limit, offset: options.offset }
+      meta: {
+        totalCount: total_count,
+        limit: options.limit,
+        offset: options.offset,
+      },
     };
   }
 
@@ -290,24 +336,35 @@ export class ChatController {
   @Header('Cache-Control', 'no-store')
   async getRecentPendingSessions(@CurrentUser() user: User) {
     const { data: sessions, total_count } =
-      await this.chatFacade.getExpertSessions(user.id as any, ExpertSessionFilter.RECENT_PENDING);
-    const data = await this.processSessions(sessions);
+      await this.chatFacade.getExpertSessions(
+        user.id,
+        ExpertSessionFilter.RECENT_PENDING,
+      );
+    const data = await this.processSessions(
+      sessions as unknown as Record<string, unknown>[],
+    );
     return {
       success: true,
       data,
-      meta: { totalCount: total_count, limit: 20, offset: 0 }
+      meta: { totalCount: total_count, limit: 20, offset: 0 },
     };
   }
 
   @Get('sessions/appointments/completed')
   @Header('Cache-Control', 'no-store')
   async getRecentCompletedSessions(@CurrentUser() user: User) {
-    const { data: sessions, total_count } = await this.chatFacade.getExpertSessions(user.id as any, ExpertSessionFilter.RECENT_COMPLETED);
-    const data = await this.processSessions(sessions);
+    const { data: sessions, total_count } =
+      await this.chatFacade.getExpertSessions(
+        user.id,
+        ExpertSessionFilter.RECENT_COMPLETED,
+      );
+    const data = await this.processSessions(
+      sessions as unknown as Record<string, unknown>[],
+    );
     return {
       success: true,
       data,
-      meta: { totalCount: total_count, limit: 20, offset: 0 }
+      meta: { totalCount: total_count, limit: 20, offset: 0 },
     };
   }
 
@@ -328,8 +385,15 @@ export class ChatController {
       sortBy,
       order,
     };
-    const { data: sessions, total_count } = await this.chatFacade.getExpertSessions(user.id as any, ExpertSessionFilter.ALL, options);
-    const data = await this.processSessions(sessions);
+    const { data: sessions, total_count } =
+      await this.chatFacade.getExpertSessions(
+        user.id,
+        ExpertSessionFilter.ALL,
+        options,
+      );
+    const data = await this.processSessions(
+      sessions as unknown as Record<string, unknown>[],
+    );
 
     return {
       success: true,
@@ -338,11 +402,11 @@ export class ChatController {
         totalCount: total_count,
         limit: options.limit,
         offset: options.offset,
-      }
+      },
     };
   }
 
-  private async processSessions(sessions: any[]) {
+  private async processSessions(sessions: Record<string, unknown>[]) {
     const expiryTime = parseInt(
       process.env.CHAT_REQUEST_EXPIRY_MS || '120000',
       10,
@@ -352,19 +416,24 @@ export class ChatController {
       sessions.map(async (session) => {
         const userBalance =
           session.status === 'pending'
-            ? await this.chatGateway.getWalletBalance(session.client_id)
+            ? await this.chatGateway.getWalletBalance(
+                session.client_id as string,
+              )
             : 0;
         const maxMinutes = session.is_free
           ? session.free_minutes
-          : session.price_per_minute > 0
-            ? Math.floor(userBalance / session.price_per_minute)
+          : (session.price_per_minute as number) > 0
+            ? Math.floor(userBalance / (session.price_per_minute as number))
             : 5;
 
         return {
           ...session,
           expiresAt:
             session.status === 'pending'
-              ? new Date(new Date(session.created_at).getTime() + expiryTime)
+              ? new Date(
+                  new Date(session.created_at as string | Date).getTime() +
+                    expiryTime,
+                )
               : null,
           maxMinutes,
         };
@@ -375,14 +444,11 @@ export class ChatController {
   @Get('sessions/my-sessions')
   @Header('Cache-Control', 'no-store')
   async getMySessionsAsClient(@CurrentUser() user: User) {
-    const sessions = await this.chatFacade.getClientSessions(user.id as any);
-    const expiryTime = parseInt(
-      process.env.CHAT_REQUEST_EXPIRY_MS || '120000',
-      10,
-    );
+    const sessions = await this.chatFacade.getClientSessions(user.id);
+    // expiryTime unused - available for future use
 
     return Promise.all(
-      sessions.map(async (session) => {
+      sessions.map((session) => {
         // Calculate precise duration string
         let durationString = '0s';
         if (session.start_time && session.end_time) {
@@ -424,13 +490,17 @@ export class ChatController {
   @Get('sessions/active-client')
   @Header('Cache-Control', 'no-store')
   async getActiveClientSession(@CurrentUser() user: User) {
-    const session = await this.chatFacade.getActiveClientSession(user.id as any);
+    const session = await this.chatFacade.getActiveClientSession(user.id);
     if (!session) return null;
 
-    return this.enrichSessionTimers(session);
+    return this.enrichSessionTimers(
+      session as unknown as Record<string, unknown>,
+    );
   }
 
-  private async enrichSessionTimers(session: any): Promise<any> {
+  private async enrichSessionTimers(
+    session: Record<string, unknown>,
+  ): Promise<Record<string, unknown> | null> {
     if (!session) return session;
 
     const expiryTimeMs = parseInt(
@@ -438,9 +508,11 @@ export class ChatController {
       10,
     );
     const serverTime = new Date();
-    const createdAt = new Date(session.created_at);
+    const createdAt = new Date(session.created_at as string | Date);
     let expiresAt = new Date(createdAt.getTime() + expiryTimeMs);
-    let startedAt = session.start_time ? new Date(session.start_time) : null;
+    let startedAt = session.start_time
+      ? new Date(session.start_time as string | Date)
+      : null;
 
     let remainingSeconds = 0;
     let elapsedSeconds = 0;
@@ -454,31 +526,36 @@ export class ChatController {
       session.status === ChatSessionStatus.ACTIVE &&
       session.start_time
     ) {
-      const startTime = new Date(session.start_time);
+      const startTime = new Date(session.start_time as string | Date);
       elapsedSeconds = Math.max(
         0,
         Math.floor((serverTime.getTime() - startTime.getTime()) / 1000),
       );
 
-      const wallet = await this.chatGateway.getWallet(session.client_id);
+      const wallet = await this.chatGateway.getWallet(
+        session.client_id as string,
+      );
       const totalAffordableBalance =
         Number(wallet.balance) + Number(wallet.reserved_balance);
       const price = session.price_per_minute || 0;
 
       const maxMinutes = session.is_free
         ? session.free_minutes
-        : price > 0
-          ? Math.floor(totalAffordableBalance / price)
+        : (price as number) > 0
+          ? Math.floor(totalAffordableBalance / (price as number))
           : 60; // fallback 60 mins if price is 0 to avoid auto-terminate
 
-      const totalAllowedSeconds = maxMinutes * 60;
+      const totalAllowedSeconds = (maxMinutes as number) * 60;
       remainingSeconds = Math.max(0, totalAllowedSeconds - elapsedSeconds);
-      
+
       expiresAt = new Date(startTime.getTime() + totalAllowedSeconds * 1000);
       startedAt = startTime;
     }
 
-    const sessionObj = typeof session.toJSON === 'function' ? session.toJSON() : session;
+    const sessionObj: Record<string, unknown> =
+      typeof (session as { toJSON?: () => unknown }).toJSON === 'function'
+        ? (session as { toJSON: () => Record<string, unknown> }).toJSON()
+        : (session as unknown as Record<string, unknown>);
     return {
       ...sessionObj,
       expiresAt,

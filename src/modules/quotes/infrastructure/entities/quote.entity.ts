@@ -1,10 +1,5 @@
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, UpdateDateColumn } from 'typeorm';
 
 @Entity({ schema: 'consultations', name: 'quotes' })
 export class Quote {

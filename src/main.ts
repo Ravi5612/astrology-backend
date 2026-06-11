@@ -8,13 +8,21 @@ import cookieParser from 'cookie-parser';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
 import { UnknownExceptionFilter } from './common/filters/unknown-exception.filter';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  (app.getHttpAdapter().getInstance() as any).set('trust proxy', true);
+  (
+    app.getHttpAdapter().getInstance() as {
+      set: (key: string, value: boolean) => void;
+    }
+  ).set('trust proxy', true);
 
   app.enableCors({
-    origin: (origin, callback) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       const allowedOrigins = [
         process.env.FRONTEND_URL,
         process.env.ADMIN_FRONTEND_URL,
@@ -24,28 +32,38 @@ async function bootstrap() {
       ].filter(Boolean);
 
       // Allow if origin is in the list or is a Vercel preview/deployment
-      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        origin?.endsWith('.vercel.app')
+      ) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
       }
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: 'Content-Type, Accept, Authorization, Cookie, Cache-Control, Pragma, Expires',
+    allowedHeaders:
+      'Content-Type, Accept, Authorization, Cookie, Cache-Control, Pragma, Expires',
     credentials: true,
   });
 
   app.use(cookieParser());
-  
+
   // Increase payload limit for large base64 strings (images)
   // And capture rawBody for webhook signature verification
-  const express = require('express');
-  app.use(express.json({
-    limit: '50mb',
-    verify: (req, res, buf) => {
-      req.rawBody = buf;
-    },
-  }));
+  app.use(
+    express.json({
+      limit: '50mb',
+      verify: (
+        req: import('express').Request & { rawBody?: Buffer },
+        res: import('express').Response,
+        buf: Buffer,
+      ) => {
+        req.rawBody = buf;
+      },
+    }),
+  );
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
   app.setGlobalPrefix('api');

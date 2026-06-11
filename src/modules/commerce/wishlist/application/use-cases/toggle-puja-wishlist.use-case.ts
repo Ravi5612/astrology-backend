@@ -1,4 +1,3 @@
-
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -15,7 +14,10 @@ export class TogglePujaWishlistUseCase {
     private readonly clientProfileFacade: ClientProfileFacade,
   ) {}
 
-  async execute(userId: string, pujaId: string): Promise<{ liked: boolean; total_likes: number }> {
+  async execute(
+    userId: string,
+    pujaId: string,
+  ): Promise<{ liked: boolean; total_likes: number }> {
     const client = await this.clientProfileFacade.getProfile(userId);
     if (!client) throw new NotFoundException('Client profile not found');
 
@@ -28,7 +30,7 @@ export class TogglePujaWishlistUseCase {
 
     let liked = false;
     let currentTotalLikes = puja.total_likes || 0;
-    
+
     if (existing) {
       await this.wishlistRepository.remove(existing);
       await this.expertProfileFacade.updatePujaLikes(pujaId, -1);

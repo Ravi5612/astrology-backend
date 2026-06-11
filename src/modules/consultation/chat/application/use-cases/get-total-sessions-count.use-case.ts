@@ -5,12 +5,12 @@ import { ChatSession } from '../../infrastructure/entities/chat-session.entity';
 
 @Injectable()
 export class GetTotalSessionsCountUseCase {
-    constructor(
-        @InjectRepository(ChatSession)
-        private sessionRepo: Repository<ChatSession>,
-    ) { }
+  constructor(
+    @InjectRepository(ChatSession)
+    private sessionRepo: Repository<ChatSession>,
+  ) {}
 
-    async execute() {
-        return this.sessionRepo.count();
-    }
+  async execute() {
+    return this.sessionRepo.count();
+  }
 }

@@ -60,7 +60,6 @@ import { PublicSettingsController } from './api/controllers/public-settings.cont
 import { IHasherToken } from '@/common/contracts/hasher.contract';
 import { Argon2PasswordHasher } from '../auth/infrastructure/hashing/argon2-password.hasher';
 
-
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -95,7 +94,12 @@ import { Argon2PasswordHasher } from '../auth/infrastructure/hashing/argon2-pass
     OrderModule,
     forwardRef(() => AgentModule),
   ],
-  controllers: [AdminController, SettingsController, PublicStatsController, PublicSettingsController],
+  controllers: [
+    AdminController,
+    SettingsController,
+    PublicStatsController,
+    PublicSettingsController,
+  ],
   providers: [
     AdminFacade,
     GetAdminDashboardStatsUseCase,
@@ -121,10 +125,8 @@ import { Argon2PasswordHasher } from '../auth/infrastructure/hashing/argon2-pass
     {
       provide: IHasherToken,
       useClass: Argon2PasswordHasher,
-    }
+    },
   ],
   exports: [AdminFacade],
 })
-export class AdminModule { }
-
-
+export class AdminModule {}

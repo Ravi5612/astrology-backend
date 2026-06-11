@@ -1,5 +1,9 @@
-
-import { Injectable, BadRequestException, UnauthorizedException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+  Inject,
+} from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { UsersFacade } from '@/modules/users/application/users.facade';
@@ -25,14 +29,17 @@ export class CompleteEmailRegistrationUseCase {
 
   async execute(dto: CompleteRegisterDto, ip?: string, userAgent?: string) {
     // 1. Verify Token
-    let payload;
+    let payload: { userId: string; email: string } | undefined;
     try {
-      payload = await this.tokenCrypto.verifyJwt<{ userId: string; email: string }>(dto.token);
+      payload = await this.tokenCrypto.verifyJwt<{
+        userId: string;
+        email: string;
+      }>(dto.token);
     } catch {
       throw new BadRequestException('Invalid or expired token');
     }
 
-    if (payload.email !== dto.email) {
+    if (payload?.email !== dto.email) {
       throw new BadRequestException('Token does not match the provided email');
     }
 
@@ -56,14 +63,20 @@ export class CompleteEmailRegistrationUseCase {
           name: dto.name,
           password: hashedPassword,
           email_verified_at: new Date(),
-        }
+        },
       );
 
       // Refresh user object
-      const updatedUser = await this.usersFacade.findByEmail(user.email, queryRunner);
+      const updatedUser = await this.usersFacade.findByEmail(
+        user.email,
+        queryRunner,
+      );
 
       // 3. Ensure profile is created
-      await this.profileCreationResolver.ensureProfile(updatedUser!, queryRunner);
+      await this.profileCreationResolver.ensureProfile(
+        updatedUser!,
+        queryRunner,
+      );
 
       // 4. Update appropriate profile with extra details
       if (updatedUser!.roles.includes(RoleEnum.EXPERT)) {
@@ -78,17 +91,21 @@ export class CompleteEmailRegistrationUseCase {
         };
 
         if (dto.birthDetails) {
-          profileUpdates.date_of_birth = dto.birthDetails.dateOfBirth ? new Date(dto.birthDetails.dateOfBirth) : null;
+          profileUpdates.date_of_birth = dto.birthDetails.dateOfBirth
+            ? new Date(dto.birthDetails.dateOfBirth)
+            : null;
         }
 
         await queryRunner.manager.update(
           ProfileExpert,
           { user: { id: user.id } },
-          profileUpdates
+          profileUpdates as any,
         );
 
         if (dto.address) {
-          const profile = await queryRunner.manager.findOne(ProfileExpert, { where: { user: { id: user.id } } });
+          const profile = await queryRunner.manager.findOne(ProfileExpert, {
+            where: { user: { id: user.id } },
+          });
           if (profile) {
             const newAddress = new Address();
             Object.assign(newAddress, dto.address);
@@ -96,11 +113,18 @@ export class CompleteEmailRegistrationUseCase {
             await queryRunner.manager.save(Address, newAddress);
           }
         }
-      } else if (updatedUser!.roles.includes(RoleEnum.MERCHANT as any)) {
-        const { ProfileMerchant } = await import('../../../merchant/profile/infrastructure/entities/profile-merchant.entity');
-        let merchantProfile = await queryRunner.manager.findOne(ProfileMerchant, {
-          where: { user_id: user.id }
-        });
+      } else if (
+        updatedUser!.roles.includes(RoleEnum.MERCHANT as unknown as RoleEnum)
+      ) {
+        const { ProfileMerchant } = await import(
+          '../../../merchant/profile/infrastructure/entities/profile-merchant.entity'
+        );
+        let merchantProfile = await queryRunner.manager.findOne(
+          ProfileMerchant,
+          {
+            where: { user_id: user.id },
+          },
+        );
 
         const profileUpdates: Partial<typeof ProfileMerchant.prototype> = {
           shopName: dto.shopName || dto.name,
@@ -109,25 +133,32 @@ export class CompleteEmailRegistrationUseCase {
 
         if (merchantProfile) {
           Object.assign(merchantProfile, profileUpdates);
-          merchantProfile = await queryRunner.manager.save(ProfileMerchant, merchantProfile);
+          merchantProfile = await queryRunner.manager.save(
+            ProfileMerchant,
+            merchantProfile,
+          );
         } else {
           merchantProfile = queryRunner.manager.create(ProfileMerchant, {
             user: { id: user.id },
             user_id: user.id,
             ...profileUpdates,
           });
-          merchantProfile = await queryRunner.manager.save(ProfileMerchant, merchantProfile);
+          merchantProfile = await queryRunner.manager.save(
+            ProfileMerchant,
+            merchantProfile,
+          );
         }
 
         if (dto.address) {
           if (merchantProfile) {
-            merchantProfile.address = dto.address.line1 || merchantProfile.address;
+            merchantProfile.address =
+              dto.address.line1 || merchantProfile.address;
             merchantProfile.city = dto.address.city || merchantProfile.city;
-            merchantProfile.pincode = dto.address.zipCode || merchantProfile.pincode;
+            merchantProfile.pincode =
+              dto.address.zipCode || merchantProfile.pincode;
             await queryRunner.manager.save(ProfileMerchant, merchantProfile);
           }
         }
-
       } else {
         const profileUpdates: Partial<ProfileClient> = {
           name: dto.name,
@@ -139,7 +170,9 @@ export class CompleteEmailRegistrationUseCase {
         };
 
         if (dto.birthDetails) {
-          profileUpdates.date_of_birth = dto.birthDetails.dateOfBirth ? new Date(dto.birthDetails.dateOfBirth) : null;
+          profileUpdates.date_of_birth = dto.birthDetails.dateOfBirth
+            ? new Date(dto.birthDetails.dateOfBirth)
+            : null;
           profileUpdates.time_of_birth = dto.birthDetails.timeOfBirth;
           profileUpdates.place_of_birth = dto.birthDetails.birthPlace;
         }
@@ -147,11 +180,13 @@ export class CompleteEmailRegistrationUseCase {
         await queryRunner.manager.update(
           ProfileClient,
           { user: { id: user.id } },
-          profileUpdates
+          profileUpdates as any,
         );
 
         if (dto.address) {
-          const profile = await queryRunner.manager.findOne(ProfileClient, { where: { user: { id: user.id } } });
+          const profile = await queryRunner.manager.findOne(ProfileClient, {
+            where: { user: { id: user.id } },
+          });
           if (profile) {
             const newAddress = new Address();
             Object.assign(newAddress, dto.address);
@@ -164,7 +199,7 @@ export class CompleteEmailRegistrationUseCase {
       // 5. Issue Tokens
       const tokens = await this.issueTokens.execute(
         updatedUser!,
-        updatedUser!.roles[0] as RoleEnum,
+        updatedUser!.roles[0],
         ip,
         userAgent,
         queryRunner,

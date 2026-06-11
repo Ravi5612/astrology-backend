@@ -1,4 +1,3 @@
-
 import { Injectable } from '@nestjs/common';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -28,7 +27,9 @@ export class AddProductToWishlistUseCase {
       throw new UserNotFoundError();
     }
 
-    const product = await this.productRepo.findOne({ where: { id: productId } });
+    const product = await this.productRepo.findOne({
+      where: { id: productId },
+    });
     if (!product) {
       throw new ProductNotFoundError(productId);
     }

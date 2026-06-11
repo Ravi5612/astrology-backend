@@ -3,8 +3,9 @@ import {
   IsNumber,
   IsOptional,
   IsEnum,
-  Min,
   IsNotEmpty,
+  IsArray,
+  Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -46,6 +47,10 @@ export class CreateMerchantProductDto {
   @IsOptional()
   image_url?: string;
 
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
+
   @IsNumber()
   @Min(0)
   @IsOptional()
@@ -55,4 +60,9 @@ export class CreateMerchantProductDto {
   @IsEnum(MerchantProductStatus)
   @IsOptional()
   status?: MerchantProductStatus;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  gallery?: string[];
 }

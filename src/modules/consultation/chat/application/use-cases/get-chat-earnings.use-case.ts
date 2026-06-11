@@ -11,13 +11,14 @@ export class GetChatEarningsUseCase {
   ) {}
 
   async execute(dateLimit: Date): Promise<number> {
-    const chatStats = await this.chatRepository
+    const result: unknown = await this.chatRepository
       .createQueryBuilder('chat')
-      .select("SUM(chat.total_cost)", "total")
+      .select('SUM(chat.total_cost)', 'total')
       .where('chat.created_at >= :date', { date: dateLimit })
       .andWhere("chat.status = 'completed'")
       .getRawOne();
 
-    return parseFloat(chatStats?.total) || 0;
+    const chatStats = result as { total: string | null } | undefined;
+    return parseFloat(chatStats?.total || '0') || 0;
   }
 }

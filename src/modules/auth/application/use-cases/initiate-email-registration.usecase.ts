@@ -1,4 +1,3 @@
-
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DatabaseService } from '@/core/database/database.service';
@@ -18,7 +17,7 @@ export class InitiateEmailRegistrationUseCase {
 
   async execute(email: string, role: RoleEnum) {
     let user = await this.usersFacade.findByEmail(email);
-    
+
     // let requestedRole = role;
     // if (role === RoleEnum.EXPERT) requestedRole = RoleEnum.EXPERT;
     // else if (role === RoleEnum.AGENT) requestedRole = RoleEnum.AGENT;

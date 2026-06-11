@@ -12,7 +12,7 @@ import { createHash } from 'crypto';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 @Entity({
-  schema: 'auth'
+  schema: 'auth',
 })
 @Unique(['user', 'token'])
 export class UsedTokens {

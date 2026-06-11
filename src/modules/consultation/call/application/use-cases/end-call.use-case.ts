@@ -1,4 +1,3 @@
-
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -17,7 +16,6 @@ import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/tra
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { CallType } from '../../infrastructure/entities/call-session.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Injectable()
 export class EndCallUseCase {
@@ -33,13 +31,15 @@ export class EndCallUseCase {
     private readonly walletFacade: WalletFacade,
     private readonly notificationFacade: NotificationFacade,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async execute(sessionId: string, terminatedBy?: string, reason?: string) {
-    console.log(`[EndCallUseCase] sessionId: ${sessionId}, terminatedBy: ${terminatedBy}, reason: ${reason}`);
+    console.log(
+      `[EndCallUseCase] sessionId: ${sessionId}, terminatedBy: ${terminatedBy}, reason: ${reason}`,
+    );
 
     const session = await this.sessionRepo.findOne({
-      where: { id: sessionId as any },
+      where: { id: sessionId as unknown as string },
     });
 
     CallPolicy.ensureSessionExists(session);
@@ -60,10 +60,12 @@ export class EndCallUseCase {
       const durationMs =
         session.end_time.getTime() - session.start_time.getTime();
       session.duration_seconds = Math.floor(durationMs / 1000);
-      
+
       // Pro-rata billing (per second)
       const costPerSecond = session.price_per_minute / 60;
-      session.final_price = Number((session.duration_seconds * costPerSecond).toFixed(2));
+      session.final_price = Number(
+        (session.duration_seconds * costPerSecond).toFixed(2),
+      );
       session.total_cost = session.final_price;
     }
 
@@ -74,42 +76,68 @@ export class EndCallUseCase {
     const finalPrice = session.final_price || 0;
 
     // Fetch all required commission percentages
-    const platformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_ASTROLOGER');
-    const gstRate = await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
-    const buyerAgentRateSetting = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FOR_BUYER_AGENT');
+    const platformFeeRate =
+      await this.walletFacade.getAdminCommissionFromSetting(
+        'COMMISION_FROM_ASTROLOGER',
+      );
+    const gstRate =
+      await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
+    const buyerAgentRateSetting =
+      await this.walletFacade.getAdminCommissionFromSetting(
+        'COMMISION_FOR_BUYER_AGENT',
+      );
 
     // Fetch Expert with User to check for referral
-    const expert = await this.expertProfileFacade.getExpertById(session.expert_id);
+    const expert = await this.expertProfileFacade.getExpertById(
+      session.expert_id,
+    );
 
-    const expertUser = await this.usersFacade.findById(expert?.user_id);
+    const expertUser = await this.usersFacade.findById(
+      expert?.userId as string,
+    );
     let agent_commission = 0;
     let agent_id: string | undefined = undefined;
 
     // 1. Seller's Agent Commission (Always paid if referred)
     if (expertUser?.referred_by_id && expert) {
-        agent_id = expertUser.referred_by_id;
-        const effectiveAgentRate = expert.agent_commission_rate ?? platformFeeRate;
-        agent_commission = Number((finalPrice * (effectiveAgentRate / 100)).toFixed(2));
+      agent_id = expertUser.referred_by_id;
+      const effectiveAgentRate =
+        expert.agent_commission_rate ?? platformFeeRate;
+      agent_commission = Number(
+        (finalPrice * (Number(effectiveAgentRate) / 100)).toFixed(2),
+      );
     }
 
     // 2. Buyer's Agent Commission (If buyer has an agent assigned)
     let buyer_agent_commission = 0;
     let buyer_agent_id: string | undefined = undefined;
-    
+
     const buyerUser = await this.usersFacade.findById(session.user_id);
 
     if (buyerUser?.referred_by_id) {
-        buyer_agent_id = buyerUser.referred_by_id;
-        buyer_agent_commission = Number((finalPrice * (buyerAgentRateSetting / 100)).toFixed(2));
+      buyer_agent_id = buyerUser.referred_by_id;
+      buyer_agent_commission = Number(
+        (finalPrice * (buyerAgentRateSetting / 100)).toFixed(2),
+      );
     }
 
     // 3. Platform Fee & GST
-    const platformFee = Number((finalPrice * (platformFeeRate / 100)).toFixed(2));
+    const platformFee = Number(
+      (finalPrice * (platformFeeRate / 100)).toFixed(2),
+    );
     const gst = Number((platformFee * (gstRate / 100)).toFixed(2));
-    
+
     // Expert Net = Total - Platform - GST - Agent (Seller) - Agent (Buyer)
-    const expertShare = Number((finalPrice - platformFee - gst - agent_commission - buyer_agent_commission).toFixed(2));
-    
+    const expertShare = Number(
+      (
+        finalPrice -
+        platformFee -
+        gst -
+        agent_commission -
+        buyer_agent_commission
+      ).toFixed(2),
+    );
+
     // Save to session for persistence
     session.platform_fee = platformFee;
     session.gst = gst;
@@ -118,16 +146,16 @@ export class EndCallUseCase {
     session.agent_commission = agent_commission;
     await this.sessionRepo.save(session);
 
-    const split = { 
-        totalAmount: finalPrice, 
-        totalCost: finalPrice, // Alias for compatibility
-        platformFee: Number((finalPrice - expertShare).toFixed(2)), 
-        expertShare: expertShare, 
-        agent_commission 
+    const split = {
+      totalAmount: finalPrice,
+      totalCost: finalPrice, // Alias for compatibility
+      platformFee: Number((finalPrice - expertShare).toFixed(2)),
+      expertShare: expertShare,
+      agent_commission,
     };
 
     // 🏦 Settlement Logic
-    const initialReservation = session.price_per_minute * 5; 
+    const initialReservation = session.price_per_minute * 5;
     try {
       if (finalPrice <= initialReservation) {
         if (finalPrice > 0) {
@@ -192,22 +220,28 @@ export class EndCallUseCase {
         }
       }
     } catch (error) {
-      console.error(`[EndCall] Failed to settle wallet for session ${sessionId}:`, error);
+      console.error(
+        `[EndCall] Failed to settle wallet for session ${sessionId}:`,
+        error,
+      );
     }
 
-    this.callGateway.server
-      .to(`call_room_${sessionId}`)
-      .emit('call_ended', { sessionId, split, terminatedBy, terminatedReason: reason });
+    this.callGateway.server.to(`call_room_${sessionId}`).emit('call_ended', {
+      sessionId,
+      split,
+      terminatedBy,
+      terminatedReason: reason,
+    });
 
     // Also notify expert dashboard
-    this.callGateway.notifyExpertStatusUpdate(session.expert_id, 'call_ended', { 
-        sessionId, 
-        session: session, 
-        split, 
-        terminatedBy, 
-        terminatedReason: reason 
+    this.callGateway.notifyExpertStatusUpdate(session.expert_id, 'call_ended', {
+      sessionId,
+      session: session,
+      split,
+      terminatedBy,
+      terminatedReason: reason,
     });
-    
+
     this.eventEmitter.emit(
       'call.ended',
       new CallEndedEvent(
@@ -221,29 +255,49 @@ export class EndCallUseCase {
 
     // 🔔 Notify User
     try {
-      const expert = await this.expertProfileFacade.getExpertById(savedSession.expert_id);
-      const expertUser = expert ? await this.usersFacade.findById(expert.user_id) : null;
+      const expert = await this.expertProfileFacade.getExpertById(
+        savedSession.expert_id,
+      );
+      const expertUser = expert
+        ? await this.usersFacade.findById(expert.userId as string)
+        : null;
 
       if (expert) {
-        const startTime = savedSession.start_time ? savedSession.start_time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
-        const endTime = savedSession.end_time ? savedSession.end_time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+        const startTime = savedSession.start_time
+          ? savedSession.start_time.toLocaleTimeString('en-IN', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : 'N/A';
+        const endTime = savedSession.end_time
+          ? savedSession.end_time.toLocaleTimeString('en-IN', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : 'N/A';
         const expertName = expertUser?.name || 'Astrologer';
-        const duration = savedSession.duration_seconds ? (savedSession.duration_seconds / 60).toFixed(1) : '0';
-        const typeLabel = savedSession.type === CallType.VIDEO ? 'Video Call' : 'Call';
-        
-        const title = "Consultation Summary";
+        const duration = savedSession.duration_seconds
+          ? (savedSession.duration_seconds / 60).toFixed(1)
+          : '0';
+        const typeLabel =
+          savedSession.type === CallType.VIDEO ? 'Video Call' : 'Call';
+
+        const title = 'Consultation Summary';
         const message = `From ${startTime} to ${endTime} you consulted ${expertName} via ${typeLabel}, total duration: ${duration} mins, total cost: ₹${savedSession.final_price}`;
-        
+
         await this.notificationFacade.create(
           savedSession.user_id,
           NotificationType.GENERAL,
           title,
           message,
-          { sessionId, type: 'CALL_SUMMARY' }
+          { sessionId, type: 'CALL_SUMMARY' },
         );
       }
     } catch (error) {
-      console.error(`Failed to send end-call notification for session ${sessionId}:`, error);
+      console.error(
+        `Failed to send end-call notification for session ${sessionId}:`,
+        error,
+      );
     }
 
     return {

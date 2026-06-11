@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/entities/transaction.entity';
+import {
+  Transaction,
+  TransactionType,
+  TransactionPurpose,
+} from '../../infrastructure/entities/transaction.entity';
 
 @Injectable()
 export class GetGlobalEarningsUseCase {
@@ -11,15 +15,15 @@ export class GetGlobalEarningsUseCase {
   ) {}
 
   async execute(): Promise<number> {
-    const total = await this.transactionRepository
+    const total = (await this.transactionRepository
       .createQueryBuilder('transaction')
       .where('transaction.purpose = :purpose AND transaction.type = :type', {
         purpose: TransactionPurpose.RECHARGE,
         type: TransactionType.CREDIT,
       })
       .select('SUM(transaction.amount)', 'sum')
-      .getRawOne();
+      .getRawOne()) as { sum?: string | number };
 
-    return Number(total.sum) || 0;
+    return Number(total?.sum) || 0;
   }
 }

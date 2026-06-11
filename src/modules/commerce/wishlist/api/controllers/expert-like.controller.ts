@@ -1,4 +1,4 @@
-import {
+﻿import {
   Controller,
   Get,
   Post,
@@ -6,7 +6,6 @@ import {
   Body,
   Param,
   UseGuards,
-  Req,
 } from '@nestjs/common';
 import { WishlistFacade } from '../../application/wishlist.facade';
 import { AddExpertToWishlistDto } from '../dto/add-expert-wishlist.dto';
@@ -22,13 +21,13 @@ export class ExpertLikeController {
   constructor(private readonly wishlistFacade: WishlistFacade) {}
 
   @Get()
-  findAllExperts(@CurrentUser("id") userId: string) {
+  findAllExperts(@CurrentUser('id') userId: string) {
     return this.wishlistFacade.getExpertWishlist(userId);
   }
 
   @Post('add')
   createExpert(
-    @CurrentUser("id") userId: string,
+    @CurrentUser('id') userId: string,
     @Body() addExpertToWishlistDto: AddExpertToWishlistDto,
   ) {
     return this.wishlistFacade.addExpertToWishlist(
@@ -39,10 +38,13 @@ export class ExpertLikeController {
 
   @Delete('remove/:expert_id')
   async removeExpert(
-    @CurrentUser("id") userId: string,
+    @CurrentUser('id') userId: string,
     @Param('expert_id') expert_id: string,
   ) {
-    const result = await this.wishlistFacade.removeExpertFromWishlist(userId, expert_id);
+    const _result = await this.wishlistFacade.removeExpertFromWishlist(
+      userId,
+      expert_id,
+    );
     return { success: true };
   }
 }

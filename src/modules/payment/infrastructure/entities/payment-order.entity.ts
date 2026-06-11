@@ -37,10 +37,20 @@ export class PaymentOrder {
   @JoinColumn({ name: 'client_id' })
   client!: ProfileClient;
 
-  @Column({ name: 'razorpay_order_id', type: 'text', unique: true, nullable: true })
+  @Column({
+    name: 'razorpay_order_id',
+    type: 'text',
+    unique: true,
+    nullable: true,
+  })
   razorpay_order_id!: string | null;
 
-  @Column({ name: 'razorpay_payment_id', type: 'text', unique: true, nullable: true })
+  @Column({
+    name: 'razorpay_payment_id',
+    type: 'text',
+    unique: true,
+    nullable: true,
+  })
   razorpay_payment_id!: string | null;
 
   @Column({ name: 'razorpay_signature', type: 'text', nullable: true })
@@ -58,7 +68,7 @@ export class PaymentOrder {
   status!: PaymentStatus;
 
   @Column({ type: 'json', nullable: true })
-  notes: any;
+  notes: Record<string, unknown>;
 
   @CreateDateColumn({ name: 'created_at' })
   created_at!: Date;

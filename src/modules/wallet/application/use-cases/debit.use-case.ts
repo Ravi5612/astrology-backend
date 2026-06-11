@@ -1,20 +1,28 @@
-
-import { Injectable, BadRequestException, Logger, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Logger,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
 import { Wallet } from '../../infrastructure/entities/wallet.entity';
-import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/entities/transaction.entity';
+import {
+  Transaction,
+  TransactionType,
+  TransactionPurpose,
+} from '../../infrastructure/entities/transaction.entity';
 import { InsufficientBalanceError } from '../../domain/errors/insufficient-balance.error';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
+
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
-import {  hasRoles} from '@/modules/users/infrastructure/enums/Role.enum';
-
+import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class DebitUseCase {
   private readonly logger = new Logger(DebitUseCase.name);
 
-  constructor(private readonly dataSource: DataSource) { }
+  constructor(private readonly dataSource: DataSource) {}
 
   async execute(
     userId: string,
@@ -27,55 +35,86 @@ export class DebitUseCase {
     if (amount <= 0) throw new BadRequestException('Amount must be positive');
 
     const qr = externalQueryRunner || this.dataSource.createQueryRunner();
-    
+
     if (!externalQueryRunner) {
       await qr.connect();
       await qr.startTransaction();
     }
 
     try {
-      this.logger.log(`[DEBIT_TX] User: ${userId}, Amount: ${amount}, Reference: ${referenceId}`);
+      this.logger.log(
+        `[DEBIT_TX] User: ${userId}, Amount: ${amount}, Reference: ${referenceId}`,
+      );
 
       // 1. Fetch wallet with lock (verify existence)
-      
+
       // --- START WALLET LOOKUP ---
-      const { ProfileClient } = await import('../../../client/profile/infrastructure/entities/profile-client.entity');
-      const { ProfileExpert } = await import('../../../expert/profile/infrastructure/entities/profile-expert.entity');
-      const { ProfileMerchant } = await import('../../../merchant/profile/infrastructure/entities/profile-merchant.entity');
-      const { ProfileAgent } = await import('../../../agent/infrastructure/entities/profile-agent.entity');
+      const { ProfileClient } = await import(
+        '../../../client/profile/infrastructure/entities/profile-client.entity'
+      );
+      const { ProfileExpert } = await import(
+        '../../../expert/profile/infrastructure/entities/profile-expert.entity'
+      );
+      const { ProfileMerchant } = await import(
+        '../../../merchant/profile/infrastructure/entities/profile-merchant.entity'
+      );
+      const { ProfileAgent } = await import(
+        '../../../agent/infrastructure/entities/profile-agent.entity'
+      );
 
       let walletOwnerId = '';
       let queryKey = '';
 
-      const expert = await qr.manager.findOne(ProfileExpert, { where: { user: { id: userId } } });
-      if (expert) { walletOwnerId = expert.id; queryKey = 'expert_id'; }
-      
-      if (!walletOwnerId) {
-         const merchant = await qr.manager.findOne(ProfileMerchant, { where: { user: { id: userId } } });
-         if (merchant) { walletOwnerId = merchant.id; queryKey = 'merchant_id'; }
+      const expert = await qr.manager.findOne(ProfileExpert, {
+        where: { user: { id: userId } },
+      });
+      if (expert) {
+        walletOwnerId = expert.id;
+        queryKey = 'expert_id';
       }
 
       if (!walletOwnerId) {
-         const agent = await qr.manager.findOne(ProfileAgent, { where: { user: { id: userId } } });
-         if (agent) { walletOwnerId = agent.id; queryKey = 'agent_id'; }
+        const merchant = await qr.manager.findOne(ProfileMerchant, {
+          where: { user: { id: userId } },
+        });
+        if (merchant) {
+          walletOwnerId = merchant.id;
+          queryKey = 'merchant_id';
+        }
       }
 
       if (!walletOwnerId) {
-         const client = await qr.manager.findOne(ProfileClient, { where: { user: { id: userId } } });
-         if (client) { walletOwnerId = client.id; queryKey = 'client_id'; }
+        const agent = await qr.manager.findOne(ProfileAgent, {
+          where: { user: { id: userId } },
+        });
+        if (agent) {
+          walletOwnerId = agent.id;
+          queryKey = 'agent_id';
+        }
       }
-      
+
+      if (!walletOwnerId) {
+        const client = await qr.manager.findOne(ProfileClient, {
+          where: { user: { id: userId } },
+        });
+        if (client) {
+          walletOwnerId = client.id;
+          queryKey = 'client_id';
+        }
+      }
+
       let wallet = await qr.manager.findOne(Wallet, {
         where: { [queryKey || 'client_id']: walletOwnerId },
         lock: { mode: 'pessimistic_write' },
       });
       // --- END WALLET LOOKUP ---
 
-
       if (!wallet) {
-        this.logger.log(`[DEBIT_TX] User ${userId} wallet not found. Creating shell wallet...`);
+        this.logger.log(
+          `[DEBIT_TX] User ${userId} wallet not found. Creating shell wallet...`,
+        );
         wallet = qr.manager.create(Wallet, {
-          client_id: userId as any,
+          client_id: userId,
           balance: 0,
           reserved_balance: 0,
         });
@@ -84,18 +123,21 @@ export class DebitUseCase {
 
       const balance = Number(wallet.balance) || 0;
       if (!allowNegative && balance < amount) {
-        this.logger.error(`[DEBIT_TX] User ${userId} insufficient balance. Has: ${balance}, Needs: ${amount}`);
+        this.logger.error(
+          `[DEBIT_TX] User ${userId} insufficient balance. Has: ${balance}, Needs: ${amount}`,
+        );
         throw new InsufficientBalanceError();
       }
 
       // 2. Perform Atomic Balance Update via QueryBuilder
       // This is the most reliable way to avoid any TypeORM object-state issues
-      await qr.manager.createQueryBuilder()
+      await qr.manager
+        .createQueryBuilder()
         .update(Wallet)
         .set({ balance: () => `balance - ${Number(amount)}` })
         .where(`${queryKey || 'client_id'} = :walletOwnerId`, { walletOwnerId })
         .execute();
-      
+
       this.logger.log(`[DEBIT_TX] Balance subtracted for user ${userId}`);
 
       // 3. Create Transaction Record with Snapshots
@@ -115,47 +157,66 @@ export class DebitUseCase {
 
       // 3.5 Generate Custom Transaction No
       try {
-        const user = await qr.manager.createQueryBuilder(User, 'u')
+        const user = await qr.manager
+          .createQueryBuilder(User, 'u')
           .where('u.id = :userId', { userId })
           .getOne();
 
-        if(!user){
+        if (!user) {
           throw new NotFoundException(`User with id ${userId} not found`);
         }
-                   
+
         const isUserClient = hasRoles(user.roles, 'CLIENT');
 
-          if(!isUserClient){
-              throw new ForbiddenException('Only clients can have wallet transactions');
-            }
+        if (!isUserClient) {
+          throw new ForbiddenException(
+            'Only clients can have wallet transactions',
+          );
+        }
 
-        savedTx.transaction_no = generateTransactionNo('CLIENT', purpose, savedTx.id);
+        savedTx.transaction_no = generateTransactionNo(
+          'CLIENT',
+          purpose,
+          savedTx.id,
+        );
         await qr.manager.save(Transaction, savedTx);
       } catch (err) {
-        this.logger.error(`[DEBIT_TX] Failed to generate transaction no: ${err.message}`);
+        this.logger.error(
+          `[DEBIT_TX] Failed to generate transaction no: ${(err as Error).message}`,
+        );
       }
 
-
       // 4. Update Client Spending Tracking
-      if (purpose === TransactionPurpose.CONSULTATION || purpose === TransactionPurpose.PRODUCT_PURCHASE) {
+      if (
+        purpose === TransactionPurpose.CONSULTATION ||
+        purpose === TransactionPurpose.PRODUCT_PURCHASE
+      ) {
         try {
-          let clientProfile = await qr.manager.findOne(ProfileClient, {
+          const clientProfile = await qr.manager.findOne(ProfileClient, {
             where: { [queryKey || 'client_id']: walletOwnerId },
-            select: ['id']
+            select: ['id'],
           });
 
           if (!clientProfile) {
             // Cannot auto-create client profile - it requires a user relation
-            this.logger.warn(`[DEBIT_TX] Client profile not found for wallet owner ${walletOwnerId}, skipping spending tracking`);
+            this.logger.warn(
+              `[DEBIT_TX] Client profile not found for wallet owner ${walletOwnerId}, skipping spending tracking`,
+            );
           } else {
-            await qr.manager.createQueryBuilder()
+            await qr.manager
+              .createQueryBuilder()
               .update(ProfileClient)
-              .set({ total_spending: () => `COALESCE(total_spending, 0) + ${Number(amount)}` })
+              .set({
+                total_spending: () =>
+                  `COALESCE(total_spending, 0) + ${Number(amount)}`,
+              })
               .where('id = :id', { id: clientProfile.id })
               .execute();
           }
         } catch (e) {
-          this.logger.error(`[DEBIT_TX] Spending tracking failed: ${e.message}`);
+          this.logger.error(
+            `[DEBIT_TX] Spending tracking failed: ${(e as Error).message}`,
+          );
         }
       }
 
@@ -164,13 +225,15 @@ export class DebitUseCase {
       }
 
       // Refresh and return
-      const refreshedWallet = await qr.manager.findOne(Wallet, { where: { [queryKey || 'client_id']: walletOwnerId } });
+      const refreshedWallet = await qr.manager.findOne(Wallet, {
+        where: { [queryKey || 'client_id']: walletOwnerId },
+      });
       return refreshedWallet as Wallet;
     } catch (err) {
       if (!externalQueryRunner && qr.isTransactionActive) {
         await qr.rollbackTransaction();
       }
-      this.logger.error(`[DEBIT_TX] Failed: ${err.message}`);
+      this.logger.error(`[DEBIT_TX] Failed: ${(err as Error).message}`);
       throw err;
     } finally {
       if (!externalQueryRunner) {

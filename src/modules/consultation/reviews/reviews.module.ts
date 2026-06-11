@@ -28,11 +28,7 @@ import { OrderModule } from '@/modules/commerce/order/order.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Review,
-      ChatSession,
-      CallSession,
-    ]),
+    TypeOrmModule.forFeature([Review, ChatSession, CallSession]),
     forwardRef(() => WalletModule),
     NotificationModule,
     forwardRef(() => ExpertProfileModule),

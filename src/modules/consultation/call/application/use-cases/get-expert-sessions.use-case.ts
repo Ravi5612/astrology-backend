@@ -1,86 +1,124 @@
-
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
-import { CallSession, CallSessionStatus } from '../../infrastructure/entities/call-session.entity';
+import { Repository } from 'typeorm';
+import {
+  CallSession,
+  CallSessionStatus,
+} from '../../infrastructure/entities/call-session.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 
 export enum CallSessionFilter {
-    PENDING = 'pending',
-    COMPLETED = 'completed',
-    RECENT_PENDING = 'recent_pending',
-    RECENT_COMPLETED = 'recent_completed',
-    ALL = 'all'
+  PENDING = 'pending',
+  COMPLETED = 'completed',
+  RECENT_PENDING = 'recent_pending',
+  RECENT_COMPLETED = 'recent_completed',
+  ALL = 'all',
 }
 
 @Injectable()
 export class GetExpertCallSessionsUseCase {
-    constructor(
-        @InjectRepository(CallSession)
-        private sessionRepo: Repository<CallSession>,
-        @Inject(forwardRef(() => ExpertProfileFacade)) private expertProfileFacade: ExpertProfileFacade,
-    ) { }
+  constructor(
+    @InjectRepository(CallSession)
+    private sessionRepo: Repository<CallSession>,
+    @Inject(forwardRef(() => ExpertProfileFacade))
+    private expertProfileFacade: ExpertProfileFacade,
+  ) {}
 
-    async execute(expertUserId: string, filter: CallSessionFilter, options: { limit?: number; offset?: number; search?: string } = {}) {
-        const expert = await this.expertProfileFacade.getExpertByUserId(expertUserId);
+  async execute(
+    expertUserId: string,
+    filter: CallSessionFilter,
+    options: { limit?: number; offset?: number; search?: string } = {},
+  ) {
+    const expert =
+      await this.expertProfileFacade.getExpertByUserId(expertUserId);
 
-        if (!expert) return { data: [], meta: { total_count: 0 } };
+    if (!expert) return { data: [], meta: { total_count: 0 } };
 
-        const queryBuilder = this.sessionRepo.createQueryBuilder('session')
-            .leftJoinAndSelect('session.user', 'user')
-            .leftJoinAndMapOne('user.profile_client', ProfileClient, 'profile_client', 'profile_client.user_id = user.id')
-            .where('session.expert_id = :expert_id', { expert_id: expert.id });
+    const queryBuilder = this.sessionRepo
+      .createQueryBuilder('session')
+      .leftJoinAndSelect('session.user', 'user')
+      .leftJoinAndMapOne(
+        'user.profile_client',
+        ProfileClient,
+        'profile_client',
+        'profile_client.user_id = user.id',
+      )
+      .where('session.expert_id = :expert_id', { expert_id: expert.id });
 
-        switch (filter) {
-            case CallSessionFilter.PENDING:
-                queryBuilder.andWhere('session.status IN (:...statuses)', { statuses: [CallSessionStatus.PENDING, CallSessionStatus.ACTIVE] });
-                break;
-            case CallSessionFilter.COMPLETED:
-                queryBuilder.andWhere('session.status IN (:...statuses)', { statuses: [CallSessionStatus.COMPLETED, CallSessionStatus.CANCELLED, CallSessionStatus.REJECTED] });
-                break;
-            case CallSessionFilter.RECENT_PENDING:
-                queryBuilder.andWhere('session.status IN (:...statuses)', { statuses: [CallSessionStatus.PENDING, CallSessionStatus.ACTIVE] });
-                queryBuilder.limit(20);
-                break;
-            case CallSessionFilter.RECENT_COMPLETED:
-                queryBuilder.andWhere('session.status IN (:...statuses)', { statuses: [CallSessionStatus.COMPLETED, CallSessionStatus.CANCELLED, CallSessionStatus.REJECTED] });
-                queryBuilder.limit(20);
-                break;
-            case CallSessionFilter.ALL:
-            default:
-                break;
-        }
-
-        if (options.search) {
-            queryBuilder.andWhere('user.name ILIKE :search', { search: `%${options.search}%` });
-        }
-
-        queryBuilder.orderBy('session.created_at', 'DESC');
-
-        const totalCount = await queryBuilder.getCount();
-
-        if (options.limit !== undefined) {
-            queryBuilder.limit(options.limit);
-        }
-        if (options.offset !== undefined) {
-            queryBuilder.offset(options.offset);
-        }
-
-        const data = await queryBuilder.getMany();
-        return { data, meta: { total_count: totalCount } };
+    switch (filter) {
+      case CallSessionFilter.PENDING:
+        queryBuilder.andWhere('session.status IN (:...statuses)', {
+          statuses: [CallSessionStatus.PENDING, CallSessionStatus.ACTIVE],
+        });
+        break;
+      case CallSessionFilter.COMPLETED:
+        queryBuilder.andWhere('session.status IN (:...statuses)', {
+          statuses: [
+            CallSessionStatus.COMPLETED,
+            CallSessionStatus.CANCELLED,
+            CallSessionStatus.REJECTED,
+          ],
+        });
+        break;
+      case CallSessionFilter.RECENT_PENDING:
+        queryBuilder.andWhere('session.status IN (:...statuses)', {
+          statuses: [CallSessionStatus.PENDING, CallSessionStatus.ACTIVE],
+        });
+        queryBuilder.limit(20);
+        break;
+      case CallSessionFilter.RECENT_COMPLETED:
+        queryBuilder.andWhere('session.status IN (:...statuses)', {
+          statuses: [
+            CallSessionStatus.COMPLETED,
+            CallSessionStatus.CANCELLED,
+            CallSessionStatus.REJECTED,
+          ],
+        });
+        queryBuilder.limit(20);
+        break;
+      case CallSessionFilter.ALL:
+      default:
+        break;
     }
 
-    async getRevenueAndCount(expertProfileId: number) {
-        const stats = await this.sessionRepo
-            .createQueryBuilder('call')
-            .select("SUM(call.final_price)", "total")
-            .addSelect("COUNT(call.id)", "count")
-            .where('call.expert_id = :id AND call.status = :status', { id: expertProfileId, status: 'completed' })
-            .getRawOne();
-        return {
-            total: parseFloat(stats.total) || 0,
-            count: parseInt(stats.count, 10) || 0,
-        };
+    if (options.search) {
+      queryBuilder.andWhere('user.name ILIKE :search', {
+        search: `%${options.search}%`,
+      });
     }
+
+    queryBuilder.orderBy('session.created_at', 'DESC');
+
+    const totalCount = await queryBuilder.getCount();
+
+    if (options.limit !== undefined) {
+      queryBuilder.limit(options.limit);
+    }
+    if (options.offset !== undefined) {
+      queryBuilder.offset(options.offset);
+    }
+
+    const data = await queryBuilder.getMany();
+    return { data, meta: { total_count: totalCount } };
+  }
+
+  async getRevenueAndCount(expertProfileId: number) {
+    const stats = (await this.sessionRepo
+      .createQueryBuilder('call')
+      .select('SUM(call.final_price)', 'total')
+      .addSelect('COUNT(call.id)', 'count')
+      .where('call.expert_id = :id AND call.status = :status', {
+        id: expertProfileId,
+        status: 'completed',
+      })
+      .getRawOne<{ total: string | null; count: string | null }>()) ?? {
+      total: null,
+      count: null,
+    };
+    return {
+      total: parseFloat(stats.total ?? '0') || 0,
+      count: parseInt(stats.count ?? '0', 10) || 0,
+    };
+  }
 }

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+﻿import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Cart } from './infrastructure/entities/cart.entity';
 import { CartItem } from './infrastructure/entities/cart-item.entity';
@@ -10,14 +10,12 @@ import { UpdateCartItemUseCase } from './application/use-cases/update-cart-item.
 import { RemoveCartItemUseCase } from './application/use-cases/remove-cart-item.use-case';
 import { ClearCartUseCase } from './application/use-cases/clear-cart.use-case';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Cart, CartItem, Product]),
-    ClientProfileModule
+    ClientProfileModule,
   ],
   controllers: [CartController],
   providers: [
@@ -30,4 +28,4 @@ import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/p
   ],
   exports: [CartFacade],
 })
-export class CartModule { }
+export class CartModule {}

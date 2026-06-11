@@ -6,18 +6,18 @@ import { Coupon } from '../../infrastructure/entities/coupon.entity';
 
 @Injectable()
 export class DeleteCouponUseCase {
-    constructor(
-        @InjectRepository(Coupon)
-        private readonly couponRepository: Repository<Coupon>,
-    ) { }
+  constructor(
+    @InjectRepository(Coupon)
+    private readonly couponRepository: Repository<Coupon>,
+  ) {}
 
-    async execute(id: string) {
-        const coupon = await this.couponRepository.findOne({ where: { id } });
-        if (!coupon) {
-            throw new NotFoundException('Coupon not found');
-        }
-
-        await this.couponRepository.remove(coupon);
-        return new BooleanMessage();
+  async execute(id: string) {
+    const coupon = await this.couponRepository.findOne({ where: { id } });
+    if (!coupon) {
+      throw new NotFoundException('Coupon not found');
     }
+
+    await this.couponRepository.remove(coupon);
+    return new BooleanMessage();
+  }
 }

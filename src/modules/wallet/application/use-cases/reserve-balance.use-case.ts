@@ -1,21 +1,25 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { Wallet } from '../../infrastructure/entities/wallet.entity';
-import { Transaction, TransactionType, TransactionPurpose } from '../../infrastructure/entities/transaction.entity';
+import {
+  Transaction,
+  TransactionType,
+  TransactionPurpose,
+} from '../../infrastructure/entities/transaction.entity';
 import { InsufficientBalanceError } from '../../domain/errors/insufficient-balance.error';
 
 @Injectable()
 export class ReserveBalanceUseCase {
-  constructor(private readonly dataSource: DataSource) { }
+  constructor(private readonly dataSource: DataSource) {}
 
   async execute(
     userId: string,
     amount: number,
     referenceId: string,
-    externalQueryRunner?: any,
+    externalQueryRunner?: import('typeorm').QueryRunner,
   ): Promise<boolean> {
     const qr = externalQueryRunner || this.dataSource.createQueryRunner();
-    
+
     if (!externalQueryRunner) {
       await qr.connect();
       await qr.startTransaction();
@@ -23,30 +27,58 @@ export class ReserveBalanceUseCase {
 
     try {
       // --- START WALLET LOOKUP ---
-      const { ProfileClient } = await import('../../../client/profile/infrastructure/entities/profile-client.entity');
-      const { ProfileExpert } = await import('../../../expert/profile/infrastructure/entities/profile-expert.entity');
-      const { ProfileMerchant } = await import('../../../merchant/profile/infrastructure/entities/profile-merchant.entity');
-      const { ProfileAgent } = await import('../../../agent/infrastructure/entities/profile-agent.entity');
+      const { ProfileClient } = await import(
+        '../../../client/profile/infrastructure/entities/profile-client.entity'
+      );
+      const { ProfileExpert } = await import(
+        '../../../expert/profile/infrastructure/entities/profile-expert.entity'
+      );
+      const { ProfileMerchant } = await import(
+        '../../../merchant/profile/infrastructure/entities/profile-merchant.entity'
+      );
+      const { ProfileAgent } = await import(
+        '../../../agent/infrastructure/entities/profile-agent.entity'
+      );
 
       let walletOwnerId = '';
       let queryKey = '';
 
-      const expert = await qr.manager.findOne(ProfileExpert, { where: { user: { id: userId } } });
-      if (expert) { walletOwnerId = expert.id; queryKey = 'expert_id'; }
-      
-      if (!walletOwnerId) {
-         const merchant = await qr.manager.findOne(ProfileMerchant, { where: { user: { id: userId } } });
-         if (merchant) { walletOwnerId = merchant.id; queryKey = 'merchant_id'; }
+      const expert = await qr.manager.findOne(ProfileExpert, {
+        where: { user: { id: userId } },
+      });
+      if (expert) {
+        walletOwnerId = expert.id;
+        queryKey = 'expert_id';
       }
 
       if (!walletOwnerId) {
-         const agent = await qr.manager.findOne(ProfileAgent, { where: { user: { id: userId } } });
-         if (agent) { walletOwnerId = agent.id; queryKey = 'agent_id'; }
+        const merchant = await qr.manager.findOne(ProfileMerchant, {
+          where: { user: { id: userId } },
+        });
+        if (merchant) {
+          walletOwnerId = merchant.id;
+          queryKey = 'merchant_id';
+        }
       }
 
       if (!walletOwnerId) {
-         const client = await qr.manager.findOne(ProfileClient, { where: { user: { id: userId } } });
-         if (client) { walletOwnerId = client.id; queryKey = 'client_id'; }
+        const agent = await qr.manager.findOne(ProfileAgent, {
+          where: { user: { id: userId } },
+        });
+        if (agent) {
+          walletOwnerId = agent.id;
+          queryKey = 'agent_id';
+        }
+      }
+
+      if (!walletOwnerId) {
+        const client = await qr.manager.findOne(ProfileClient, {
+          where: { user: { id: userId } },
+        });
+        if (client) {
+          walletOwnerId = client.id;
+          queryKey = 'client_id';
+        }
       }
 
       const wallet = await qr.manager.findOne(Wallet, {
@@ -61,7 +93,8 @@ export class ReserveBalanceUseCase {
       const balanceAfter = balanceBefore - Number(amount);
 
       wallet.balance = balanceAfter;
-      wallet.reserved_balance = Number(wallet.reserved_balance) + Number(amount);
+      wallet.reserved_balance =
+        Number(wallet.reserved_balance) + Number(amount);
       await qr.manager.save(wallet);
 
       const transaction = qr.manager.create(Transaction, {

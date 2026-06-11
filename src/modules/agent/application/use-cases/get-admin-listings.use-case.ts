@@ -17,7 +17,7 @@ export class GetAdminListingsUseCase {
     private readonly expertFacade: ExpertProfileFacade,
     @Inject(forwardRef(() => MerchantProfileFacade))
     private readonly merchantFacade: MerchantProfileFacade,
-  ) { } 
+  ) {}
 
   async execute(params?: {
     type?: string;
@@ -29,12 +29,23 @@ export class GetAdminListingsUseCase {
     const limit = Number(params?.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const isPlaceType = params?.type === 'mandir' || params?.type === 'puja_shop';
-    const isExpertType = params?.type === 'expert' || params?.type === 'astrologer';
+    const isPlaceType =
+      params?.type === 'mandir' || params?.type === 'puja_shop';
+    const isExpertType =
+      params?.type === 'expert' || params?.type === 'astrologer';
     const isAll = !params?.type || params?.type === 'all';
 
-    let placeData: any[] = [];
-    let expertData: any[] = [];
+    let placeData: AgentListing[] = [];
+    let expertData: Array<{
+      id: string;
+      name?: string;
+      roles?: string[];
+      referred_by?: { uid?: string; name?: string };
+      referred_by_id?: string;
+      created_at: Date;
+      profile_expert?: Record<string, unknown> | null;
+      profile_merchant?: Record<string, unknown> | null;
+    }> = [];
 
     // 1. Fetch Agent Listings (Mandir/Shop)
     if (isPlaceType || isAll) {
@@ -57,7 +68,7 @@ export class GetAdminListingsUseCase {
 
     // 2. Fetch Referred Users (Experts and Merchants/Puja Shops)
     if (isExpertType || isPlaceType || isAll) {
-      let roleFilters: string[] = [];
+      const roleFilters: string[] = [];
 
       if (isExpertType) {
         roleFilters.push('expert');
@@ -67,30 +78,47 @@ export class GetAdminListingsUseCase {
         roleFilters.push('expert', 'merchant');
       }
 
-      const users = await this.usersFacade.findReferredUsers(roleFilters, params?.search);
-      
+      const users = await this.usersFacade.findReferredUsers(
+        roleFilters,
+        params?.search,
+      );
+
       // Fetch their profiles
-      expertData = await Promise.all(users.map(async (uObj: any) => {
-        let expertProfile: any = null;
-        let merchantProfile: any = null;
+      expertData = await Promise.all(
+        users.map(async (uObj) => {
+          let expertProfile: Record<string, unknown> | null = null;
+          let merchantProfile: Record<string, unknown> | null = null;
 
-        if (uObj.roles?.includes('expert')) {
-            expertProfile = await this.expertFacade.getExpertByUserId(uObj.id);
-        }
-        if (uObj.roles?.includes('merchant')) {
-            merchantProfile = await this.merchantFacade.getProfileByUserId(uObj.id);
-        }
+          if ((uObj.roles as string[])?.includes('expert')) {
+            expertProfile = (await this.expertFacade.getExpertByUserId(
+              uObj.id,
+            )) as Record<string, unknown> | null;
+          }
+          if ((uObj.roles as string[])?.includes('merchant')) {
+            merchantProfile = (await this.merchantFacade.getProfileByUserId(
+              uObj.id,
+            )) as Record<string, unknown> | null;
+          }
 
-        return {
-            ...uObj,
+          return {
+            id: uObj.id,
+            name: uObj.name || undefined,
+            roles: uObj.roles,
+            referred_by: uObj.referred_by as unknown as {
+              uid?: string;
+              name?: string;
+            },
+            referred_by_id: uObj.referred_by_id || undefined,
+            created_at: uObj.created_at,
             profile_expert: expertProfile,
-            profile_merchant: merchantProfile
-        };
-      }));
+            profile_merchant: merchantProfile,
+          };
+        }),
+      );
     }
 
     // 3. Map to unified format
-    const mappedPlaces = placeData.map(l => ({
+    const mappedPlaces = placeData.map((l) => ({
       id: `listing-${l.id}`,
       listing_type: l.type,
       listing_name: l.name,
@@ -99,25 +127,35 @@ export class GetAdminListingsUseCase {
       name: l.name,
       location: l.location,
       phone: l.phone,
-      agent_id: l.agent?.uid || l.agent_id?.toString(),
+      agent_id:
+        (l.agent as unknown as { uid?: string })?.uid || l.agent_id?.toString(),
       agent_name: l.agent?.name || 'Unknown',
       created_at: l.created_at,
     }));
 
-    const mappedExperts = expertData.map(u => {
+    const mappedExperts = expertData.map((u) => {
       const roles = u.roles || [];
       const isExpert = roles.includes('expert');
       const isMerchant = roles.includes('merchant');
 
       return {
         id: `expert-${u.id}`,
-        listing_type: isExpert ? 'expert' : isMerchant ? 'puja_shop' : 'unknown',
+        listing_type: isExpert
+          ? 'expert'
+          : isMerchant
+            ? 'puja_shop'
+            : 'unknown',
         listing_name: u.name,
-        listing_location: isExpert ? (u.profile_expert?.city || '—') : (u.profile_merchant?.shop_address || '—'),
+        listing_location: isExpert
+          ? u.profile_expert?.city || '—'
+          : u.profile_merchant?.shop_address || '—',
         status: 'active',
         name: u.name,
-        location: isExpert ? (u.profile_expert?.city || '—') : (u.profile_merchant?.shop_address || '—'),
-        phone: u.profile_expert?.phone_number || u.profile_merchant?.phone || '—',
+        location: isExpert
+          ? u.profile_expert?.city || '—'
+          : u.profile_merchant?.shop_address || '—',
+        phone:
+          u.profile_expert?.phone_number || u.profile_merchant?.phone || '—',
         agent_id: u.referred_by?.uid || u.referred_by_id?.toString(),
         agent_name: u.referred_by?.name || 'Unknown',
         created_at: u.created_at,
@@ -126,7 +164,8 @@ export class GetAdminListingsUseCase {
 
     // 4. Combine and Sort
     const allData = [...mappedPlaces, ...mappedExperts].sort((a, b) => {
-      const dateComparison = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      const dateComparison =
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       if (dateComparison !== 0) return dateComparison;
       return String(b.id).localeCompare(String(a.id));
     });
@@ -134,9 +173,9 @@ export class GetAdminListingsUseCase {
     // 5. Calculate Stats for the Entire Set (before slicing)
     const stats = {
       total: allData.length,
-      experts: allData.filter(d => d.listing_type === 'expert').length,
-      mandirs: allData.filter(d => d.listing_type === 'mandir').length,
-      puja_shops: allData.filter(d => d.listing_type === 'puja_shop').length,
+      experts: allData.filter((d) => d.listing_type === 'expert').length,
+      mandirs: allData.filter((d) => d.listing_type === 'mandir').length,
+      puja_shops: allData.filter((d) => d.listing_type === 'puja_shop').length,
     };
 
     const paginatedData = allData.slice(skip, skip + limit);

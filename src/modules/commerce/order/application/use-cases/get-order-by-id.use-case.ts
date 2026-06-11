@@ -1,4 +1,3 @@
-
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -9,7 +8,7 @@ export class GetOrderByIdUseCase {
   constructor(
     @InjectRepository(Order)
     private orderRepo: Repository<Order>,
-  ) { }
+  ) {}
 
   async execute(id: string, userId: string) {
     const order = await this.orderRepo.findOne({

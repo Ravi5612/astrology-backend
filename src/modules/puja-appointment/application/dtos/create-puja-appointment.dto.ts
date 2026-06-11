@@ -1,5 +1,12 @@
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
-import { PujaMode } from "../../infrastructure/entities/puja-appointment.entity";
+import {
+  IsBoolean,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
+import { PujaMode } from '../../infrastructure/entities/puja-appointment.entity';
 
 export class CreatePujaAppointmentDto {
   @IsUUID()

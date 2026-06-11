@@ -18,7 +18,7 @@ export class MerchantProfileFacade {
     private readonly getAdminMerchantsUseCase: GetAdminMerchantsUseCase,
     private readonly updateMerchantStatusAdminUseCase: UpdateMerchantStatusAdminUseCase,
     @InjectRepository(ProfileMerchant)
-    private readonly repo: Repository<ProfileMerchant>
+    private readonly repo: Repository<ProfileMerchant>,
   ) {}
 
   getProfile(userId: string) {
@@ -30,26 +30,50 @@ export class MerchantProfileFacade {
   }
 
   getProfileByUserId(userId: string) {
-    return this.repo.findOne({ where: { user_id: userId as any } });
+    return this.repo.findOne({
+      where: {
+        user_id: userId,
+      },
+    });
   }
 
   getRawProfiles() {
     return this.repo.find({ relations: ['user'] });
   }
 
-  updateProfile(userId: string, dto: any, files?: any) {
+  updateProfile(
+    userId: string,
+    dto: Record<string, unknown>,
+    files?: {
+      image?: Express.Multer.File[];
+      video?: Express.Multer.File[];
+      gstCertificate?: Express.Multer.File[];
+      panFront?: Express.Multer.File[];
+      panBack?: Express.Multer.File[];
+      aadharFront?: Express.Multer.File[];
+      aadharBack?: Express.Multer.File[];
+    },
+  ) {
     return this.updateMerchantProfileUseCase.execute(userId, dto, files);
   }
 
-  updateProfileWithQueryRunner(userId: string, dto: any, queryRunner: QueryRunner) {
-    return this.updateProfileWithQueryRunnerUseCase.execute(userId, dto, queryRunner);
+  updateProfileWithQueryRunner(
+    userId: string,
+    dto: Partial<ProfileMerchant>,
+    queryRunner: QueryRunner,
+  ) {
+    return this.updateProfileWithQueryRunnerUseCase.execute(
+      userId,
+      dto,
+      queryRunner,
+    );
   }
 
-  getAdminMerchants(params: any) {
+  getAdminMerchants(params: Record<string, unknown>) {
     return this.getAdminMerchantsUseCase.execute(params);
   }
 
-  updateAdminMerchantStatus(id: string, status: string, remarks?: string) {
+  updateAdminMerchantStatus(id: string, status: string, _remarks?: string) {
     return this.updateMerchantStatusAdminUseCase.execute(id, { status });
   }
 }

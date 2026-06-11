@@ -5,21 +5,23 @@ import { CallSession } from '../../infrastructure/entities/call-session.entity';
 
 @Injectable()
 export class GetCallSessionUseCase {
-    constructor(
-        @InjectRepository(CallSession)
-        private readonly sessionRepo: Repository<CallSession>,
-    ) { }
+  constructor(
+    @InjectRepository(CallSession)
+    private readonly sessionRepo: Repository<CallSession>,
+  ) {}
 
-    async execute(sessionId: string) {
-        const session = await this.sessionRepo.findOne({
-            where: { id: sessionId as any },
-            relations: ['user', 'expert', 'expert.user'],
-        });
+  async execute(sessionId: string) {
+    const session = await this.sessionRepo.findOne({
+      where: { id: sessionId },
+      relations: ['user', 'expert', 'expert.user'],
+    });
 
-        if (!session) {
-            throw new NotFoundException(`Call session with ID ${sessionId} not found`);
-        }
-
-        return session;
+    if (!session) {
+      throw new NotFoundException(
+        `Call session with ID ${sessionId} not found`,
+      );
     }
+
+    return session;
+  }
 }

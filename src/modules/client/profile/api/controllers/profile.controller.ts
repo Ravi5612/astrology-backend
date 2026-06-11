@@ -1,5 +1,4 @@
-
-import {
+﻿import {
   Controller,
   Get,
   Post,
@@ -18,12 +17,15 @@ import {
   CreateProfileClientDto,
   UpdateProfileClientDto,
 } from '../../infrastructure/dto/profile-client.dto';
-import { SendPhoneOtpDto, VerifyPhoneOtpDto } from '../../infrastructure/dto/profile-phone-otp.dto';
+import {
+  SendPhoneOtpDto,
+  VerifyPhoneOtpDto,
+} from '../../infrastructure/dto/profile-phone-otp.dto';
 
 @Controller('client/profile')
 @UseGuards(JwtAuthGuard)
 export class ProfileController {
-  constructor(private readonly profileFacade: ClientProfileFacade) { }
+  constructor(private readonly profileFacade: ClientProfileFacade) {}
 
   @Get()
   async getProfile(@CurrentUser() user: User) {
@@ -43,7 +45,7 @@ export class ProfileController {
     @CurrentUser() user: User,
     @Body() dto: UpdateProfileClientDto,
   ) {
-    const result = await this.profileFacade.updateProfile(user.id, dto);
+    const _result = await this.profileFacade.updateProfile(user.id, dto);
     return { success: true };
   }
 
@@ -53,7 +55,10 @@ export class ProfileController {
     @CurrentUser() user: User,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const result = await this.profileFacade.updateProfilePicture(user.id, file);
+    const _result = await this.profileFacade.updateProfilePicture(
+      user.id,
+      file,
+    );
     return { success: true };
   }
 
@@ -67,10 +72,7 @@ export class ProfileController {
   }
 
   @Post('phone/send-otp')
-  async sendPhoneOtp(
-    @CurrentUser() user: User,
-    @Body() dto: SendPhoneOtpDto,
-  ) {
+  async sendPhoneOtp(@CurrentUser() user: User, @Body() dto: SendPhoneOtpDto) {
     return this.profileFacade.sendPhoneOtp(user.id, dto.phone);
   }
 

@@ -9,42 +9,58 @@ import { DatabaseService } from '@/core/database/database.service';
 
 @Injectable()
 export class UpdateAgentProfileUseCase {
-    constructor(
-        @InjectRepository(ProfileAgent)
-        private readonly profileAgentRepo: Repository<ProfileAgent>,
-        private readonly notificationFacade: NotificationFacade,
-        private readonly databaseService: DatabaseService,
-    ) {}
+  constructor(
+    @InjectRepository(ProfileAgent)
+    private readonly profileAgentRepo: Repository<ProfileAgent>,
+    private readonly notificationFacade: NotificationFacade,
+    private readonly databaseService: DatabaseService,
+  ) {}
 
-    async execute(userId: string, body: any) {
-        await this.databaseService.transaction(async (queryRunner) => {
-            const currentProfile = await queryRunner.manager.findOne(ProfileAgent, { where: { user_id: userId } });
-            
-            // Check if bank details are changing
-            const bankDetailsChanged = 
-                body.bank_name !== currentProfile?.bank_name ||
-                body.account_number !== currentProfile?.account_number ||
-                JSON.stringify(body.bank_accounts) !== JSON.stringify(currentProfile?.bank_accounts);
+  async execute(
+    userId: string,
+    body: {
+      bank_name?: string;
+      account_number?: string;
+      ifsc_code?: string;
+      account_holder?: string;
+      bank_accounts?: unknown;
+    },
+  ) {
+    await this.databaseService.transaction(async (queryRunner) => {
+      const currentProfile = await queryRunner.manager.findOne(ProfileAgent, {
+        where: { user_id: userId },
+      });
 
-            await queryRunner.manager.update(ProfileAgent, { user_id: userId }, {
-                bank_name: body.bank_name,
-                account_number: body.account_number,
-                ifsc_code: body.ifsc_code,
-                account_holder: body.account_holder,
-                bank_accounts: body.bank_accounts,
-            });
+      // Check if bank details are changing
+      const bankDetailsChanged =
+        body.bank_name !== currentProfile?.bank_name ||
+        body.account_number !== currentProfile?.account_number ||
+        JSON.stringify(body.bank_accounts) !==
+          JSON.stringify(currentProfile?.bank_accounts);
 
-            if (bankDetailsChanged) {
-                await this.notificationFacade.create(
-                    userId,
-                    NotificationType.GENERAL,
-                    'Security Alert: Bank Details Updated',
-                    'Your bank account information has been updated. If you did not make this change, please contact support immediately for security.',
-                    { type: 'security_alert', timestamp: new Date() }
-                );
-            }
-        });
+      await queryRunner.manager.update(
+        ProfileAgent,
+        { user_id: userId },
+        {
+          bank_name: body.bank_name,
+          account_number: body.account_number,
+          ifsc_code: body.ifsc_code,
+          account_holder: body.account_holder,
+          bank_accounts: body.bank_accounts as any,
+        },
+      );
 
-        return new BooleanMessage();
-    }
+      if (bankDetailsChanged) {
+        await this.notificationFacade.create(
+          userId,
+          NotificationType.GENERAL,
+          'Security Alert: Bank Details Updated',
+          'Your bank account information has been updated. If you did not make this change, please contact support immediately for security.',
+          { type: 'security_alert', timestamp: new Date() },
+        );
+      }
+    });
+
+    return new BooleanMessage();
+  }
 }

@@ -10,7 +10,7 @@ import { DatabaseService } from './database.service';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule], // import ConfigModule to access ConfigService
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
+      useFactory: (configService: ConfigService) => {
         const dbConfig = configService.get<DatabaseConfig>('database');
 
         if (!dbConfig) throw new Error('Database config not found');
@@ -34,4 +34,4 @@ import { DatabaseService } from './database.service';
   providers: [DatabaseService],
   exports: [DatabaseService],
 })
-export class DatabaseModule { }
+export class DatabaseModule {}

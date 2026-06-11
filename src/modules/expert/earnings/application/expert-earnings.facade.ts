@@ -6,26 +6,58 @@ import { RequestWithdrawalUseCase } from './use-cases/request-withdrawal.use-cas
 
 @Injectable()
 export class ExpertEarningsFacade {
-    constructor(
-        private readonly getEarningsStatsUseCase: GetEarningsStatsUseCase,
-        private readonly getWalletBalanceUseCase: GetWalletBalanceUseCase,
-        private readonly getWalletTransactionsUseCase: GetWalletTransactionsUseCase,
-        private readonly requestWithdrawalUseCase: RequestWithdrawalUseCase,
-    ) { }
+  constructor(
+    private readonly getEarningsStatsUseCase: GetEarningsStatsUseCase,
+    private readonly getWalletBalanceUseCase: GetWalletBalanceUseCase,
+    private readonly getWalletTransactionsUseCase: GetWalletTransactionsUseCase,
+    private readonly requestWithdrawalUseCase: RequestWithdrawalUseCase,
+  ) {}
 
-    async getStats(userId: string, period: string, startDate?: string, endDate?: string) {
-        return this.getEarningsStatsUseCase.execute(userId, period, startDate, endDate);
-    }
+  async getStats(
+    userId: string,
+    period: string,
+    startDate?: string,
+    endDate?: string,
+  ) {
+    return this.getEarningsStatsUseCase.execute(
+      userId,
+      period,
+      startDate,
+      endDate,
+    );
+  }
 
-    async getWalletBalance(userId: string) {
-        return this.getWalletBalanceUseCase.execute(userId);
-    }
+  async getWalletBalance(userId: string) {
+    return this.getWalletBalanceUseCase.execute(userId);
+  }
 
-    async getTransactions(userId: string, limit: number, offset: number, type: string) {
-        return this.getWalletTransactionsUseCase.execute(userId, limit, offset, type);
-    }
+  async getTransactions(
+    userId: string,
+    limit: number,
+    offset: number,
+    type: string,
+  ) {
+    return this.getWalletTransactionsUseCase.execute(
+      userId,
+      limit,
+      offset,
+      type,
+    );
+  }
 
-    async requestWithdrawal(userId: string, amount: number, bank_account_id: string | number, idempotencyKey?: string, securityMetadata?: { ip?: string; ua?: string }) {
-        return this.requestWithdrawalUseCase.execute(userId, amount, bank_account_id, idempotencyKey, securityMetadata);
-    }
+  async requestWithdrawal(
+    userId: string,
+    amount: number,
+    bank_account_id: string | number,
+    idempotencyKey?: string,
+    securityMetadata?: { ip?: string; ua?: string },
+  ) {
+    return this.requestWithdrawalUseCase.execute(
+      userId,
+      amount,
+      bank_account_id,
+      idempotencyKey,
+      securityMetadata,
+    );
+  }
 }

@@ -10,14 +10,14 @@ export class BankAccountEventHandler {
   private readonly logger = new Logger(BankAccountEventHandler.name);
 
   @OnEvent('expert.bank-account.created', { async: true })
-  async handleCreated(event: BankAccountCreatedEvent) {
+  handleCreated(event: BankAccountCreatedEvent) {
     this.logger.log(
       `Bank account ${event.accountId} created for expert ${event.userId} (Holder: ${event.accountHolderName})`,
     );
   }
 
   @OnEvent('expert.bank-account.primary-changed', { async: true })
-  async handlePrimaryChanged(event: PrimaryBankAccountChangedEvent) {
+  handlePrimaryChanged(event: PrimaryBankAccountChangedEvent) {
     this.logger.log(
       `Primary bank account for expert ${event.userId} changed from ${event.oldAccountId} to ${event.newAccountId}`,
     );

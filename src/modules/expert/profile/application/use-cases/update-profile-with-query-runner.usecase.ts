@@ -10,7 +10,15 @@ export class UpdateProfileWithQueryRunnerUseCase {
     private readonly profileRepo: Repository<ProfileExpert>,
   ) {}
 
-  async execute(userId: string, updates: Partial<ProfileExpert>, queryRunner: QueryRunner) {
-    await queryRunner.manager.update(ProfileExpert, { user: { id: userId as any } }, updates);
+  async execute(
+    userId: string,
+    updates: import('typeorm/query-builder/QueryPartialEntity').QueryDeepPartialEntity<ProfileExpert>,
+    queryRunner: QueryRunner,
+  ) {
+    await queryRunner.manager.update(
+      ProfileExpert,
+      { user: { id: userId as unknown as string } },
+      updates,
+    );
   }
 }

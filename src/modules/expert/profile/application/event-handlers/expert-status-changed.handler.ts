@@ -10,8 +10,10 @@ export class ExpertStatusChangedHandler {
   constructor(private readonly expertGateway: ExpertGateway) {}
 
   @OnEvent('expert.status.changed', { async: true })
-  async handle(event: ExpertStatusChangedEvent) {
-    this.logger.log(`Expert ${event.userId} status changed to ${event.isAvailable ? 'online' : 'offline'}`);
+  handle(event: ExpertStatusChangedEvent) {
+    this.logger.log(
+      `Expert ${event.userId} status changed to ${event.isAvailable ? 'online' : 'offline'}`,
+    );
     this.expertGateway.notifyStatusChange(event.userId, event.isAvailable);
   }
 }

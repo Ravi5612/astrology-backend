@@ -1,7 +1,10 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { IPaymentGateway, PAYMENT_GATEWAY } from '@/external/payment/payment-gateway.interface';
+import {
+  IPaymentGateway,
+  PAYMENT_GATEWAY,
+} from '@/external/payment/payment-gateway.interface';
 import {
   PaymentOrder,
   PaymentStatus,
@@ -25,7 +28,7 @@ export class CreatePaymentOrderUseCase {
     private readonly orderFacade: OrderFacade,
     private readonly clientProfileFacade: ClientProfileFacade,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   async execute(userId: string, dto: CreateOrderDto) {
     this.logger.log(
@@ -67,10 +70,11 @@ export class CreatePaymentOrderUseCase {
       await this.paymentOrderRepo.save(paymentOrder);
 
       // If it's a product order, link the Razorpay Order ID to the internal order
-      const internalOrderId = notes?.orderId || notes?.order_id;
+      const notesRecord = (notes || {}) as Record<string, unknown>;
+      const internalOrderId = notesRecord.orderId || notesRecord.order_id;
       if (type === 'product' && internalOrderId) {
         await this.orderFacade.setRazorpayOrderId(
-          Number(internalOrderId),
+          internalOrderId as string,
           order.providerOrderId,
         );
       }
@@ -82,7 +86,7 @@ export class CreatePaymentOrderUseCase {
         key_id: this.configService.get<string>('RAZORPAY_KEY_ID'),
       };
     } catch (error) {
-      this.logger.error('Error creating payment order', error.stack);
+      this.logger.error('Error creating payment order', (error as Error).stack);
       if (error instanceof DomainError) {
         throw error;
       }

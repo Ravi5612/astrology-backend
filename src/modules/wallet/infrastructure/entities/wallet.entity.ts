@@ -13,7 +13,6 @@ import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-ag
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
-
 @Entity({ schema: 'finance', name: 'wallets' })
 export class Wallet {
   @UuidPrimaryKeyColumn()
@@ -66,7 +65,7 @@ export class Wallet {
   })
   reserved_balance!: number;
 
-  @CreateDateColumn({ name: 'created_at', type: "timestamptz" })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })

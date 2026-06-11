@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
@@ -12,35 +12,44 @@ export class SendOrderOtpUseCase {
     private notificationFacade: NotificationFacade,
     private notificationGateway: NotificationGateway,
     private emailService: NodeMailerService,
-  ) { }
+  ) {}
 
-  async execute(merchantId: number, orderId: number) {
-    const { order, merchantItems } = await this.orderFacade.sendOrderOtp(orderId, merchantId.toString());
+  async execute(merchantId: string, orderId: string) {
+    const { order } = await this.orderFacade.sendOrderOtp(
+      orderId,
+      merchantId,
+    );
 
     const otp = order.delivery_otp;
     const title = 'Delivery Verification';
     const message = `Your delivery verification OTP for order #${orderId} is ${otp}. Please share this with the delivery partner.`;
 
+    const targetUserId = order.client?.user?.id || order.client_id;
+
     // 1. Save Notification
     await this.notificationFacade.create(
-      order.client_id as any,
+      targetUserId as string,
       NotificationType.ORDER_SHIPPED, // Reusing SHIPPED type for OTP context
       title,
       message,
-      { orderId, otp }
+      { orderId, otp },
     );
 
     // 2. Emit Socket
-    this.notificationGateway.emitToUser(order.client_id as any, 'order_status_updated', {
-      orderId,
-      status: order.status,
-      title,
-      message,
-    });
+    this.notificationGateway.emitToUser(
+      targetUserId as string,
+      'order_status_updated',
+      {
+        orderId,
+        status: order.status,
+        title,
+        message,
+      },
+    );
 
     // 3. Send Email
     try {
-      const user = (order as any).client?.user;
+      const user = order.client?.user;
       if (user?.email) {
         const emailHtml = `
           <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">

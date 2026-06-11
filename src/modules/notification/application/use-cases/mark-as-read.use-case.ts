@@ -6,16 +6,16 @@ import { Notification } from '../../infrastructure/entities/notification.entity'
 
 @Injectable()
 export class MarkAsReadUseCase {
-    constructor(
-        @InjectRepository(Notification)
-        private readonly notificationRepo: Repository<Notification>,
-    ) { }
+  constructor(
+    @InjectRepository(Notification)
+    private readonly notificationRepo: Repository<Notification>,
+  ) {}
 
-    async execute(id: string, userId: string) {
-     const updateResult = await this.notificationRepo.update(
+  async execute(id: string, _userId: string) {
+    const _updateResult = await this.notificationRepo.update(
       { id }, // Removed user_id as it was removed from entity
       { is_read: true },
     );
     return new BooleanMessage();
-    }
+  }
 }

@@ -1,4 +1,3 @@
-
 import { Injectable } from '@nestjs/common';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -23,7 +22,7 @@ export class AddPujaToWishlistUseCase {
 
   async execute(userId: string, pujaId: string): Promise<BooleanMessage> {
     const puja = await this.expertProfileFacade.getPujaById(pujaId);
-    
+
     if (!puja) {
       throw new PujaNotFoundError();
     }

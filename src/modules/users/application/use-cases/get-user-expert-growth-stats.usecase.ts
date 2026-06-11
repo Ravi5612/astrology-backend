@@ -14,17 +14,27 @@ export class GetUserExpertGrowthStatsUseCase {
     const dateLimit = new Date();
     dateLimit.setDate(dateLimit.getDate() - days);
 
-    const stats = await this.userRepository
+    const stats: Array<{
+      date: string;
+      clientCount: string;
+      expertCount: string;
+    }> = await this.userRepository
       .createQueryBuilder('user')
-      .select("DATE(user.created_at)", "date")
-      .addSelect("COUNT(DISTINCT CASE WHEN 'client' = ANY(user.roles) THEN user.id END)", "clientCount")
-      .addSelect("COUNT(DISTINCT CASE WHEN 'expert' = ANY(user.roles) THEN user.id END)", "expertCount")
+      .select('DATE(user.created_at)', 'date')
+      .addSelect(
+        "COUNT(DISTINCT CASE WHEN 'client' = ANY(user.roles) THEN user.id END)",
+        'clientCount',
+      )
+      .addSelect(
+        "COUNT(DISTINCT CASE WHEN 'expert' = ANY(user.roles) THEN user.id END)",
+        'expertCount',
+      )
       .where('user.created_at >= :date', { date: dateLimit })
-      .groupBy("DATE(user.created_at)")
-      .orderBy("date", "ASC")
+      .groupBy('DATE(user.created_at)')
+      .orderBy('date', 'ASC')
       .getRawMany();
 
-    return stats.map(s => ({
+    return stats.map((s) => ({
       date: s.date,
       clients: parseInt(s.clientCount, 10) || 0,
       experts: parseInt(s.expertCount, 10) || 0,

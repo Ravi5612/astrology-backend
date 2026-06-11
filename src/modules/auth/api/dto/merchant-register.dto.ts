@@ -1,5 +1,12 @@
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class MerchantRegisterDto {
   @IsString()

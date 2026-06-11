@@ -28,7 +28,9 @@ export class UserRegisteredHandler {
     const isExpert = hasRoles(roles, 'EXPERT');
     const isMerchant = hasRoles(roles, 'MERCHANT');
 
-    this.logger.debug(`User roles: ${roles.join(', ')}. isExpert: ${isExpert}, isMerchant: ${isMerchant}`);
+    this.logger.debug(
+      `User roles: ${roles.join(', ')}. isExpert: ${isExpert}, isMerchant: ${isMerchant}`,
+    );
 
     const configKey = isExpert
       ? 'email.expertFrontendUrl'
@@ -36,7 +38,7 @@ export class UserRegisteredHandler {
         ? 'email.merchantFrontendUrl'
         : 'email.frontendUrl';
 
-    let frontendUrl = this.configService.get(configKey);
+    let frontendUrl = this.configService.get<string>(configKey);
 
     if (!frontendUrl) {
       if (isExpert) frontendUrl = process.env.ASTROLOGER_FRONTEND_URL;
@@ -47,13 +49,13 @@ export class UserRegisteredHandler {
     this.logger.debug(`Using frontendUrl: ${frontendUrl}`);
 
     const verifyLink = `${frontendUrl}/verify-email?verification_token=${event.verification_token}`;
-    
+
     // Log verification link for easy local testing when email fails
     console.log('\n======================================================');
     console.log('✅ NEW USER REGISTERED! VERIFICATION LINK FOR TESTING:');
     console.log(verifyLink);
     console.log('======================================================\n');
-    
+
     return `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
         <h2 style="color: #333;">Welcome to Astrology in Bharat!</h2>

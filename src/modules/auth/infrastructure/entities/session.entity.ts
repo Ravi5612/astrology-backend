@@ -13,16 +13,14 @@ import { UuidV7PrimaryKey } from '@/common/decorators/uuid-primary-key.decorator
 
 @Entity({
   schema: 'auth',
-  name: 'sessions'
+  name: 'sessions',
 })
 export class Session {
-
   @UuidV7PrimaryKey()
-  id!: string; 
-
+  id!: string;
 
   // hashed refresh token (or session secret)
-  @Column({type: 'text'})
+  @Column({ type: 'text' })
   secret_hash!: string;
 
   // distinguish between auth types (useful if you later expand)
@@ -39,13 +37,13 @@ export class Session {
   @Column({ type: 'bool', default: false })
   revoked!: boolean;
 
-  @Column({ type: 'character varying', length: 100,  nullable: true })
+  @Column({ type: 'character varying', length: 100, nullable: true })
   ip_address!: string | null;
 
   @Column({ type: 'character varying', length: 100, nullable: true })
   user_agent!: string | null;
 
-  @CreateDateColumn({type: 'timestamptz'})
+  @CreateDateColumn({ type: 'timestamptz' })
   created_at!: Date;
 
   isActive(now: Date = new Date()) {

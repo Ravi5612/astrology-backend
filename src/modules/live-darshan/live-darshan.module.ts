@@ -4,11 +4,8 @@ import { LiveDarshanFacade } from './application/live-darshan.facade';
 import { GetLiveDarshansUseCase } from './application/use-cases/get-live-darshans.use-case';
 
 @Module({
-    controllers: [LiveDarshanController],
-    providers: [
-        LiveDarshanFacade,
-        GetLiveDarshansUseCase,
-    ],
-    exports: [LiveDarshanFacade],
+  controllers: [LiveDarshanController],
+  providers: [LiveDarshanFacade, GetLiveDarshansUseCase],
+  exports: [LiveDarshanFacade],
 })
-export class LiveDarshanModule { }
+export class LiveDarshanModule {}

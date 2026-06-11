@@ -23,7 +23,7 @@ import { PujaAppointmentFacade } from './application/puja-appointment.facade';
     forwardRef(() => ClientProfileModule),
     NotificationModule,
     forwardRef(() => WalletModule),
-    TodosModule
+    TodosModule,
   ],
   controllers: [PujaAppointmentController],
   providers: [
@@ -35,6 +35,12 @@ import { PujaAppointmentFacade } from './application/puja-appointment.facade';
     GetExpertPujasByDateUseCase,
     PujaAppointmentFacade,
   ],
-  exports: [PujaAppointmentFacade, GetUserPujaAppointmentsUseCase, GetExpertPujaAppointmentsUseCase, GetPujaEarningsUseCase, GetExpertPujasByDateUseCase],
+  exports: [
+    PujaAppointmentFacade,
+    GetUserPujaAppointmentsUseCase,
+    GetExpertPujaAppointmentsUseCase,
+    GetPujaEarningsUseCase,
+    GetExpertPujasByDateUseCase,
+  ],
 })
 export class PujaAppointmentModule {}

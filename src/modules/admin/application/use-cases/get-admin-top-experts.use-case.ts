@@ -18,51 +18,63 @@ export class GetAdminTopExpertsUseCase {
     private readonly pujaFacade: PujaAppointmentFacade,
     @Inject(forwardRef(() => OrderFacade))
     private readonly orderFacade: OrderFacade,
-  ) { }
+  ) {}
 
   async execute(limit: number = 5) {
     // Rank all experts by their total aggregate revenue
     const profiles = await this.usersFacade.getExpertsForRevenue();
 
-    const results = (await Promise.all(profiles.map(async (expert) => {
-      if (!(expert as any).profile_expert) return null;
-      const expertProfileId = (expert as any).profile_expert.id;
+    const results = (
+      await Promise.all(
+        profiles.map(async (expert) => {
+          if (!(expert as { profile_expert?: { id: string } }).profile_expert)
+            return null;
+          const expertProfileId = (
+            expert as unknown as { profile_expert: { id: string } }
+          ).profile_expert.id;
 
-      // 1. Chat Revenue
-      const chatStats = await this.chatFacade.getExpertRevenueAndCount(expertProfileId);
+          // 1. Chat Revenue
+          const chatStats =
+            await this.chatFacade.getExpertRevenueAndCount(expertProfileId);
 
-      // 2. Call Revenue
-      const callStats = await this.callFacade.getExpertRevenueAndCount(expertProfileId);
+          // 2. Call Revenue
+          const callStats = await this.callFacade.getExpertRevenueAndCount(
+            expertProfileId as unknown as number,
+          );
 
-      // 3. Puja Revenue
-      const pujaStats = await this.pujaFacade.getExpertRevenueAndCount(expertProfileId);
+          // 3. Puja Revenue
+          const pujaStats =
+            await this.pujaFacade.getExpertRevenueAndCount(expertProfileId);
 
-      // 4. Product Revenue
-      const productStats = await this.orderFacade.getExpertProductRevenueAndCount(expertProfileId);
+          // 4. Product Revenue
+          const productStats =
+            await this.orderFacade.getExpertProductRevenueAndCount(
+              expertProfileId as unknown as number,
+            );
 
-      const totalRevenue = 
-        (chatStats?.total ?? 0) + 
-        (callStats?.total ?? 0) + 
-        (pujaStats?.total ?? 0) + 
-        (productStats?.total ?? 0);
+          const totalRevenue =
+            (chatStats?.total ?? 0) +
+            (callStats?.total ?? 0) +
+            (pujaStats?.total ?? 0) +
+            (productStats?.total ?? 0);
 
-      const totalConsultations = 
-        (chatStats?.count ?? 0) + 
-        (callStats?.count ?? 0) + 
-        (pujaStats?.count ?? 0) + 
-        (productStats?.count ?? 0);
+          const totalConsultations =
+            (chatStats?.count ?? 0) +
+            (callStats?.count ?? 0) +
+            (pujaStats?.count ?? 0) +
+            (productStats?.count ?? 0);
 
-      return {
-        name: expert.name,
-        revenue: totalRevenue,
-        consultations: totalConsultations,
-        rating: 4.8 // placeholder
-      };
-    }))).filter(Boolean);
+          return {
+            name: expert.name,
+            revenue: totalRevenue,
+            consultations: totalConsultations,
+            rating: 4.8, // placeholder
+          };
+        }),
+      )
+    ).filter(Boolean);
 
     // Sort by revenue and return limited results
-    return results
-      .sort((a, b) => b!.revenue - a!.revenue)
-      .slice(0, limit);
+    return results.sort((a, b) => b!.revenue - a!.revenue).slice(0, limit);
   }
 }

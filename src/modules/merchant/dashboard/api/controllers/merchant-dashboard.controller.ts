@@ -11,12 +11,8 @@ import {
   ParseUUIDPipe,
   Param,
   Body,
-  UseInterceptors,
-  UploadedFiles,
-  ParseEnumPipe,
   ParseIntPipe,
 } from '@nestjs/common';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -54,10 +50,9 @@ export class MerchantDashboardController {
   @Get('stats')
   @HttpCode(HttpStatus.OK)
   async stats(@CurrentUser('id') userId: string) {
-    const stats = await this.getStats.execute(userId as any);
+    const stats = await this.getStats.execute(userId);
     return { success: true, data: stats };
   }
-
 
   @Get('orders')
   @HttpCode(HttpStatus.OK)
@@ -68,35 +63,41 @@ export class MerchantDashboardController {
     @Query('status') status?: string,
     @Query('search') search?: string,
   ) {
-    const orders = await this.getAllOrders.execute(userId, page, limit, status, search);
+    const orders = await this.getAllOrders.execute(
+      userId,
+      page,
+      limit,
+      status,
+      search,
+    );
     return { success: true, data: orders };
   }
 
   @Get('orders/recent')
   @HttpCode(HttpStatus.OK)
   async recentOrders(@CurrentUser('id') userId: string) {
-    const orders = await this.getRecentOrders.execute(userId as any);
+    const orders = await this.getRecentOrders.execute(userId);
     return { success: true, data: orders };
   }
 
   @Get('activity')
   @HttpCode(HttpStatus.OK)
   async activity(@CurrentUser('id') userId: string) {
-    const activity = await this.getActivity.execute(userId as any);
+    const activity = await this.getActivity.execute(userId);
     return { success: true, data: activity };
   }
 
   @Get('performance')
   @HttpCode(HttpStatus.OK)
   async performance(@CurrentUser('id') userId: string) {
-    const performance = await this.getPerformance.execute(userId as any);
+    const performance = await this.getPerformance.execute(userId);
     return { success: true, data: performance };
   }
 
   @Get('analytics')
   @HttpCode(HttpStatus.OK)
   async analytics(@CurrentUser('id') userId: string) {
-    const analytics = await this.getAnalytics.execute(userId as any);
+    const analytics = await this.getAnalytics.execute(userId);
     return { success: true, data: analytics };
   }
 
@@ -104,19 +105,19 @@ export class MerchantDashboardController {
   @HttpCode(HttpStatus.OK)
   async sendOrderOtp(
     @CurrentUser('id') userId: string,
-    @Param('id', ParseUUIDPipe) orderId: number,
+    @Param('id', ParseUUIDPipe) orderId: string,
   ) {
-    return this.sendOtp.execute(userId as any, orderId);
+    return this.sendOtp.execute(userId, orderId);
   }
 
   @Post('orders/:id/verify-otp')
   @HttpCode(HttpStatus.OK)
   async verifyOrderOtp(
     @CurrentUser('id') userId: string,
-    @Param('id', ParseUUIDPipe) orderId: number,
+    @Param('id', ParseUUIDPipe) orderId: string,
     @Body('otp') otp: string,
   ) {
-    return this.verifyOtp.execute(userId as any, orderId, otp);
+    return this.verifyOtp.execute(userId, orderId, otp);
   }
 
   @Patch('orders/:id/status')
@@ -124,12 +125,15 @@ export class MerchantDashboardController {
   async updateStatus(
     @CurrentUser('id') userId: string,
     @Param('id', ParseUUIDPipe) id: string,
-    @Body('status', new ParseEnumPipe(OrderStatus)) status: OrderStatus,
+    @Body('status') status: OrderStatus,
     @Body('cancellationReason') cancellationReason?: string,
   ) {
-    const order = await this.orderFacade.updateOrderStatus(id, status, cancellationReason, userId as any);
+    await this.orderFacade.updateOrderStatus(
+      id,
+      status,
+      cancellationReason,
+      userId,
+    );
     return { success: true };
   }
-
 }
-

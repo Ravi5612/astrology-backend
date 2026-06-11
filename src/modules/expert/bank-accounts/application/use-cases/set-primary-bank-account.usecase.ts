@@ -14,12 +14,12 @@ export class SetPrimaryBankAccountUseCase {
     private readonly bankAccountRepo: Repository<BankAccount>,
     private readonly getBankAccountUseCase: GetBankAccountUseCase,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async execute(userId: string, id: string) {
     const account = await this.getBankAccountUseCase.execute(userId, id);
 
-    if(!account.expert || !account.expert_id){
+    if (!account.expert || !account.expert_id) {
       throw new NotFoundException('No Expert profile associated');
     }
 
@@ -38,7 +38,11 @@ export class SetPrimaryBankAccountUseCase {
 
     this.eventEmitter.emit(
       'expert.bank-account.primary-changed',
-      new PrimaryBankAccountChangedEvent(userId as any, oldPrimary?.id, updatedAccount.id),
+      new PrimaryBankAccountChangedEvent(
+        userId,
+        oldPrimary?.id,
+        updatedAccount.id,
+      ),
     );
 
     return new BooleanMessage();

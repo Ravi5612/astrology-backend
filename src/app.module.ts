@@ -30,7 +30,6 @@ import { CommerceModule } from './modules/commerce/commerce.module';
   imports: [
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({
-
       isGlobal: true,
       envFilePath: '.env',
       load: configs,
@@ -58,6 +57,6 @@ import { CommerceModule } from './modules/commerce/commerce.module';
     MerchantModule,
     ConsultationModule,
     CommerceModule,
-  ]
+  ],
 })
-export class AppModule { }
+export class AppModule {}

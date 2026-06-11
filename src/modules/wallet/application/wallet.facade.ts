@@ -1,4 +1,3 @@
-
 import { Injectable } from '@nestjs/common';
 import { GetWalletUseCase } from './use-cases/get-wallet.use-case';
 import { GetBalanceUseCase } from './use-cases/get-balance.use-case';
@@ -54,7 +53,7 @@ export class WalletFacade {
     private readonly getAdminCommissionUseCase: GetAdminCommissionUseCase,
     private readonly getMerchantTransactionsUseCase: GetMerchantTransactionsUseCase,
     private readonly getAdminRevenueTrendUseCase: GetAdminRevenueTrendUseCase,
-  ) { }
+  ) {}
 
   async getWallet(userId: string) {
     return this.getWalletUseCase.execute(userId);
@@ -69,41 +68,126 @@ export class WalletFacade {
     return this.validateBalanceUseCase.execute(userId, minAmount);
   }
 
-  async topUp(userId: string | undefined, amount: number, referenceId?: string, externalQueryRunner?: any) {
-    return this.topUpUseCase.execute(userId as string, amount, 'razorpay', referenceId, externalQueryRunner);
+  async topUp(
+    userId: string | undefined,
+    amount: number,
+    referenceId?: string,
+    externalQueryRunner?: import('typeorm').QueryRunner,
+  ) {
+    return this.topUpUseCase.execute(
+      userId as string,
+      amount,
+      'razorpay',
+      referenceId,
+      externalQueryRunner,
+    );
   }
 
-  async credit(userId: string, amount: number, purpose: TransactionPurpose, referenceId?: string, externalQueryRunner?: any) {
-    return this.creditUseCase.execute(userId, amount, purpose, referenceId, externalQueryRunner);
+  async credit(
+    userId: string,
+    amount: number,
+    purpose: TransactionPurpose,
+    referenceId?: string,
+    externalQueryRunner?: import('typeorm').QueryRunner,
+  ) {
+    return this.creditUseCase.execute(
+      userId,
+      amount,
+      purpose,
+      referenceId,
+      externalQueryRunner,
+    );
   }
 
-  async debit(userId: string, amount: number, purpose: TransactionPurpose, referenceId?: string, externalQueryRunner?: any, allowNegative: boolean = false) {
-    return this.debitUseCase.execute(userId, amount, purpose, referenceId, externalQueryRunner, allowNegative);
+  async debit(
+    userId: string,
+    amount: number,
+    purpose: TransactionPurpose,
+    referenceId?: string,
+    externalQueryRunner?: import('typeorm').QueryRunner,
+    allowNegative: boolean = false,
+  ) {
+    return this.debitUseCase.execute(
+      userId,
+      amount,
+      purpose,
+      referenceId,
+      externalQueryRunner,
+      allowNegative,
+    );
   }
 
-  async reserveBalance(userId: string, amount: number, referenceId: string, externalQueryRunner?: any) {
-    return this.reserveBalanceUseCase.execute(userId, amount, referenceId, externalQueryRunner);
+  async reserveBalance(
+    userId: string,
+    amount: number,
+    referenceId: string,
+    externalQueryRunner?: import('typeorm').QueryRunner,
+  ) {
+    return this.reserveBalanceUseCase.execute(
+      userId,
+      amount,
+      referenceId,
+      externalQueryRunner,
+    );
   }
 
-  async deductFromReserved(userId: string, amount: number, referenceId: string, externalQueryRunner?: any) {
-    return this.deductFromReservedUseCase.execute(userId, amount, referenceId, externalQueryRunner);
+  async deductFromReserved(
+    userId: string,
+    amount: number,
+    referenceId: string,
+    externalQueryRunner?: import('typeorm').QueryRunner,
+  ) {
+    return this.deductFromReservedUseCase.execute(
+      userId,
+      amount,
+      referenceId,
+      externalQueryRunner,
+    );
   }
 
-  async releaseReserved(userId: string, amount: number, referenceId: string, externalQueryRunner?: any) {
-    return this.releaseReservedUseCase.execute(userId, amount, referenceId, externalQueryRunner);
+  async releaseReserved(
+    userId: string,
+    amount: number,
+    referenceId: string,
+    externalQueryRunner?: import('typeorm').QueryRunner,
+  ) {
+    return this.releaseReservedUseCase.execute(
+      userId,
+      amount,
+      referenceId,
+      externalQueryRunner,
+    );
   }
 
-  async getTransactions(userId: string, limit?: string, offset?: string, type?: string, purpose?: string) {
+  async getTransactions(
+    userId: string,
+    limit?: string,
+    offset?: string,
+    type?: string,
+    purpose?: string,
+  ) {
     const limitNum = limit ? parseInt(limit, 10) : undefined;
     const offsetNum = offset ? parseInt(offset, 10) : undefined;
-    return this.getTransactionsUseCase.execute(userId, limitNum, offsetNum, type, purpose);
+    return this.getTransactionsUseCase.execute(
+      userId,
+      limitNum,
+      offsetNum,
+      type,
+      purpose,
+    );
   }
 
-  async getMerchantTransactions(userId: string, options: { search?: string; page?: number; limit?: number }) {
+  async getMerchantTransactions(
+    userId: string,
+    options: { search?: string; page?: number; limit?: number },
+  ) {
     return this.getMerchantTransactionsUseCase.execute(userId, options);
   }
 
-  async getTotalEarnings(userId: string, options: { startDate?: Date; endDate?: Date } = {}) {
+  async getTotalEarnings(
+    userId: string,
+    options: { startDate?: Date; endDate?: Date } = {},
+  ) {
     return this.getTotalEarningsUseCase.execute(userId, options);
   }
 
@@ -120,23 +204,53 @@ export class WalletFacade {
     return this.getWithdrawalsUseCase.execute(userId, limit, offset);
   }
 
-  async requestWithdrawal(userId: string, amount: number, bank_account_id?: string | number, idempotencyKey?: string, securityMetadata?: { ip?: string; ua?: string }) {
-    return this.requestWithdrawalUseCase.execute(userId, amount, bank_account_id, idempotencyKey, securityMetadata);
+  async requestWithdrawal(
+    userId: string,
+    amount: number,
+    bank_account_id?: string | number,
+    idempotencyKey?: string,
+    securityMetadata?: { ip?: string; ua?: string },
+  ) {
+    return this.requestWithdrawalUseCase.execute(
+      userId,
+      amount,
+      bank_account_id,
+      idempotencyKey,
+      securityMetadata,
+    );
   }
 
-  async getPendingWithdrawals(limit?: number, offset?: number, status?: WithdrawalStatus, userRole?: RoleEnum) {
-    return this.getPendingWithdrawalsUseCase.execute(limit, offset, status, userRole);
+  async getPendingWithdrawals(
+    limit?: number,
+    offset?: number,
+    status?: WithdrawalStatus,
+    userRole?: RoleEnum,
+  ) {
+    return this.getPendingWithdrawalsUseCase.execute(
+      limit,
+      offset,
+      status,
+      userRole,
+    );
   }
 
-
-  async updateWithdrawalStatus(id: string, status: WithdrawalStatus, adminId: string, remark?: string) {
-    return this.updateWithdrawalStatusUseCase.execute(id, status, adminId, remark);
+  async updateWithdrawalStatus(
+    id: string,
+    status: WithdrawalStatus,
+    adminId: string,
+    remark?: string,
+  ) {
+    return this.updateWithdrawalStatusUseCase.execute(
+      id,
+      status,
+      adminId,
+      remark,
+    );
   }
 
   async getAdminWithdrawalStats(userRole?: RoleEnum) {
     return this.getAdminWithdrawalStatsUseCase.execute(userRole);
   }
-
 
   async getAdminCommission() {
     return this.getAdminCommissionUseCase.execute();
@@ -145,11 +259,11 @@ export class WalletFacade {
   async getAdminCommissionFromSetting(key: string): Promise<number> {
     try {
       let setting = await this.settingRepo.findOne({ where: { key } });
-      
+
       // Fallback for common spelling inconsistency (COMMISION vs COMMISSION)
       if (!setting) {
-        const altKey = key.includes('COMMISSION') 
-          ? key.replace('COMMISSION', 'COMMISION') 
+        const altKey = key.includes('COMMISSION')
+          ? key.replace('COMMISSION', 'COMMISION')
           : key.replace('COMMISION', 'COMMISSION');
         setting = await this.settingRepo.findOne({ where: { key: altKey } });
       }

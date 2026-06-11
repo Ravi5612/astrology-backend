@@ -15,7 +15,7 @@ export class GetAdminEarningsBreakdownUseCase {
     private readonly orderFacade: OrderFacade,
     @Inject(forwardRef(() => PujaAppointmentFacade))
     private readonly pujaFacade: PujaAppointmentFacade,
-  ) { }
+  ) {}
 
   async execute(days: number = 7) {
     const dateLimit = new Date();
@@ -27,7 +27,7 @@ export class GetAdminEarningsBreakdownUseCase {
     // Call earnings (Audio)
     const callTotal = await this.callFacade.getEarnings(dateLimit, 'audio');
 
-    // Video earnings 
+    // Video earnings
     const videoTotal = await this.callFacade.getEarnings(dateLimit, 'video');
 
     // Product earnings

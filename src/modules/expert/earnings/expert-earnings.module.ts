@@ -15,23 +15,21 @@ import { OrderModule } from '@/modules/commerce/order/order.module';
 import { PujaAppointmentModule } from '@/modules/puja-appointment/puja-appointment.module';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([
-            ProfileExpert,
-        ]),
-        WalletModule,
-        forwardRef(() => ConsultationModule),
-        forwardRef(() => OrderModule),
-        forwardRef(() => PujaAppointmentModule),
-    ],
-    controllers: [ExpertEarningsController, ExpertWalletController],
-    providers: [
-        ExpertEarningsFacade,
-        GetEarningsStatsUseCase,
-        GetWalletBalanceUseCase,
-        GetWalletTransactionsUseCase,
-        RequestWithdrawalUseCase,
-    ],
-    exports: [ExpertEarningsFacade],
+  imports: [
+    TypeOrmModule.forFeature([ProfileExpert]),
+    WalletModule,
+    forwardRef(() => ConsultationModule),
+    forwardRef(() => OrderModule),
+    forwardRef(() => PujaAppointmentModule),
+  ],
+  controllers: [ExpertEarningsController, ExpertWalletController],
+  providers: [
+    ExpertEarningsFacade,
+    GetEarningsStatsUseCase,
+    GetWalletBalanceUseCase,
+    GetWalletTransactionsUseCase,
+    RequestWithdrawalUseCase,
+  ],
+  exports: [ExpertEarningsFacade],
 })
-export class ExpertEarningsModule { }
+export class ExpertEarningsModule {}

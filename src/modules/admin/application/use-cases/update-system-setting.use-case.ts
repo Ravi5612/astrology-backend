@@ -6,22 +6,22 @@ import { SystemSetting } from '../../infrastructure/entities/system-setting.enti
 
 @Injectable()
 export class UpdateSystemSettingUseCase {
-    constructor(
-        @InjectRepository(SystemSetting)
-        private readonly settingRepo: Repository<SystemSetting>,
-    ) { }
+  constructor(
+    @InjectRepository(SystemSetting)
+    private readonly settingRepo: Repository<SystemSetting>,
+  ) {}
 
-    async execute(key: string, value: string, description?: string) {
-        let setting = await this.settingRepo.findOne({ where: { key } });
+  async execute(key: string, value: string, description?: string) {
+    let setting = await this.settingRepo.findOne({ where: { key } });
 
-        if (setting) {
-            setting.value = value;
-            if (description) setting.description = description;
-        } else {
-            setting = this.settingRepo.create({ key, value, description });
-        }
-
-        await this.settingRepo.save(setting);
-        return new BooleanMessage();
+    if (setting) {
+      setting.value = value;
+      if (description) setting.description = description;
+    } else {
+      setting = this.settingRepo.create({ key, value, description });
     }
+
+    await this.settingRepo.save(setting);
+    return new BooleanMessage();
+  }
 }

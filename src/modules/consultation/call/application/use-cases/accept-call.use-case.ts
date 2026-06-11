@@ -1,4 +1,3 @@
-
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -26,11 +25,11 @@ export class AcceptCallUseCase {
     @Inject(forwardRef(() => CallGateway))
     private readonly callGateway: CallGateway,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async execute(expert_id: string, sessionId: string) {
     const session = await this.sessionRepo.findOne({
-      where: { id: sessionId as any },
+      where: { id: sessionId },
       relations: ['user', 'expert', 'expert.user'],
     });
 
@@ -56,11 +55,15 @@ export class AcceptCallUseCase {
 
     // Calculate Max Duration based on Wallet Balance + Free Minutes
     const balance = await this.walletFacade.getBalance(session.user_id);
-    const paidMinutes = session.price_per_minute > 0 ? balance / session.price_per_minute : 0;
-    const totalMinutes = (session.is_free ? session.free_minutes : 0) + paidMinutes;
+    const paidMinutes =
+      session.price_per_minute > 0 ? balance / session.price_per_minute : 0;
+    const totalMinutes =
+      (session.is_free ? session.free_minutes : 0) + paidMinutes;
     session.max_duration_seconds = Math.floor(totalMinutes * 60);
-    
-    this.logger.log(`Session ${sessionId}: User balance ${balance}, Max duration ${session.max_duration_seconds}s`);
+
+    this.logger.log(
+      `Session ${sessionId}: User balance ${balance}, Max duration ${session.max_duration_seconds}s`,
+    );
 
     const savedSession = await this.sessionRepo.save(session);
     this.logger.log(`Session activated: id=${savedSession.id}`);
@@ -84,12 +87,16 @@ export class AcceptCallUseCase {
     this.callGateway.server
       .to(`call_room_${sessionId}`)
       .emit('call_accepted', result);
-    
+
     // Start the duration/balance timer
-    this.callGateway.startSessionTimer(sessionId);
-    
+    void this.callGateway.startSessionTimer(sessionId);
+
     // Also notify expert dashboard (any open tab)
-    this.callGateway.notifyExpertStatusUpdate(session.expert_id, 'call_accepted', result);
+    this.callGateway.notifyExpertStatusUpdate(
+      session.expert_id,
+      'call_accepted',
+      result,
+    );
 
     this.logger.log(
       `Client notified of call acceptance sessionId=${sessionId}`,

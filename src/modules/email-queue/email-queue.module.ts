@@ -9,7 +9,7 @@ import { RedisConfig } from '@/config/redis.config';
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
+      useFactory: (configService: ConfigService) => {
         const redisConfig = configService.get<RedisConfig>('redis');
         return {
           connection: {

@@ -66,8 +66,9 @@ export class MerchantProfileController {
   ) {
     const result = await this.updateProfile.execute(userId, dto, files);
     if (result && result.success && 'data' in result) {
-      const { data, ...rest } = result as any;
-      return rest;
+      const copy = { ...(result as Record<string, unknown>) };
+      delete copy.data;
+      return copy;
     }
     return result;
   }

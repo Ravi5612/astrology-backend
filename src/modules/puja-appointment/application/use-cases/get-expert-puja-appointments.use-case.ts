@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PujaAppointment } from '../../infrastructure/entities/puja-appointment.entity';
@@ -17,8 +17,8 @@ export class GetExpertPujaAppointmentsUseCase {
     const expert = await this.expertProfileFacade.getExpertByUserId(userId);
 
     if (!expert) {
-        // If user is not an expert, return empty list instead of throwing
-        return [];
+      // If user is not an expert, return empty list instead of throwing
+      return [];
     }
 
     return await this.pujaAppointmentRepository.find({
@@ -29,18 +29,18 @@ export class GetExpertPujaAppointmentsUseCase {
   }
 
   async getRevenueAndCount(expertProfileId: string) {
-    const stats = await this.pujaAppointmentRepository
+    const stats = (await this.pujaAppointmentRepository
       .createQueryBuilder('puja')
-      .select("SUM(puja.price)", "total")
-      .addSelect("COUNT(puja.id)", "count")
-      .where('puja.expert_id = :id AND puja.status IN (:...statuses)', { 
-        id: expertProfileId, 
-        statuses: ['accepted', 'confirmed'] 
+      .select('SUM(puja.price)', 'total')
+      .addSelect('COUNT(puja.id)', 'count')
+      .where('puja.expert_id = :id AND puja.status IN (:...statuses)', {
+        id: expertProfileId,
+        statuses: ['accepted', 'confirmed'],
       })
-      .getRawOne();
+      .getRawOne()) as { total?: string | number; count?: string | number };
     return {
-      total: parseFloat(stats.total) || 0,
-      count: parseInt(stats.count, 10) || 0,
+      total: parseFloat(stats.total as string) || 0,
+      count: parseInt(stats.count as string, 10) || 0,
     };
   }
 }

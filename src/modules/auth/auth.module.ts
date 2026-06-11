@@ -48,9 +48,7 @@ import { GetMerchantProfileUseCase } from './application/use-cases/get-merchant-
 import { InitiateEmailRegistrationUseCase } from './application/use-cases/initiate-email-registration.usecase';
 import { CompleteEmailRegistrationUseCase } from './application/use-cases/complete-email-registration.usecase';
 import { ExternalModule } from '@/external/external.module';
-import {
-  AUTH_PROFILE_CREATION_STRATEGIES,
-} from './application/strategies/create-profile/auth-profile-creation.strategy';
+import { AUTH_PROFILE_CREATION_STRATEGIES } from './application/strategies/create-profile/auth-profile-creation.strategy';
 import { ClientAuthProfileCreationStrategy } from './application/strategies/create-profile/client-auth-profile-creation.strategy';
 import { ExpertAuthProfileCreationStrategy } from './application/strategies/create-profile/expert-auth-profile-creation.strategy';
 import { AgentAuthProfileCreationStrategy } from './application/strategies/create-profile/agent-auth-profile-creation.strategy';
@@ -69,31 +67,31 @@ import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 
 const useCases = [
-    RegisterUserUseCase,
-    AgentRegisterUserUseCase,
-    MerchantRegisterUserUseCase,
-    LoginWithEmailUseCase,
-    LoginWithGoogleUseCase,
-    IssueAuthTokensUseCase,
-    LogoutUserUseCase,
-    VerifyEmailUseCase,
-    ResendVerificationEmailUseCase,
-    ForgotPasswordUseCase,
-    ResetPasswordUseCase,
-    RefreshTokenUseCase,
-    SendMagicLinkUseCase,
-    LoginWithMagicLinkUseCase,
-    GetMerchantProfileUseCase,
-    InitiateEmailRegistrationUseCase,
-    CompleteEmailRegistrationUseCase,
-]
+  RegisterUserUseCase,
+  AgentRegisterUserUseCase,
+  MerchantRegisterUserUseCase,
+  LoginWithEmailUseCase,
+  LoginWithGoogleUseCase,
+  IssueAuthTokensUseCase,
+  LogoutUserUseCase,
+  VerifyEmailUseCase,
+  ResendVerificationEmailUseCase,
+  ForgotPasswordUseCase,
+  ResetPasswordUseCase,
+  RefreshTokenUseCase,
+  SendMagicLinkUseCase,
+  LoginWithMagicLinkUseCase,
+  GetMerchantProfileUseCase,
+  InitiateEmailRegistrationUseCase,
+  CompleteEmailRegistrationUseCase,
+];
 
 const handlers = [
-    UserRegisteredHandler,
-    ResetPasswordEventHandler,
-    VerifyEmailHandler,
-    SendMagicLinkEventHandler,
-]
+  UserRegisteredHandler,
+  ResetPasswordEventHandler,
+  VerifyEmailHandler,
+  SendMagicLinkEventHandler,
+];
 
 @Module({
   imports: [
@@ -174,11 +172,8 @@ const handlers = [
     AuthPolicy,
     TokenCryptoService,
     SessionRepository,
-
   ],
   controllers: [AuthController, MerchantAuthController, GoogleAuthController],
   // exports: [TokenService, OAuthService],
 })
-export class AuthModule { }
-
-
+export class AuthModule {}

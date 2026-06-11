@@ -1,5 +1,11 @@
-import { Type } from "class-transformer";
-import { IsArray, IsBoolean, IsOptional, IsString, ValidateNested } from "class-validator";
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsBoolean,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 
 export class ExpertDocumentDto {
   @IsOptional()
@@ -32,7 +38,6 @@ export class ExpertDocumentDto {
   @IsOptional()
   uploadedAt?: string | Date;
 }
-
 
 export class UpdateDocumentsExpertDto {
   @IsOptional()

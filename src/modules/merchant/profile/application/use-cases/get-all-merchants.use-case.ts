@@ -1,8 +1,10 @@
-
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { ProfileMerchant, MerchantStatus } from '../../infrastructure/entities/profile-merchant.entity';
+import {
+  ProfileMerchant,
+  MerchantStatus,
+} from '../../infrastructure/entities/profile-merchant.entity';
 import { Wishlist } from '@/modules/commerce/wishlist/infrastructure/entities/wishlist.entity';
 
 @Injectable()
@@ -14,7 +16,15 @@ export class GetAllMerchantsUseCase {
     private readonly wishlistRepository: Repository<Wishlist>,
   ) {}
 
-  async execute(filters: { search?: string; city?: string; page?: number; limit?: number; currentUserId?: string } = {}) {
+  async execute(
+    filters: {
+      search?: string;
+      city?: string;
+      page?: number;
+      limit?: number;
+      currentUserId?: string;
+    } = {},
+  ) {
     const { search, city, page = 1, limit = 10, currentUserId } = filters;
     const skip = (page - 1) * limit;
 
@@ -34,7 +44,7 @@ export class GetAllMerchantsUseCase {
       );
     }
 
-    const [merchants, total] = await query
+    const [merchants] = await query
       .orderBy('merchant.created_at', 'DESC')
       .skip(skip)
       .take(limit)
@@ -91,15 +101,16 @@ export class GetAllMerchantsUseCase {
     let likedMerchantIds = new Set<string>();
     if (currentUserId) {
       const likes = await this.wishlistRepository.find({
-        where: { client: { user: { id: currentUserId as any } }, merchant: { id: In(merchants.map(m => m.id)) } },
+        where: {
+          client: { user: { id: currentUserId } },
+          merchant: { id: In(merchants.map((m) => m.id)) },
+        },
         relations: ['merchant'],
       });
 
       const likeWithMerchants = likes.filter((l) => l.merchant != null);
 
-      likedMerchantIds = new Set(
-        likeWithMerchants.map((l) => l.merchant!.id ),
-      );
+      likedMerchantIds = new Set(likeWithMerchants.map((l) => l.merchant!.id));
     }
 
     // Fetch likesCount for each merchant using QueryBuilder with property names for safe mapping
@@ -115,7 +126,8 @@ export class GetAllMerchantsUseCase {
 
     const likesCountMap = new Map<string, number>();
     for (const row of likesCountRaw) {
-      likesCountMap.set(row.merchant_id, Number(row.count));
+      const rowData = row as Record<string, unknown>;
+      likesCountMap.set(rowData.merchant_id as string, Number(rowData.count));
     }
 
     const formattedMerchants = merchants.map((m) => ({
@@ -125,13 +137,13 @@ export class GetAllMerchantsUseCase {
       city: m.city || '',
       pincode: m.pincode || '',
       phone: m.phone || '',
-      image: m.user?.avatar || '',
+      image: m.image || m.user?.avatar || '',
       rating: m.rating ? Number(m.rating) : 0,
       reviewCount: m.reviewCount || 0,
       isTrusted: m.isTrusted || false,
-      popularProducts: productMap.get(m.id as any) ?? [],
-      isLiked: likedMerchantIds.has(m.id as any),
-      likesCount: likesCountMap.get(m.id as any) ?? 0,
+      popularProducts: productMap.get(m.id) ?? [],
+      isLiked: likedMerchantIds.has(m.id),
+      likesCount: likesCountMap.get(m.id) ?? 0,
       isOnline: m.isOnline,
       operationalHours: m.operationalHours,
       trustScore: m.trustScore,

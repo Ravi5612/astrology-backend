@@ -13,7 +13,11 @@ import { RemoveProductUseCase } from './application/use-cases/remove-product.use
 import { MerchantProductsUseCase } from './application/use-cases/merchant-products.usecase';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product]), CloudinaryModule, MerchantProfileModule],
+  imports: [
+    TypeOrmModule.forFeature([Product]),
+    CloudinaryModule,
+    MerchantProfileModule,
+  ],
   controllers: [ProductController],
   providers: [
     ProductFacade,
@@ -26,4 +30,4 @@ import { MerchantProductsUseCase } from './application/use-cases/merchant-produc
   ],
   exports: [FindProductUseCase, TypeOrmModule, ProductFacade],
 })
-export class ProductModule { }
+export class ProductModule {}

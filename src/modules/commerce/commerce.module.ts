@@ -4,7 +4,7 @@ import { WishlistModule } from './wishlist/wishlist.module';
 import { ProductModule } from './product/product.module';
 
 @Module({
-    imports: [OrderModule, WishlistModule, ProductModule],
-    exports: [OrderModule, WishlistModule, ProductModule]
+  imports: [OrderModule, WishlistModule, ProductModule],
+  exports: [OrderModule, WishlistModule, ProductModule],
 })
 export class CommerceModule {}

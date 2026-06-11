@@ -1,6 +1,17 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+export interface ProkeralaPersonParam {
+  datetime: string;
+  location?: {
+    lat: string | number;
+    lon: string | number;
+    tz: string | number;
+  };
+  lat?: string | number;
+  lon?: string | number;
+  tz?: string | number;
+}
 @Injectable()
 export class ProkeralaService {
   private accessToken: string | null = null;
@@ -37,14 +48,17 @@ export class ProkeralaService {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = (await response.json()) as Record<string, unknown>;
       console.error('[ProkeralaService] Auth Error:', error);
       throw new InternalServerErrorException(
         'Failed to authenticate with Prokerala API',
       );
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as {
+      access_token: string;
+      expires_in: number;
+    };
     this.accessToken = data.access_token;
     this.tokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
 
@@ -57,17 +71,17 @@ export class ProkeralaService {
     return this.accessToken;
   }
 
-  async getGunaMilan(girl: any, boy: any) {
+  async getGunaMilan(girl: ProkeralaPersonParam, boy: ProkeralaPersonParam) {
     const token = await this.getAccessToken();
 
     const params = new URLSearchParams({
       ayanamsa: '1', // Lahiri
       girl_dob: girl.datetime,
-      girl_coordinates: `${girl.location.lat},${girl.location.lon}`,
-      girl_timezone: girl.location.tz.toString(),
+      girl_coordinates: `${girl.location?.lat || girl.lat || ''},${girl.location?.lon || girl.lon || ''}`,
+      girl_timezone: (girl.location?.tz || girl.tz || '').toString(),
       boy_dob: boy.datetime,
-      boy_coordinates: `${boy.location.lat},${boy.location.lon}`,
-      boy_timezone: boy.location.tz.toString(),
+      boy_coordinates: `${boy.location?.lat || boy.lat || ''},${boy.location?.lon || boy.lon || ''}`,
+      boy_timezone: (boy.location?.tz || boy.tz || '').toString(),
     });
 
     const response = await fetch(
@@ -99,9 +113,18 @@ export class ProkeralaService {
     const result = await this.handleResponse(response);
 
     // Prokerala advanced doesn't return Hindi text for advanced daily horoscope.
-    if (lang === 'hi' && result.data && result.data.daily_predictions) {
+    if (
+      lang === 'hi' &&
+      result.data &&
+      (result.data as Record<string, unknown>).daily_predictions
+    ) {
       try {
-        const predictions = result.data.daily_predictions[0].predictions;
+        const predictions = (
+          (result.data as Record<string, unknown>).daily_predictions as Record<
+            string,
+            unknown
+          >[]
+        )[0].predictions as Record<string, string>[];
         for (let i = 0; i < predictions.length; i++) {
           predictions[i].prediction = await this.translateText(
             predictions[i].prediction,
@@ -136,13 +159,12 @@ export class ProkeralaService {
         )}`,
       );
       if (!res.ok) return text;
-      const json = await res.json();
-      return json[0].map((item: any) => item[0]).join('');
-    } catch (e) {
+      const json = (await res.json()) as [string[][], ...unknown[]];
+      return json[0].map((item: string[]) => item[0]).join('');
+    } catch {
       return text;
     }
   }
-
 
   async getMangalDosha(params: {
     datetime: string;
@@ -199,17 +221,21 @@ export class ProkeralaService {
     return this.handleResponse(response);
   }
 
-  async getKundliMatching(girl: any, boy: any, ayanamsa: string = '1') {
+  async getKundliMatching(
+    girl: ProkeralaPersonParam,
+    boy: ProkeralaPersonParam,
+    ayanamsa: string = '1',
+  ) {
     const token = await this.getAccessToken();
 
     const params = new URLSearchParams({
       ayanamsa,
       girl_dob: girl.datetime,
       girl_coordinates: `${girl.lat},${girl.lon}`,
-      girl_timezone: girl.tz || '5.5',
+      girl_timezone: (girl.tz || '5.5').toString(),
       boy_dob: boy.datetime,
       boy_coordinates: `${boy.lat},${boy.lon}`,
-      boy_timezone: boy.tz || '5.5',
+      boy_timezone: (boy.tz || '5.5').toString(),
     });
 
     const response = await fetch(
@@ -225,13 +251,15 @@ export class ProkeralaService {
     return this.handleResponse(response);
   }
 
-
-  async getPanchangDaily(params: {
-    datetime: string;
-    lat: string;
-    lon: string;
-    lang?: string;
-  }, retries = 3): Promise<any> {
+  async getPanchangDaily(
+    params: {
+      datetime: string;
+      lat: string;
+      lon: string;
+      lang?: string;
+    },
+    retries = 3,
+  ): Promise<Record<string, unknown>> {
     const token = await this.getAccessToken();
 
     const queryParams = new URLSearchParams({
@@ -254,8 +282,10 @@ export class ProkeralaService {
     // Retry on 429 Too Many Requests with exponential backoff
     if (response.status === 429 && retries > 0) {
       const waitMs = (4 - retries) * 2000; // 2s, 4s, 6s
-      console.warn(`[ProkeralaService] Rate limited (429). Retrying in ${waitMs}ms... (${retries} retries left)`);
-      await new Promise(resolve => setTimeout(resolve, waitMs));
+      console.warn(
+        `[ProkeralaService] Rate limited (429). Retrying in ${waitMs}ms... (${retries} retries left)`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
       return this.getPanchangDaily(params, retries - 1);
     }
 
@@ -264,13 +294,16 @@ export class ProkeralaService {
 
   // Deprecated: Prokerala API v2 does not support a monthly endpoint.
   // Use getPanchangDaily in a loop instead.
+  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
   async getPanchangMonthly(params: {
     datetime: string;
     lat: string;
     lon: string;
     lang?: string;
   }) {
-    throw new Error('Monthly endpoint not supported by Prokerala v2 API. Use daily loop instead.');
+    throw new Error(
+      'Monthly endpoint not supported by Prokerala v2 API. Use daily loop instead.',
+    );
   }
 
   async getFestivals(year: number, lang?: string) {
@@ -297,25 +330,24 @@ export class ProkeralaService {
   private async handleResponse(response: Response) {
     if (!response.ok) {
       const errorBody = await response.text();
-      let parsedError;
+      let parsedError: unknown;
       try {
         parsedError = JSON.parse(errorBody);
-      } catch (e) {
+      } catch {
         parsedError = errorBody;
       }
-      
+
       console.error('[ProkeralaService] API Error:', {
         status: response.status,
         statusText: response.statusText,
         url: response.url,
-        error: parsedError
+        error: parsedError,
       });
 
       throw new InternalServerErrorException(
         `Prokerala API call failed: ${JSON.stringify(parsedError)}`,
       );
     }
-    return await response.json();
+    return (await response.json()) as Record<string, unknown>;
   }
 }
-

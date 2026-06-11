@@ -1,4 +1,3 @@
-
 import {
   BadRequestException,
   Injectable,
@@ -20,7 +19,7 @@ export class LoginWithMagicLinkUseCase {
     private readonly usedTokenService: UsedTokensService,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly issueAuthTokens: IssueAuthTokensUseCase,
-  ) { }
+  ) {}
 
   async execute(token: string, role: RoleEnum, ip?: string, ua?: string) {
     const payload = await this.verifyTokenOrFail(token);
@@ -40,10 +39,10 @@ export class LoginWithMagicLinkUseCase {
         user.isVerified()
           ? Promise.resolve(user)
           : this.usersFacade.update(
-            user.id,
-            { email_verified_at: new Date() },
-            qr,
-          ),
+              user.id,
+              { email_verified_at: new Date() },
+              qr,
+            ),
 
         this.usedTokenService.markTokenAsUsed(
           token,
@@ -62,7 +61,9 @@ export class LoginWithMagicLinkUseCase {
   // 🔐 infra → application boundary
   private verifyTokenOrFail(token: string) {
     try {
-      return this.tokenCrypto.verifyJwt<{ userId: string; email: string }>(token);
+      return this.tokenCrypto.verifyJwt<{ userId: string; email: string }>(
+        token,
+      );
     } catch {
       throw new BadRequestException('Invalid or expired token');
     }

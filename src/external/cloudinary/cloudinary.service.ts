@@ -15,7 +15,13 @@ export class CloudinaryService {
       const uploadStream = this.cloudinary.uploader.upload_stream(
         { resource_type: resourceType },
         (error, result) => {
-          if (error) return reject(error);
+          if (error)
+            return reject(
+              new Error(
+                (error as { message?: string })?.message ||
+                  'Unknown Cloudinary Error',
+              ),
+            );
           if (!result) return reject(new Error('Cloudinary upload failed'));
           resolve(result);
         },
@@ -30,11 +36,17 @@ export class CloudinaryService {
     folder?: string,
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     return new Promise((resolve, reject) => {
-      this.cloudinary.uploader.upload(
+      void this.cloudinary.uploader.upload(
         base64String,
         { folder, resource_type: 'auto' },
         (error, result) => {
-          if (error) return reject(error);
+          if (error)
+            return reject(
+              new Error(
+                (error as { message?: string })?.message ||
+                  'Unknown Cloudinary Error',
+              ),
+            );
           if (!result) return reject(new Error('Cloudinary upload failed'));
           resolve(result);
         },

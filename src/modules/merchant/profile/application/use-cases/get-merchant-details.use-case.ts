@@ -49,7 +49,10 @@ export class GetMerchantDetailsUseCase {
     let isLiked = false;
     if (currentUserId) {
       const wishlistEntry = await this.wishlistRepository.findOne({
-        where: { client: { user: { id: currentUserId as any } }, merchant: { id: merchant.id as any } },
+        where: {
+          client: { user: { id: currentUserId as unknown as string } },
+          merchant: { id: merchant.id as unknown as string },
+        },
       });
       isLiked = !!wishlistEntry;
     }

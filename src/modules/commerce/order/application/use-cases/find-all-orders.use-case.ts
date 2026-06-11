@@ -11,7 +11,7 @@ export class FindAllOrdersUseCase {
     private orderRepo: Repository<Order>,
     @InjectRepository(OrderItem)
     private orderItemRepo: Repository<OrderItem>,
-  ) { }
+  ) {}
 
   async execute() {
     return this.orderRepo.find({
@@ -20,7 +20,8 @@ export class FindAllOrdersUseCase {
     });
   }
 
-  async getExpertProductRevenueAndCount(expertProfileId: number) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async getExpertProductRevenueAndCount(_expertProfileId: number) {
     // E-commerce products are sold by Merchants, not Experts.
     // Hence, experts always have 0 product revenue.
     return {

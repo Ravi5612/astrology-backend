@@ -22,20 +22,22 @@ export class GetPlaceImagesUseCase {
       where: { query },
     });
 
-    const isFresh = 
-      cached && 
-      (Date.now() - cached.last_synced.getTime() < this.CACHE_DURATION_MS) &&
-      Array.isArray(cached.results) && 
+    const isFresh =
+      cached &&
+      Date.now() - cached.last_synced.getTime() < this.CACHE_DURATION_MS &&
+      Array.isArray(cached.results) &&
       cached.results.length > 0;
 
     if (isFresh) {
       this.logger.log(`Serving cached images for: ${query}`);
-      return { places: cached.results };
+      return { places: cached.results as unknown[] };
     }
 
     this.logger.log(`Fetching fresh images for: ${query}`);
     const rawResults = await this.serperService.fetchImages(query);
-    const normalizedResults = this.placesMapper.mapSerperImages(rawResults.images || []);
+    const normalizedResults = this.placesMapper.mapSerperImages(
+      (rawResults.images as Record<string, unknown>[]) || [],
+    );
 
     if (cached) {
       cached.results = normalizedResults;

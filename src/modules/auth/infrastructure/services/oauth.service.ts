@@ -40,24 +40,32 @@ export class OAuthService extends BaseService<OAuthAccount> {
     dto: OAuthUserDto,
     queryRunner?: QueryRunner,
   ): Promise<User> {
-    let oauth = await this.findByProvider(dto.provider, dto.provider_id);
+    const oauth = await this.findByProvider(dto.provider, dto.provider_id);
 
     if (oauth?.user) return oauth.user;
 
-    let user = dto.email ? await this.usersFacade.findByEmail(dto.email, queryRunner) : null;
+    let user = dto.email
+      ? await this.usersFacade.findByEmail(dto.email, queryRunner)
+      : null;
 
     user ??= await this.usersFacade.create(
       {
         email: dto.email,
         name: dto.name,
-        avatar: dto.profile?.photos?.[0]?.value,
+        avatar: (
+          dto.profile as { photos?: Array<{ value?: string }> } | undefined
+        )?.photos?.[0]?.value,
         roles: dto.roles,
       },
       queryRunner,
     );
 
     user.markEmailAsVerified();
-    await this.usersFacade.update(user.id, { email_verified_at: user.email_verified_at }, queryRunner);
+    await this.usersFacade.update(
+      user.id,
+      { email_verified_at: user.email_verified_at },
+      queryRunner,
+    );
 
     await this.linkAccount({ ...dto, user }, queryRunner);
     return user;

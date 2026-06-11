@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
+﻿import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { LoginDto } from '../../api/dto';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { AuthPolicy } from '../../domain/policies/auth.policy';
@@ -14,7 +14,10 @@ export class LoginWithEmailUseCase {
   async execute(dto: LoginDto, ip?: string, userAgent?: string) {
     const user = await this.usersFacade.findByEmailWithPassword(dto.email);
 
-    const isValidPassword = await this.authPolicy.verifyPassword(user, dto.password);
+    const isValidPassword = await this.authPolicy.verifyPassword(
+      user,
+      dto.password,
+    );
 
     if (!user || !user.password || !isValidPassword) {
       throw new UnauthorizedException('Invalid email or password');
@@ -24,9 +27,13 @@ export class LoginWithEmailUseCase {
 
     this.authPolicy.ensureHasRequiredRole(user, dto.requiredRole);
 
-    const tokens = await this.issueTokens.execute(user, dto.requiredRole, ip, userAgent);
+    const tokens = await this.issueTokens.execute(
+      user,
+      dto.requiredRole,
+      ip,
+      userAgent,
+    );
 
     return { user, tokens };
   }
-
 }

@@ -1,7 +1,10 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { IPaymentGateway, PAYMENT_GATEWAY } from '@/external/payment/payment-gateway.interface';
+import {
+  IPaymentGateway,
+  PAYMENT_GATEWAY,
+} from '@/external/payment/payment-gateway.interface';
 import {
   PaymentOrder,
   PaymentStatus,
@@ -19,9 +22,9 @@ export class HandleWebhookUseCase {
     @Inject(PAYMENT_GATEWAY)
     private readonly paymentGateway: IPaymentGateway,
     private readonly verifyPaymentUseCase: VerifyPaymentUseCase,
-  ) { }
+  ) {}
 
-  async execute(signature: string, payload: any) {
+  async execute(signature: string, payload: Record<string, unknown>) {
     // Validate signature
     const isValid = this.paymentGateway.validateWebhookSignature(
       payload,
@@ -30,9 +33,14 @@ export class HandleWebhookUseCase {
 
     PaymentPolicy.ensureWebhookSignatureValid(isValid);
 
-    const event = payload.event;
+    const event = payload.event as string;
     if (event === 'payment.captured') {
-      const payment = payload.payload.payment.entity;
+      const payment = (
+        payload.payload as Record<
+          string,
+          Record<string, Record<string, string>>
+        >
+      )?.payment?.entity;
       const orderId = payment.order_id;
       const paymentId = payment.id;
 

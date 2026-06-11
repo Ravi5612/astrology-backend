@@ -1,4 +1,9 @@
-import { Injectable, Inject, forwardRef, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  forwardRef,
+  NotFoundException,
+} from '@nestjs/common';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -14,7 +19,7 @@ export class UpdateTodoUseCase {
     private readonly todoRepo: Repository<Todo>,
     @Inject(forwardRef(() => ExpertProfileFacade))
     private readonly profileFacade: ExpertProfileFacade,
-  ) { }
+  ) {}
 
   private async getExpertProfile(userId: string) {
     const profile = await this.profileFacade.getExpertByUserId(userId);

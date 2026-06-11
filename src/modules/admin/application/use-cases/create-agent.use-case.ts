@@ -1,4 +1,3 @@
-
 import { Injectable, ConflictException, Inject } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import * as crypto from 'crypto';
@@ -15,7 +14,7 @@ export class CreateAgentUseCase {
     private readonly dataSource: DataSource,
     private readonly cloudinaryService: CloudinaryService,
     @Inject(IHasherToken) private readonly hasher: IHasher,
-  ) { }
+  ) {}
 
   async execute(
     dto: CreateAgentDto,
@@ -41,7 +40,6 @@ export class CreateAgentUseCase {
       // 2. Hash password
       const hashedPassword = await this.hasher.hash(dto.password);
 
-
       // 4. Create User
       const user = queryRunner.manager.create(User, {
         email: dto.email,
@@ -50,7 +48,6 @@ export class CreateAgentUseCase {
         roles: [RoleEnum.AGENT],
         email_verified_at: new Date(), // Admin created users are verified
       });
-
 
       // Handle profile pic upload
       if (files?.profile_pic) {
@@ -64,7 +61,7 @@ export class CreateAgentUseCase {
       const agentProfile = queryRunner.manager.create(ProfileAgent, {
         user_id: savedUser.id,
         uid: this.generateUID(),
-        commission_rate: 10.00, // Default fixed rate as requested to remove from UI
+        commission_rate: 10.0, // Default fixed rate as requested to remove from UI
         phone: dto.phone,
         address: dto.address,
         city: dto.city,
@@ -105,14 +102,19 @@ export class CreateAgentUseCase {
   }
 
   private generateUID() {
-    const suffix = crypto.randomBytes(4).toString('hex').toUpperCase().slice(0, 6);
+    const suffix = crypto
+      .randomBytes(4)
+      .toString('hex')
+      .toUpperCase()
+      .slice(0, 6);
     return `AIB-AGT-${suffix}`;
   }
 
   private async uploadFile(file: Express.Multer.File): Promise<string> {
-    const result = await this.cloudinaryService.uploadImage(file);
-    return result.secure_url;
+    const result = (await this.cloudinaryService.uploadImage(file)) as Record<
+      string,
+      unknown
+    >;
+    return result.secure_url as string;
   }
 }
-
-

@@ -10,7 +10,7 @@ export class SetOrderRazorpayIdUseCase {
     private readonly orderRepo: Repository<Order>,
   ) {}
 
-  async execute(orderId: number, razorpayOrderId: string) {
+  async execute(orderId: string, razorpayOrderId: string) {
     await this.orderRepo.update(orderId, {
       razorpay_order_id: razorpayOrderId,
     });

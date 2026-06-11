@@ -25,10 +25,10 @@ export class MerchantRegisterUserUseCase {
     private readonly updateMerchantProfileWithQueryRunnerUseCase: UpdateMerchantProfileWithQueryRunnerUseCase,
   ) {}
 
-  async execute(dto: MerchantRegisterDto, ip?: string, userAgent?: string) {
+  async execute(dto: MerchantRegisterDto, _ip?: string, _userAgent?: string) {
     const existingUser = await this.usersFacade.findByEmail(dto.email);
 
-    // 🔐 domain rule
+    // ðŸ” domain rule
     RegistrationPolicy.ensureEmailIsUnique(existingUser);
 
     const response = await this.db.transaction(async (queryRunner) => {
@@ -55,7 +55,7 @@ export class MerchantRegisterUserUseCase {
           shopName: dto.shopName,
           phone: dto.phone,
         },
-        queryRunner
+        queryRunner,
       );
 
       this.sendEmail(user);
@@ -63,33 +63,32 @@ export class MerchantRegisterUserUseCase {
       // Instead of issuing tokens immediately (they need KYC or verification usually),
       // we just return user object but specs say 201 Created and return specific string.
       // Wait, spec for registration: Expected response with NO token, just merchantId, email, status.
-      return { 
+      return {
         merchant_id: user.id, // Using user.id since profile.uid is not readily available without another query, or we can just return user.id which maps 1:1
         email: user.email,
-        status: 'PENDING'
+        status: 'PENDING',
       };
     });
-
 
     return response;
   }
 
   private sendEmail(user: User) {
-        const verification_token = this.tokenCrypto.signTemporaryToken({
-            userId: user.id,
-            email: user.email,
-        });
+    const verification_token = this.tokenCrypto.signTemporaryToken({
+      userId: user.id,
+      email: user.email,
+    });
 
-        // 📢 domain event
-        this.eventEmitter.emit(
-            'auth.user.registered',
-            new UserRegisteredEvent(
-                user.id,
-                user.email,
-                user.name || 'user',
-                user.roles,
-                verification_token,
-            ),
-        );
+    // ðŸ“¢ domain event
+    this.eventEmitter.emit(
+      'auth.user.registered',
+      new UserRegisteredEvent(
+        user.id,
+        user.email,
+        user.name || 'user',
+        user.roles,
+        verification_token,
+      ),
+    );
   }
 }

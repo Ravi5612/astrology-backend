@@ -5,7 +5,7 @@ import { OrderFacade } from '@/modules/commerce/order/application/order.facade';
 export class GetAdminMerchantSalesOverviewUseCase {
   constructor(
     @Inject(forwardRef(() => OrderFacade))
-    private readonly orderFacade: OrderFacade
+    private readonly orderFacade: OrderFacade,
   ) {}
 
   async execute() {

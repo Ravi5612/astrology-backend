@@ -11,11 +11,11 @@ export class ListBankAccountsUseCase {
     private readonly bankAccountRepo: Repository<BankAccount>,
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
-  ) { }
+  ) {}
 
   private async getExpertProfile(userId: string) {
     const profile = await this.profileRepo.findOne({
-      where: { user: { id: userId as any } },
+      where: { user: { id: userId } },
     });
     if (!profile) throw new NotFoundException('Expert profile not found');
     return profile;

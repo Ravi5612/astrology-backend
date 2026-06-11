@@ -12,7 +12,7 @@ export class TopUpUseCase {
     amount: number,
     paymentMethodId: string,
     referenceId?: string,
-    externalQueryRunner?: any,
+    externalQueryRunner?: import('typeorm').QueryRunner,
   ): Promise<Wallet> {
     return this.creditUseCase.execute(
       userId,

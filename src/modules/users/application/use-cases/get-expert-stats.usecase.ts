@@ -10,32 +10,32 @@ export class GetExpertStatsUseCase {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) { }
+  ) {}
 
   async execute() {
     const total_experts = await this.userRepository
       .createQueryBuilder('user')
-      .where(":role = ANY(\"user\".roles)", { role: RoleEnum.EXPERT })
+      .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
       .getCount();
 
     const activeExperts = await this.userRepository
       .createQueryBuilder('user')
-      .where(":role = ANY(\"user\".roles)", { role: RoleEnum.EXPERT })
-      .leftJoin(ProfileExpert, 'profile', 'profile.user_id = \"user\".id')
+      .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
+      .leftJoin(ProfileExpert, 'profile', 'profile.user_id = "user".id')
       .andWhere('profile.kyc_status = :status', { status: 'approved' })
       .getCount();
 
     const pendingExperts = await this.userRepository
       .createQueryBuilder('user')
-      .where(":role = ANY(\"user\".roles)", { role: RoleEnum.EXPERT })
-      .leftJoin(ProfileExpert, 'profile', 'profile.user_id = \"user\".id')
+      .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
+      .leftJoin(ProfileExpert, 'profile', 'profile.user_id = "user".id')
       .andWhere('profile.kyc_status = :status', { status: 'pending' })
       .getCount();
 
     const blockedExperts = await this.userRepository
       .createQueryBuilder('user')
-      .where(":role = ANY(\"user\".roles)", { role: RoleEnum.EXPERT })
-      .leftJoin(ProfileExpert, 'profile', 'profile.user_id = \"user\".id')
+      .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
+      .leftJoin(ProfileExpert, 'profile', 'profile.user_id = "user".id')
       .andWhere('profile.is_blocked = :isBlocked', { isBlocked: true })
       .getCount();
 
@@ -46,14 +46,14 @@ export class GetExpertStatsUseCase {
 
     const recentExperts = await this.userRepository
       .createQueryBuilder('user')
-      .where(":role = ANY(\"user\".roles)", { role: RoleEnum.EXPERT })
-      .andWhere('\"user\".created_at >= :today', { today })
+      .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
+      .andWhere('"user".created_at >= :today', { today })
       .getCount();
 
     const rejectedExperts = await this.userRepository
       .createQueryBuilder('user')
-      .where(":role = ANY(\"user\".roles)", { role: RoleEnum.EXPERT })
-      .leftJoin(ProfileExpert, 'profile', 'profile.user_id = \"user\".id')
+      .where(':role = ANY("user".roles)', { role: RoleEnum.EXPERT })
+      .leftJoin(ProfileExpert, 'profile', 'profile.user_id = "user".id')
       .andWhere('profile.kyc_status = :status', { status: 'rejected' })
       .getCount();
 

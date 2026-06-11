@@ -22,24 +22,28 @@ export class SearchPlacesUseCase {
       where: { query, location },
     });
 
-    const isFresh = 
-      cached && 
-      (Date.now() - cached.last_synced.getTime() < this.CACHE_DURATION_MS) &&
-      Array.isArray(cached.results) && 
+    const isFresh =
+      cached &&
+      Date.now() - cached.last_synced.getTime() < this.CACHE_DURATION_MS &&
+      Array.isArray(cached.results) &&
       cached.results.length > 0;
 
     if (isFresh) {
       this.logger.log(`Serving cached places for: ${query} in ${location}`);
-      return { places: cached.results };
+      return { places: cached.results as unknown[] };
     }
 
     this.logger.log(`Fetching fresh places for: ${query} in ${location}`);
     const rawResults = await this.serperService.fetchPlaces(query, location);
-    this.logger.debug(`Raw Serper Response: ${JSON.stringify(rawResults).substring(0, 500)}...`);
-    
-    const normalizedResults = this.placesMapper.mapSerperPlaces(rawResults.places || []);
+    this.logger.debug(
+      `Raw Serper Response: ${JSON.stringify(rawResults).substring(0, 500)}...`,
+    );
+
+    const normalizedResults = this.placesMapper.mapSerperPlaces(
+      (rawResults.places as Record<string, unknown>[]) || [],
+    );
     this.logger.debug(`Normalized Results Count: ${normalizedResults.length}`);
-    
+
     if (cached) {
       cached.results = normalizedResults;
       cached.last_synced = new Date();

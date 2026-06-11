@@ -1,12 +1,22 @@
-
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { ChatSession, ChatSessionStatus } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
-import { CallSession, CallSessionStatus, CallType } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
+import {
+  ChatSession,
+  ChatSessionStatus,
+} from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
+import {
+  CallSession,
+  CallSessionStatus,
+  CallType,
+} from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { Review } from '@/modules/consultation/reviews/infrastructure/entities/review.entity';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
-import { ConsultationHistoryDto, ConsultationType, ConsultationStatus } from '../../api/dto/consultation-history.dto';
+import {
+  ConsultationHistoryDto,
+  ConsultationType,
+  ConsultationStatus,
+} from '../../api/dto/consultation-history.dto';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 
 @Injectable()
@@ -26,7 +36,8 @@ export class GetUnifiedHistoryUseCase {
 
   async execute(userId: string, limit: number = 20, offset: number = 0) {
     // 1. Detect Role: Check if the user is an Expert
-    const expertProfile = await this.expertProfileFacade.getExpertByUserId(userId);
+    const expertProfile =
+      await this.expertProfileFacade.getExpertByUserId(userId);
 
     const isExpert = !!expertProfile;
 
@@ -55,33 +66,60 @@ export class GetUnifiedHistoryUseCase {
     });
 
     // 3. Fetch Reviews for these specific sessions
-    const chatIds = chatSessions.map(s => s.id);
-    const callIds = callSessions.map(s => s.id);
+    const chatIds = chatSessions.map((s) => s.id);
+    const callIds = callSessions.map((s) => s.id);
 
-    const whereConditions: any[] = [];
+    const whereConditions: Record<string, unknown>[] = [];
     if (chatIds.length > 0) whereConditions.push({ session_id: In(chatIds) });
-    if (callIds.length > 0) whereConditions.push({ call_session_id: In(callIds) });
+    if (callIds.length > 0)
+      whereConditions.push({ call_session_id: In(callIds) });
 
-    const reviews = whereConditions.length > 0 ? await this.reviewRepo.find({
-      where: whereConditions
-    }) : [];
-    
-    const chatReviewMap = new Map<string, { rating: number, comment?: string }>();
-    const callReviewMap = new Map<string, { rating: number, comment?: string }>();
-    
-    reviews.forEach(r => {
-      if (r.session_id) chatReviewMap.set(r.session_id, { rating: r.rating, comment: r.comment });
-      if (r.call_session_id) callReviewMap.set(r.call_session_id, { rating: r.rating, comment: r.comment });
+    const reviews =
+      whereConditions.length > 0
+        ? await this.reviewRepo.find({
+            where: whereConditions,
+          })
+        : [];
+
+    const chatReviewMap = new Map<
+      string,
+      { rating: number; comment?: string }
+    >();
+    const callReviewMap = new Map<
+      string,
+      { rating: number; comment?: string }
+    >();
+
+    reviews.forEach((r) => {
+      if (r.session_id)
+        chatReviewMap.set(r.session_id, {
+          rating: r.rating,
+          comment: r.comment,
+        });
+      if (r.call_session_id)
+        callReviewMap.set(r.call_session_id, {
+          rating: r.rating,
+          comment: r.comment,
+        });
     });
 
     // 4. Fetch Client Profiles for users
-    const allUserIds = [...new Set([...chatSessions, ...callSessions].map(s => s.user?.id).filter(id => id))];
-    const clientProfiles = allUserIds.length > 0 ? await this.profileClientRepo.find({
-      where: { user_id: In(allUserIds) }
-    }) : [];
-    
+    const allUserIds = [
+      ...new Set(
+        [...chatSessions, ...callSessions]
+          .map((s) => s.user?.id)
+          .filter((id) => id),
+      ),
+    ];
+    const clientProfiles =
+      allUserIds.length > 0
+        ? await this.profileClientRepo.find({
+            where: { user_id: In(allUserIds) },
+          })
+        : [];
+
     const clientProfileMap = new Map<string, ProfileClient>();
-    clientProfiles.forEach(p => {
+    clientProfiles.forEach((p) => {
       if (p.user_id) clientProfileMap.set(p.user_id, p);
     });
 
@@ -89,13 +127,27 @@ export class GetUnifiedHistoryUseCase {
     const unifiedHistory: ConsultationHistoryDto[] = [
       ...chatSessions.map((s) => {
         const duration = this.calculateDuration(s.start_time, s.end_time);
-        const profile = s.user?.id ? clientProfileMap.get(s.user.id) : undefined;
-        return this.mapChatSession(s, chatReviewMap.get(s.id), duration, profile);
+        const profile = s.user?.id
+          ? clientProfileMap.get(s.user.id)
+          : undefined;
+        return this.mapChatSession(
+          s,
+          chatReviewMap.get(s.id),
+          duration,
+          profile,
+        );
       }),
       ...callSessions.map((s) => {
         const duration = s.duration_seconds || 0;
-        const profile = s.user?.id ? clientProfileMap.get(s.user.id) : undefined;
-        return this.mapCallSession(s, callReviewMap.get(s.id), duration, profile);
+        const profile = s.user?.id
+          ? clientProfileMap.get(s.user.id)
+          : undefined;
+        return this.mapCallSession(
+          s,
+          callReviewMap.get(s.id),
+          duration,
+          profile,
+        );
       }),
     ];
 
@@ -118,9 +170,14 @@ export class GetUnifiedHistoryUseCase {
     };
   }
 
-  private mapChatSession(session: ChatSession, review?: { rating: number, comment?: string }, duration: number = 0, clientProfile?: ProfileClient): ConsultationHistoryDto {
+  private mapChatSession(
+    session: ChatSession,
+    review?: { rating: number; comment?: string },
+    duration: number = 0,
+    clientProfile?: ProfileClient,
+  ): ConsultationHistoryDto {
     const total_cost = Number(session.total_cost || 0);
-    
+
     return {
       id: session.id,
       type: ConsultationType.CHAT,
@@ -130,7 +187,7 @@ export class GetUnifiedHistoryUseCase {
       duration: duration,
       durationString: this.formatDuration(duration),
       terminatedBy: session.terminated_by ?? undefined,
-      terminatedReason: 'Normal Closure', 
+      terminatedReason: 'Normal Closure',
       total_cost: Math.round(total_cost * 100) / 100,
       platform_fee: Math.round((session.platform_fee || 0) * 100) / 100,
       gst: Math.round((session.gst || 0) * 100) / 100,
@@ -140,15 +197,26 @@ export class GetUnifiedHistoryUseCase {
       rate: Number(session.price_per_minute || 0),
       rating: review?.rating || 0,
       comment: review?.comment,
-      expert_image: (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-astrologer.jpg',
-      user_image: clientProfile?.profile_picture || clientProfile?.avatar || session.user?.avatar || '/images/dummy-user.jpg',
-      expert_name: session.expert?.user?.name || session.expert?.name || 'Expert',
+      expert_image:
+        (session.expert?.user as unknown as { avatar?: string })?.avatar ||
+        session.expert?.bio ||
+        '/images/dummy-astrologer.jpg',
+      user_image:
+        clientProfile?.profile_picture ||
+        clientProfile?.avatar ||
+        session.user?.avatar ||
+        '/images/dummy-user.jpg',
+      expert_name:
+        session.expert?.user?.name || session.expert?.name || 'Expert',
       expert_category: session.expert?.specialization || 'Astrologer',
       user_name: session.user?.name || 'Client',
       expert: {
         id: session.expert?.id || '',
         name: session.expert?.user?.name || session.expert?.name || 'Expert',
-        profile_image: (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-astrologer.jpg',
+        profile_image:
+          (session.expert?.user as unknown as { avatar?: string })?.avatar ||
+          session.expert?.bio ||
+          '/images/dummy-astrologer.jpg',
       },
       metadata: {
         terminatedBy: session.terminated_by,
@@ -158,12 +226,20 @@ export class GetUnifiedHistoryUseCase {
     };
   }
 
-  private mapCallSession(session: CallSession, review?: { rating: number, comment?: string }, duration: number = 0, clientProfile?: ProfileClient): ConsultationHistoryDto {
+  private mapCallSession(
+    session: CallSession,
+    review?: { rating: number; comment?: string },
+    duration: number = 0,
+    clientProfile?: ProfileClient,
+  ): ConsultationHistoryDto {
     const final_price = Number(session.final_price || 0);
 
     return {
       id: session.id,
-      type: session.type === CallType.VIDEO ? ConsultationType.VIDEO_CALL : ConsultationType.AUDIO_CALL,
+      type:
+        session.type === CallType.VIDEO
+          ? ConsultationType.VIDEO_CALL
+          : ConsultationType.AUDIO_CALL,
       status: this.mapCallStatus(session.status, duration),
       startTime: session.start_time || session.created_at,
       endTime: session.end_time,
@@ -180,15 +256,25 @@ export class GetUnifiedHistoryUseCase {
       rate: Number(session.price_per_minute || 0),
       rating: review?.rating || 0,
       comment: review?.comment,
-      expert_image: (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-expert.jpg',
-      user_image: clientProfile?.profile_picture || clientProfile?.avatar || session.user?.avatar || '/images/dummy-user.jpg',
+      expert_image:
+        (session.expert?.user as unknown as { avatar?: string })?.avatar ||
+        session.expert?.bio ||
+        '/images/dummy-expert.jpg',
+      user_image:
+        clientProfile?.profile_picture ||
+        clientProfile?.avatar ||
+        session.user?.avatar ||
+        '/images/dummy-user.jpg',
       expert_name: session.expert?.user?.name || 'Expert',
       expert_category: session.expert?.specialization || 'Astrologer',
       user_name: session.user?.name || 'User',
       expert: {
         id: session.expert?.id || '',
         name: session.expert?.user?.name || 'Expert',
-        profile_image: (session.expert?.user as any)?.avatar || session.expert?.bio || '/images/dummy-expert.jpg',
+        profile_image:
+          (session.expert?.user as unknown as { avatar?: string })?.avatar ||
+          session.expert?.bio ||
+          '/images/dummy-expert.jpg',
       },
       metadata: {
         callSid: session.twilio_sid,
@@ -197,7 +283,10 @@ export class GetUnifiedHistoryUseCase {
     };
   }
 
-  private mapChatStatus(status: ChatSessionStatus, duration: number = 0): ConsultationStatus {
+  private mapChatStatus(
+    status: ChatSessionStatus,
+    duration: number = 0,
+  ): ConsultationStatus {
     if (status === ChatSessionStatus.COMPLETED && duration === 0) {
       return ConsultationStatus.MISSED;
     }
@@ -220,7 +309,10 @@ export class GetUnifiedHistoryUseCase {
     }
   }
 
-  private mapCallStatus(status: CallSessionStatus, duration: number = 0): ConsultationStatus {
+  private mapCallStatus(
+    status: CallSessionStatus,
+    duration: number = 0,
+  ): ConsultationStatus {
     if (status === CallSessionStatus.COMPLETED && duration === 0) {
       return ConsultationStatus.MISSED;
     }

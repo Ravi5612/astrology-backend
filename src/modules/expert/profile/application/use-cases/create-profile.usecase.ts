@@ -1,4 +1,3 @@
-
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryRunner } from 'typeorm';
@@ -8,7 +7,10 @@ import { CreateProfileExpertDto } from '../../api/dto/profile-expert.dto';
 import { Address } from '@/common/address/address.entity';
 import { GetProfileUseCase } from './get-profile.usecase';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ProfileUpdatedEvent, ExpertStatusChangedEvent } from '../../domain/events/profile-events';
+import {
+  ProfileUpdatedEvent,
+  ExpertStatusChangedEvent,
+} from '../../domain/events/profile-events';
 
 @Injectable()
 export class CreateProfileUseCase {
@@ -21,11 +23,19 @@ export class CreateProfileUseCase {
     private readonly addressRepo: Repository<Address>,
     private readonly getProfileUseCase: GetProfileUseCase,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
-  async execute(user: User, dto: CreateProfileExpertDto, queryRunner?: QueryRunner) {
-    const profileRepo = queryRunner ? queryRunner.manager.getRepository(ProfileExpert) : this.profileRepo;
-    const addressRepo = queryRunner ? queryRunner.manager.getRepository(Address) : this.addressRepo;
+  async execute(
+    user: User,
+    dto: CreateProfileExpertDto,
+    queryRunner?: QueryRunner,
+  ) {
+    const profileRepo = queryRunner
+      ? queryRunner.manager.getRepository(ProfileExpert)
+      : this.profileRepo;
+    const _addressRepo = queryRunner
+      ? queryRunner.manager.getRepository(Address)
+      : this.addressRepo;
 
     try {
       const exists = await profileRepo.findOne({
@@ -37,7 +47,7 @@ export class CreateProfileUseCase {
       }
 
       const profileData: Partial<ProfileExpert> = {
-        user: { id: user.id } as any,
+        user: { id: user.id } as unknown as User,
         gender: dto.gender,
         date_of_birth: dto.date_of_birth
           ? new Date(dto.date_of_birth)
@@ -53,15 +63,18 @@ export class CreateProfileUseCase {
         video_call_price: dto.video_call_price,
         report_price: dto.report_price,
         horoscope_price: dto.horoscope_price,
-        custom_services: dto.custom_services,
+        custom_services: dto.custom_services as Record<string, unknown>[],
         bank_details: dto.bank_details,
         is_available: dto.is_available,
-        documents: dto.documents,
+        documents: dto.documents as unknown as Record<string, unknown>[],
         gallery: dto.gallery,
         videos: dto.videos,
         video: dto.video,
         certificates: dto.certificates,
-        detailed_experience: dto.detailed_experience,
+        detailed_experience: dto.detailed_experience as Record<
+          string,
+          unknown
+        >[],
         addresses:
           dto.addresses?.map((addr) =>
             this.addressRepo.create({
@@ -92,13 +105,19 @@ export class CreateProfileUseCase {
       if (dto.is_available !== undefined) {
         this.eventEmitter.emit(
           'expert.status.changed',
-          new ExpertStatusChangedEvent(user.id as any as string, dto.is_available),
+          new ExpertStatusChangedEvent(
+            user.id as unknown as string,
+            dto.is_available,
+          ),
         );
       }
 
       return this.getProfileUseCase.execute(user, queryRunner);
     } catch (error) {
-      this.logger.error(`Failed to create profile for user: ${user.id}`, error.stack);
+      this.logger.error(
+        `Failed to create profile for user: ${user.id}`,
+        (error as Error).stack,
+      );
       throw error;
     }
   }

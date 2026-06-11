@@ -14,7 +14,7 @@ export class GetMerchantReviewsUseCase {
     const skip = (page - 1) * limit;
 
     const [reviews, total] = await this.reviewRepository.findAndCount({
-      where: { merchant_id: merchantId as any, status: 'active' }, // Assuming 'active' is the status for approved reviews
+      where: { merchant_id: merchantId, status: 'approved' }, // Assuming 'active' is the status for approved reviews
       relations: ['client', 'client.user'],
       take: limit,
       skip: skip,

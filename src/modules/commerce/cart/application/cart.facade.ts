@@ -15,7 +15,7 @@ export class CartFacade {
     private readonly updateCartItemUseCase: UpdateCartItemUseCase,
     private readonly removeCartItemUseCase: RemoveCartItemUseCase,
     private readonly clearCartUseCase: ClearCartUseCase,
-  ) { }
+  ) {}
 
   async getCart(userId: string) {
     return this.getCartUseCase.execute(userId);
@@ -25,7 +25,10 @@ export class CartFacade {
     return this.addToCartUseCase.execute(userId, addToCartDto);
   }
 
-  async updateCartItem(userId: string, updateCartItemDto: UpdateCartItemDto & { productId: string }) {
+  async updateCartItem(
+    userId: string,
+    updateCartItemDto: UpdateCartItemDto & { productId: string },
+  ) {
     return this.updateCartItemUseCase.execute(userId, updateCartItemDto);
   }
 

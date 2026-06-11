@@ -1,4 +1,11 @@
-import { IsEmail, IsString, IsOptional, ValidateNested, IsNotEmpty, IsEnum } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  IsOptional,
+  ValidateNested,
+  IsNotEmpty,
+  IsEnum,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 

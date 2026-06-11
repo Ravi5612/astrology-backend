@@ -11,14 +11,14 @@ export class GetCallEarningsUseCase {
   ) {}
 
   async execute(dateLimit: Date, type: 'audio' | 'video'): Promise<number> {
-    const callStats = await this.callRepository
+    const callStats = (await this.callRepository
       .createQueryBuilder('call')
-      .select("SUM(call.final_price)", "total")
+      .select('SUM(call.final_price)', 'total')
       .where('call.created_at >= :date', { date: dateLimit })
       .andWhere("call.status = 'completed'")
-      .andWhere("call.type = :type", { type })
-      .getRawOne();
+      .andWhere('call.type = :type', { type })
+      .getRawOne<{ total: string | null }>()) ?? { total: null };
 
-    return parseFloat(callStats?.total) || 0;
+    return parseFloat(callStats.total ?? '0') || 0;
   }
 }

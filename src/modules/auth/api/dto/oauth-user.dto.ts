@@ -1,5 +1,11 @@
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-import { IsArray, IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class OAuthUserDto {
   @IsString()

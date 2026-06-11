@@ -1,4 +1,3 @@
-
 import { Injectable } from '@nestjs/common';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -22,7 +21,8 @@ export class AddMerchantToWishlistUseCase {
   ) {}
 
   async execute(userId: string, merchantId: string): Promise<BooleanMessage> {
-    const merchant = await this.merchantProfileFacade.getProfileById(merchantId);
+    const merchant =
+      await this.merchantProfileFacade.getProfileById(merchantId);
     if (!merchant) {
       throw new MerchantNotFoundError(merchantId);
     }

@@ -1,10 +1,12 @@
-
 import { Injectable } from '@nestjs/common';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
-import { PujaNotInWishlistError, UserNotFoundError } from '../../domain/errors/wishlist.errors';
+import {
+  PujaNotInWishlistError,
+  UserNotFoundError,
+} from '../../domain/errors/wishlist.errors';
 import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 
 @Injectable()
@@ -21,7 +23,10 @@ export class RemovePujaFromWishlistUseCase {
       throw new UserNotFoundError();
     }
 
-    const result = await this.wishlistRepository.delete({ client: { id: client.id } as any, puja: { id: pujaId } as any });
+    const result = await this.wishlistRepository.delete({
+      client: { id: client.id },
+      puja: { id: pujaId },
+    });
 
     if (result.affected === 0) {
       throw new PujaNotInWishlistError();

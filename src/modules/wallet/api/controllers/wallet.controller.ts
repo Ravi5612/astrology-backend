@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Body, UseGuards, Query } from '@nestjs/common';
 import { WalletFacade } from '../../application/wallet.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
@@ -10,7 +10,7 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 })
 @UseGuards(JwtAuthGuard)
 export class WalletController {
-  constructor(private readonly walletFacade: WalletFacade) { }
+  constructor(private readonly walletFacade: WalletFacade) {}
 
   @Get()
   getWallet(@CurrentUser() user: User) {

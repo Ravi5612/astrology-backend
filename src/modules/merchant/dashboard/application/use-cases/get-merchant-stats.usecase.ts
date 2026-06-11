@@ -18,17 +18,25 @@ export class GetMerchantStatsUseCase {
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const [totalOrdersCount, total_products, grossMonthly, grossTotal] = await Promise.all([
-      this.orderFacade.getMerchantTotalOrders(userId),
-      this.productFacade.findMerchantProducts(userId, {}).then(res => res.total).catch(() => 0),
-      this.orderFacade.getMerchantGrossMonthlyEarnings(userId, startOfMonth),
-      this.orderFacade.getMerchantGrossTotalEarnings(userId),
-    ]);
+    const [totalOrdersCount, total_products, grossMonthly, grossTotal] =
+      await Promise.all([
+        this.orderFacade.getMerchantTotalOrders(userId),
+        this.productFacade
+          .findMerchantProducts(userId, {})
+          .then((res) => res.total)
+          .catch(() => 0),
+        this.orderFacade.getMerchantGrossMonthlyEarnings(userId, startOfMonth),
+        this.orderFacade.getMerchantGrossTotalEarnings(userId),
+      ]);
 
     // Estimate Net Earnings (subtracting platform fee and GST)
-    const platformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_PUJA_SHOP');
-    const gstRate = await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
-    
+    const platformFeeRate =
+      await this.walletFacade.getAdminCommissionFromSetting(
+        'COMMISION_FROM_PUJA_SHOP',
+      );
+    const gstRate =
+      await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
+
     const calculateNet = (gross: number) => {
       const fee = gross * (platformFeeRate / 100);
       const gstOnFee = fee * (gstRate / 100);
@@ -37,12 +45,12 @@ export class GetMerchantStatsUseCase {
 
     const result = {
       totalOrders: { value: totalOrdersCount, trend: '+10%' },
-      total_products: { value: total_products, trend: '+2 new' },
-      total_earnings: {
+      totalProducts: { value: total_products, trend: '+2 new' },
+      totalEarnings: {
         value: calculateNet(grossTotal),
         trend: '+15%',
       },
-      monthly_earnings: {
+      monthlyEarnings: {
         value: calculateNet(grossMonthly),
         trend: '+8%',
       },

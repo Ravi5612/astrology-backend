@@ -80,23 +80,51 @@ export class ChatSession {
   @Column({ type: 'float', default: 0, name: 'total_cost' })
   total_cost!: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, name: 'expert_earning', transformer: new ColumnNumericTransformer() })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+    name: 'expert_earning',
+    transformer: new ColumnNumericTransformer(),
+  })
   expert_earning!: number;
 
   @Column({ type: 'uuid', nullable: true, name: 'agent_id' })
   agent_id?: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, name: 'agent_commission', transformer: new ColumnNumericTransformer() })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+    name: 'agent_commission',
+    transformer: new ColumnNumericTransformer(),
+  })
   agent_commission!: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, name: 'platform_fee', transformer: new ColumnNumericTransformer() })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+    name: 'platform_fee',
+    transformer: new ColumnNumericTransformer(),
+  })
   platform_fee!: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, name: 'gst', transformer: new ColumnNumericTransformer() })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+    name: 'gst',
+    transformer: new ColumnNumericTransformer(),
+  })
   gst!: number;
 
   @Column({ type: 'jsonb', nullable: true, name: 'metadata' })
-  metadata: any;
+  metadata: Record<string, unknown>;
 
   @Column({ type: 'int', default: 0, name: 'max_duration_seconds' })
   max_duration_seconds!: number;

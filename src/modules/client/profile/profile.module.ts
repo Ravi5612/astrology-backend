@@ -36,5 +36,4 @@ import { UsersModule } from '@/modules/users/users.module';
   ],
   exports: [ClientProfileFacade],
 })
-export class ProfileModule { }
-
+export class ProfileModule {}

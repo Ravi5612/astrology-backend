@@ -20,28 +20,39 @@ export class GetMerchantFinanceStatsUseCase {
     try {
       // Resolve merchant profile ID from user ID
       const merchantProfile = await this.merchantRepo.findOne({
-        where: { user_id: userId as any },
+        where: { user_id: userId },
         select: ['id'],
       });
       const merchantId = merchantProfile?.id;
 
-      const [wallet, actual_earnings, withdrawalsStatus, grossEarnings] = await Promise.all([
-        this.walletFacade.getWallet(userId as any),
-        this.walletFacade.getTotalEarnings(userId),
-        this.walletFacade.getWithdrawalsStatus(userId as any),
-        merchantId
-          ? this.orderFacade.getMerchantGrossTotalEarnings(merchantId)
-          : Promise.resolve(0),
-      ]);
-      
-      const platformFeeRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_PUJA_SHOP');
-      const gstRate = await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
-      
+      const [wallet, actual_earnings, withdrawalsStatus, grossEarnings] =
+        await Promise.all([
+          this.walletFacade.getWallet(userId),
+          this.walletFacade.getTotalEarnings(userId),
+          this.walletFacade.getWithdrawalsStatus(userId),
+          merchantId
+            ? this.orderFacade.getMerchantGrossTotalEarnings(merchantId)
+            : Promise.resolve(0),
+        ]);
+
+      const platformFeeRate =
+        await this.walletFacade.getAdminCommissionFromSetting(
+          'COMMISION_FROM_PUJA_SHOP',
+        );
+      const gstRate =
+        await this.walletFacade.getAdminCommissionFromSetting('GST_PERCENTAGE');
+
       const estimatedFee = grossEarnings * (platformFeeRate / 100);
       const estimatedGst = estimatedFee * (gstRate / 100);
       const netEarnings = grossEarnings - estimatedFee - estimatedGst;
 
-      console.log('[FINANCE_STATS] Data retrieved:', { wallet, actual_earnings, withdrawalsStatus, grossEarnings, netEarnings });
+      console.log('[FINANCE_STATS] Data retrieved:', {
+        wallet,
+        actual_earnings,
+        withdrawalsStatus,
+        grossEarnings,
+        netEarnings,
+      });
 
       // Calculate next payout date (Next Monday at 10 AM)
       const next_payout_date = new Date();
@@ -50,15 +61,15 @@ export class GetMerchantFinanceStatsUseCase {
       next_payout_date.setHours(10, 0, 0, 0);
 
       const result = {
-        total_earnings: Number(netEarnings.toFixed(2)),
-        actual_earnings: Number(actual_earnings) || 0,
-        available_balance: Number(wallet?.balance) || 0,
+        totalEarnings: Number(netEarnings.toFixed(2)),
+        actualEarnings: Number(actual_earnings) || 0,
+        availableBalance: Number(wallet?.balance) || 0,
         pendingPayout: Number(withdrawalsStatus?.pending_amount) || 0,
-        processing_amount: Number(withdrawalsStatus?.processing_amount) || 0,
-        total_payouts: Number(withdrawalsStatus?.total_withdrawn) || 0,
-        next_payout_date: next_payout_date.toISOString(),
+        processingAmount: Number(withdrawalsStatus?.processing_amount) || 0,
+        totalPayouts: Number(withdrawalsStatus?.total_withdrawn) || 0,
+        nextPayoutDate: next_payout_date.toISOString(),
       };
-      
+
       console.log('[FINANCE_STATS] Final Result:', result);
       return result;
     } catch (error) {

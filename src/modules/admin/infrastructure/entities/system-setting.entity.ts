@@ -6,7 +6,7 @@ export class SystemSetting {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @Column({type: 'character varying', length: 255, unique: true })
+  @Column({ type: 'character varying', length: 255, unique: true })
   key!: string;
 
   @Column({ type: 'text' })

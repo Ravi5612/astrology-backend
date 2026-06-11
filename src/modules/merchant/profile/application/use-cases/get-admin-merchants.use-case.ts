@@ -74,7 +74,7 @@ export class GetAdminMerchantsUseCase {
             address: m.address,
             status: m.status,
             isOnline: m.isOnline,
-            isVerified: m.status === 'active',
+            isVerified: (m.status as string) === 'active',
             gstin: m.gstin,
             isGstExempt: m.isGstExempt,
             pan: mask(decryptedPan), // Masked for list view

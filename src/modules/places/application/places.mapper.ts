@@ -10,35 +10,44 @@ export class PlacesMapper {
     'tiktok.com',
   ];
 
-  mapSerperPlaces(rawResults: any[]): any[] {
+  mapSerperPlaces(
+    rawResults: Record<string, unknown>[],
+  ): Record<string, unknown>[] {
     if (!rawResults || !Array.isArray(rawResults)) {
-        console.log('PlacesMapper: rawResults is not an array', rawResults);
-        return [];
+      console.log('PlacesMapper: rawResults is not an array', rawResults);
+      return [];
     }
 
-    return rawResults
-      .map((item, index) => {
-        const thumb = item.thumbnail_url || item.image_url || item.thumbnail;
-        return {
-          id: `place_${Date.now()}_${index}`,
-          title: item.title || 'N/A',
-          thumbnail_url: thumb || 'https://via.placeholder.com/300?text=Sacred+Place',
-          address: item.address || 'Address on request',
-          rating: item.rating ? Number(item.rating) : 0,
-          rating_count: item.ratingCount ? Number(item.ratingCount) : 0,
-          category: item.category || 'Sacred Site',
-        };
-      });
+    return rawResults.map((item, index) => {
+      const thumb =
+        (item.thumbnail_url as string) ||
+        (item.image_url as string) ||
+        (item.thumbnail as string);
+      return {
+        id: `place_${Date.now()}_${index}`,
+        title: (item.title as string) || 'N/A',
+        thumbnail_url:
+          thumb || 'https://via.placeholder.com/300?text=Sacred+Place',
+        address: (item.address as string) || 'Address on request',
+        rating: item.rating ? Number(item.rating) : 0,
+        rating_count: item.ratingCount ? Number(item.ratingCount) : 0,
+        category: (item.category as string) || 'Sacred Site',
+      };
+    });
   }
 
-  mapSerperImages(rawImages: any[]): any[] {
+  mapSerperImages(
+    rawImages: Record<string, unknown>[],
+  ): Record<string, unknown>[] {
     if (!rawImages || !Array.isArray(rawImages)) return [];
 
     return rawImages
       .map((item, index) => ({
         id: `img_${Date.now()}_${index}`,
-        title: item.title || 'Sacred Place View',
-        thumbnail_url: this.filterImageUrl(item.image_url || item.thumbnail_url),
+        title: (item.title as string) || 'Sacred Place View',
+        thumbnail_url: this.filterImageUrl(
+          (item.image_url as string) || (item.thumbnail_url as string),
+        ),
         address: 'N/A',
         rating: 0,
         rating_count: 0,

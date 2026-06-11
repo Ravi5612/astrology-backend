@@ -1,4 +1,3 @@
-
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,7 +11,7 @@ export class GetUserOrdersUseCase {
     private orderRepo: Repository<Order>,
     @Inject(forwardRef(() => PujaAppointmentFacade))
     private pujaAppointmentFacade: PujaAppointmentFacade,
-  ) { }
+  ) {}
 
   async execute(userId: string, limit?: number, offset?: number) {
     // 1. Fetch Product Orders
@@ -23,7 +22,8 @@ export class GetUserOrdersUseCase {
     });
 
     // 2. Fetch Puja Appointments (as Service Orders)
-    const pujaOrders = await this.pujaAppointmentFacade.getUserAppointments(userId);
+    const pujaOrders =
+      await this.pujaAppointmentFacade.getUserAppointments(userId);
 
     // 3. Normalize and Combine
     const normalizedProducts = productOrders.map((o) => ({
@@ -37,7 +37,9 @@ export class GetUserOrdersUseCase {
       date: o.created_at,
       merchant_id: o.items.length > 0 ? o.items[0].product.merchant_id : null,
       payment_method: o.payment_method,
-      delivery_otp: [OrderStatus.SHIPPED, OrderStatus.PACKED].includes(o.status) ? o.delivery_otp : null,
+      delivery_otp: [OrderStatus.SHIPPED, OrderStatus.PACKED].includes(o.status)
+        ? o.delivery_otp
+        : null,
       items: o.items.map((i) => ({
         id: i.id,
         name: i.product.name,
@@ -61,13 +63,15 @@ export class GetUserOrdersUseCase {
       expert_id: p.expert?.id || p.expert_id,
       scheduled_date: p.scheduled_date,
       scheduled_time: p.scheduled_time,
-      items: [{
-        id: p.puja_id || (p.puja && p.puja.id),
-        name: p.puja?.name || 'Puja Service',
-        quantity: 1,
-        price: Number(p.price),
-        image: '', // Can add puja image if available
-      }],
+      items: [
+        {
+          id: p.puja_id || (p.puja && p.puja.id),
+          name: p.puja?.name || 'Puja Service',
+          quantity: 1,
+          price: Number(p.price),
+          image: '', // Can add puja image if available
+        },
+      ],
     }));
 
     // 4. Combine and Sort
@@ -76,11 +80,12 @@ export class GetUserOrdersUseCase {
     );
 
     const totalCount = combined.length;
-    
+
     // 5. Paginate
-    const paginatedData = (limit !== undefined && offset !== undefined)
-      ? combined.slice(offset, offset + limit)
-      : combined;
+    const paginatedData =
+      limit !== undefined && offset !== undefined
+        ? combined.slice(offset, offset + limit)
+        : combined;
 
     return {
       data: paginatedData,

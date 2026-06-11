@@ -23,9 +23,7 @@ import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      ProfileMerchant,
-    ]),
+    TypeOrmModule.forFeature([ProfileMerchant]),
     forwardRef(() => WalletModule),
     OrderModule,
     ProductModule,

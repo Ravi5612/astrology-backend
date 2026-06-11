@@ -3,12 +3,12 @@ import { RazorpayProvider } from './razorpay.provider';
 import { PAYMENT_GATEWAY } from './payment-gateway.interface';
 
 @Module({
-    providers: [
-        {
-            provide: PAYMENT_GATEWAY,
-            useClass: RazorpayProvider,
-        },
-    ],
-    exports: [PAYMENT_GATEWAY],
+  providers: [
+    {
+      provide: PAYMENT_GATEWAY,
+      useClass: RazorpayProvider,
+    },
+  ],
+  exports: [PAYMENT_GATEWAY],
 })
-export class PaymentGatewayModule { }
+export class PaymentGatewayModule {}

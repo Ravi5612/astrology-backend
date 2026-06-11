@@ -17,8 +17,14 @@ export class AstrologyController {
     @Query('boy_tz') boy_tz: string,
   ) {
     return this.astrologyFacade.getGunaMilan(
-      { datetime: girl_dob, location: { lat: girl_lat, lon: girl_lon, tz: girl_tz } },
-      { datetime: boy_dob, location: { lat: boy_lat, lon: boy_lon, tz: boy_tz } }
+      {
+        datetime: girl_dob,
+        location: { lat: girl_lat, lon: girl_lon, tz: girl_tz },
+      },
+      {
+        datetime: boy_dob,
+        location: { lat: boy_lat, lon: boy_lon, tz: boy_tz },
+      },
     );
   }
 

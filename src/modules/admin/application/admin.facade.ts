@@ -1,9 +1,11 @@
-
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { GetAdminDashboardStatsUseCase } from './use-cases/get-admin-dashboard-stats.use-case';
 import { GetAdminUserGrowthStatsUseCase } from './use-cases/get-admin-user-growth-stats.use-case';
 import { GetExpertDetailUseCase } from './use-cases/get-expert-detail.use-case';
-import { GetFilteredUsersUseCase, FilterCriteria } from './use-cases/get-filtered-users.use-case';
+import {
+  GetFilteredUsersUseCase,
+  FilterCriteria,
+} from './use-cases/get-filtered-users.use-case';
 import { AssignCouponBulkUseCase } from './use-cases/assign-coupon-bulk.use-case';
 import { CreateAgentUseCase } from './use-cases/create-agent.use-case';
 import { GetAgentsUseCase } from './use-cases/get-agents.use-case';
@@ -53,8 +55,7 @@ export class AdminFacade {
     @Inject(forwardRef(() => SupportFacade))
     private readonly supportFacade: SupportFacade,
     private readonly getSystemSettingsUseCase: GetSystemSettingsUseCase,
-  ) { }
-
+  ) {}
 
   async getDashboardStats() {
     return this.getDashboardStatsUseCase.execute();
@@ -72,25 +73,47 @@ export class AdminFacade {
     return this.chatFacade.findAllSessions(filter, page, limit);
   }
 
-
-  async terminateSession(sessionId: string, adminId: string, userMessage?: string, expertMessage?: string) {
-    return this.chatFacade.adminTerminateSession(sessionId, adminId, userMessage, expertMessage);
+  async terminateSession(
+    sessionId: string,
+    adminId: string,
+    userMessage?: string,
+    expertMessage?: string,
+  ) {
+    return this.chatFacade.adminTerminateSession(
+      sessionId,
+      adminId,
+      userMessage,
+      expertMessage,
+    );
   }
 
-  async getWithdrawals(page: number = 1, limit: number = 10, status?: WithdrawalStatus, role?: RoleEnum) {
+  async getWithdrawals(
+    page: number = 1,
+    limit: number = 10,
+    status?: WithdrawalStatus,
+    role?: RoleEnum,
+  ) {
     const offset = (page - 1) * limit;
     return this.walletFacade.getPendingWithdrawals(limit, offset, status, role);
   }
 
-
-  async updateWithdrawalStatus(id: string, status: WithdrawalStatus, adminId: string, remark?: string) {
-    return this.walletFacade.updateWithdrawalStatus(id, status, adminId, remark);
+  async updateWithdrawalStatus(
+    id: string,
+    status: WithdrawalStatus,
+    adminId: string,
+    remark?: string,
+  ) {
+    return this.walletFacade.updateWithdrawalStatus(
+      id,
+      status,
+      adminId,
+      remark,
+    );
   }
 
   async getWithdrawalStats(role?: RoleEnum) {
     return this.walletFacade.getAdminWithdrawalStats(role);
   }
-
 
   async getFilteredUsersCount(filters: FilterCriteria) {
     return this.getFilteredUsersUseCase.executeCount(filters);
@@ -104,19 +127,24 @@ export class AdminFacade {
     return this.assignCouponBulkUseCase.execute(couponCode, filters);
   }
 
-  async createAgent(dto: CreateAgentDto, files?: any) {
+  async createAgent(dto: CreateAgentDto, files?: Record<string, unknown>) {
     return this.createAgentUseCase.execute(dto, files);
   }
 
-  async getAgents(params: { page?: number; limit?: number; search?: string; status?: string }) {
+  async getAgents(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+  }) {
     return this.getAgentsUseCase.execute(params);
   }
 
   async getAgentStats() {
     return this.getAgentStatsUseCase.execute();
   }
- 
-  async getListings(params?: any) {
+
+  async getListings(params?: Record<string, unknown>) {
     return this.getAdminListingsUseCase.execute(params);
   }
 
@@ -137,7 +165,11 @@ export class AdminFacade {
   }
 
   // --- Support / Disputes Management ---
-  async getAllDisputes(params?: { status?: DisputeStatus, page?: number, limit?: number }) {
+  async getAllDisputes(params?: {
+    status?: DisputeStatus;
+    page?: number;
+    limit?: number;
+  }) {
     return this.supportFacade.getAllDisputes(params);
   }
 
@@ -145,7 +177,11 @@ export class AdminFacade {
     return this.supportFacade.getDisputeByIdForAdmin(disputeId);
   }
 
-  async updateDisputeStatus(disputeId: string, status: DisputeStatus, notes?: string) {
+  async updateDisputeStatus(
+    disputeId: string,
+    status: DisputeStatus,
+    notes?: string,
+  ) {
     return this.supportFacade.updateDisputeStatus(disputeId, { status, notes });
   }
 
@@ -153,15 +189,27 @@ export class AdminFacade {
     return this.supportFacade.getAdminMessages(disputeId);
   }
 
-  async sendDisputeMessage(disputeId: string, adminId: string, data: { message: string }) {
+  async sendDisputeMessage(
+    disputeId: string,
+    adminId: string,
+    data: { message: string },
+  ) {
     return this.supportFacade.sendAdminMessage(adminId, disputeId, data);
   }
 
-  async getAllMerchants(params: { search?: string; status?: string; page?: number; limit?: number }) {
+  async getAllMerchants(params: {
+    search?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }) {
     return this.getAdminMerchantsUseCase.execute(params);
   }
 
-  async updateMerchantStatus(id: string, data: { status: string; kycStatus?: string }) {
+  async updateMerchantStatus(
+    id: string,
+    data: { status: string; kycStatus?: string },
+  ) {
     return this.updateMerchantStatusAdminUseCase.execute(id, data);
   }
 
@@ -177,4 +225,3 @@ export class AdminFacade {
     return this.getSystemSettingsUseCase.execute(keys);
   }
 }
-

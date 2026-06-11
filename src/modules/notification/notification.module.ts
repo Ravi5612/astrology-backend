@@ -10,16 +10,16 @@ import { MarkAsReadUseCase } from './application/use-cases/mark-as-read.use-case
 import { ClearAllNotificationsUseCase } from './application/use-cases/clear-all-notifications.use-case';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Notification])],
-    controllers: [NotificationController],
-    providers: [
-        NotificationGateway,
-        NotificationFacade,
-        CreateNotificationUseCase,
-        GetNotificationsUseCase,
-        MarkAsReadUseCase,
-        ClearAllNotificationsUseCase,
-    ],
-    exports: [NotificationFacade, NotificationGateway],
+  imports: [TypeOrmModule.forFeature([Notification])],
+  controllers: [NotificationController],
+  providers: [
+    NotificationGateway,
+    NotificationFacade,
+    CreateNotificationUseCase,
+    GetNotificationsUseCase,
+    MarkAsReadUseCase,
+    ClearAllNotificationsUseCase,
+  ],
+  exports: [NotificationFacade, NotificationGateway],
 })
-export class NotificationModule { }
+export class NotificationModule {}

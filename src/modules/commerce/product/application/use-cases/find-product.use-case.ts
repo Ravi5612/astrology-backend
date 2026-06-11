@@ -1,4 +1,3 @@
-
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -20,7 +19,9 @@ export class FindProductUseCase {
     return {
       ...product,
       price: Number(product.price),
-      original_price: product.original_price ? Number(product.original_price) : Number(product.price),
+      original_price: product.original_price
+        ? Number(product.original_price)
+        : Number(product.price),
       image_url: product.image_url ?? '',
       percentage_off: product.percentage_off ?? 0,
     };

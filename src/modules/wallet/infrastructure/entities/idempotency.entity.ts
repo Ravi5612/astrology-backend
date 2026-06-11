@@ -1,4 +1,10 @@
-import { Entity, Column, CreateDateColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
@@ -10,7 +16,7 @@ export class Idempotency {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @Column({type: 'text'})
+  @Column({ type: 'text' })
   key!: string;
 
   @ManyToOne(() => ProfileClient, { nullable: true })
@@ -45,7 +51,7 @@ export class Idempotency {
   payload_hash!: string | null;
 
   @Column({ type: 'jsonb', nullable: true })
-  response_payload: any;
+  response_payload!: Record<string, unknown> | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at!: Date;

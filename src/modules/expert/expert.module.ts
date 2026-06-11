@@ -11,14 +11,14 @@ import { TodosModule } from './todos/todos.module';
     ExpertEarningsModule,
     ExpertDashboardModule,
     TodosModule,
-    ProfileModule
+    ProfileModule,
   ],
   exports: [
     BankAccountsModule,
     ExpertEarningsModule,
     ExpertDashboardModule,
     TodosModule,
-    ProfileModule
-  ]
+    ProfileModule,
+  ],
 })
-export class ExpertModule { }
+export class ExpertModule {}

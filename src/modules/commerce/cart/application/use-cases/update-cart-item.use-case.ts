@@ -1,4 +1,3 @@
-
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,7 +15,10 @@ export class UpdateCartItemUseCase {
     private cartItemRepository: Repository<CartItem>,
   ) {}
 
-  async execute(userId: string, updateCartItemDto: UpdateCartItemDto & { productId: string }) {
+  async execute(
+    userId: string,
+    updateCartItemDto: UpdateCartItemDto & { productId: string },
+  ) {
     const { productId, quantity } = updateCartItemDto;
 
     const cart = await this.cartRepository.findOne({

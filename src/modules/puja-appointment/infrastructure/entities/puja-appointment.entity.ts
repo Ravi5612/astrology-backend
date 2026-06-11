@@ -1,4 +1,4 @@
-import {
+﻿import {
   Entity,
   Column,
   ManyToOne,
@@ -6,7 +6,6 @@ import {
   UpdateDateColumn,
   JoinColumn,
 } from 'typeorm';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
@@ -22,9 +21,9 @@ export enum PujaAppointmentStatus {
 }
 
 export enum PujaMode {
-    ONLINE = 'online',
-    HOME_VISIT_WITH = 'home_visit_with',
-    HOME_VISIT_WITHOUT = 'home_visit_without',
+  ONLINE = 'online',
+  HOME_VISIT_WITH = 'home_visit_with',
+  HOME_VISIT_WITHOUT = 'home_visit_without',
 }
 
 @Entity({ schema: 'consultations', name: 'puja_appointments' })

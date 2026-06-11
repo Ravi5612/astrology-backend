@@ -12,7 +12,7 @@ export class Product {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @Column({type: 'character varying', length: 255})
+  @Column({ type: 'character varying', length: 255 })
   name!: string;
 
   @Column({ name: 'sku', type: 'text', nullable: true, unique: true })

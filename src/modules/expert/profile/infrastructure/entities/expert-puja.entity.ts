@@ -57,7 +57,7 @@ export class ExpertPuja {
   districts!: string[] | null;
 
   @Column({ type: 'json', nullable: true })
-  samagri_list!: { name: string; quantity: string; }[] | null;
+  samagri_list!: { name: string; quantity: string }[] | null;
 
   @Column({ type: 'int', default: 0 })
   total_likes!: number;

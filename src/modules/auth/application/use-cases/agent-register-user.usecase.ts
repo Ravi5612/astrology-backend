@@ -1,4 +1,3 @@
-
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { UsersFacade } from '@/modules/users/application/users.facade';
@@ -17,127 +16,147 @@ import { ConfigService } from '@nestjs/config';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 import { IHasherToken, IHasher } from '@/common/contracts/hasher.contract';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Injectable()
 export class AgentRegisterUserUseCase {
-    private readonly logger = new Logger(AgentRegisterUserUseCase.name);
+  private readonly logger = new Logger(AgentRegisterUserUseCase.name);
 
-    constructor(
-        private readonly db: DatabaseService,
-        private readonly usersFacade: UsersFacade,
-        @Inject(IHasherToken) private readonly hasher: IHasher,
-        private readonly profileCreationResolver: AuthProfileCreationResolver,
-        private readonly mailer: NodeMailerService,
-        private readonly eventEmitter: EventEmitter2,
-        private readonly tokenCrypto: TokenCryptoService,
-        private readonly configService: ConfigService,
-        private readonly walletFacade: WalletFacade,
-        private readonly expertProfileFacade: ExpertProfileFacade,
-        private readonly updateMerchantProfileWithQueryRunnerUseCase: UpdateMerchantProfileWithQueryRunnerUseCase,
-        private readonly clientProfileFacade: ClientProfileFacade,
-        private readonly agentFacade: AgentFacade,
-    ) { }
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly usersFacade: UsersFacade,
+    @Inject(IHasherToken) private readonly hasher: IHasher,
+    private readonly profileCreationResolver: AuthProfileCreationResolver,
+    private readonly mailer: NodeMailerService,
+    private readonly eventEmitter: EventEmitter2,
+    private readonly tokenCrypto: TokenCryptoService,
+    private readonly configService: ConfigService,
+    private readonly walletFacade: WalletFacade,
+    private readonly expertProfileFacade: ExpertProfileFacade,
+    private readonly updateMerchantProfileWithQueryRunnerUseCase: UpdateMerchantProfileWithQueryRunnerUseCase,
+    private readonly clientProfileFacade: ClientProfileFacade,
+    private readonly agentFacade: AgentFacade,
+  ) {}
 
-    async execute(dto: AgentRegisterUserDto, agentId: string) {
-        const existingUser = await this.usersFacade.findByEmail(dto.email);
+  async execute(dto: AgentRegisterUserDto, agentId: string) {
+    const existingUser = await this.usersFacade.findByEmail(dto.email);
 
-        // Ensure email is unique (throws if not)
-        RegistrationPolicy.ensureEmailIsUnique(existingUser);
+    // Ensure email is unique (throws if not)
+    RegistrationPolicy.ensureEmailIsUnique(existingUser);
 
-        // Generate random password (8 chars)
-        const generatedPassword = crypto.randomBytes(4).toString('hex');
+    // Generate random password (8 chars)
+    const generatedPassword = crypto.randomBytes(4).toString('hex');
 
-        let createdUser;
+    let createdUser!: User;
 
-        try {
-            await this.db.transaction(async (queryRunner) => {
-                const hashedPassword = await this.hasher.hash(generatedPassword);
+    try {
+      await this.db.transaction(async (queryRunner) => {
+        const hashedPassword = await this.hasher.hash(generatedPassword);
 
-                createdUser = await this.usersFacade.create(
-                    {
-                        name: dto.name,
-                        email: dto.email,
-                        roles: dto.roles,
-                        password: hashedPassword,
-                        referred_by_id: agentId,
-                    },
-                    queryRunner,
-                );
+        createdUser = await this.usersFacade.create(
+          {
+            name: dto.name,
+            email: dto.email,
+            roles: dto.roles,
+            password: hashedPassword,
+            referred_by_id: agentId,
+          },
+          queryRunner,
+        );
 
-                await this.profileCreationResolver.ensureProfile(createdUser, queryRunner);
+        await this.profileCreationResolver.ensureProfile(
+          createdUser,
+          queryRunner,
+        );
 
-                // Update phone number in the specific profile if provided
-                // Handle Expert-specific logic (Lock Commission Rate)
-                if (hasRoles(dto.roles, 'EXPERT')) {
-                    const agentCommissionRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_ASTROLOGER');
-                    await this.expertProfileFacade.updateProfileWithQueryRunner(
-                        createdUser.id,
-                        {
-                            agent_commission_rate: agentCommissionRate,
-                            ...(dto.phone ? { phone_number: dto.phone } : {})
-                        },
-                        queryRunner
-                    );
-                } else if (hasRoles(dto.roles, 'MERCHANT')) {
-                    const agentCommissionRate = await this.walletFacade.getAdminCommissionFromSetting('COMMISSION_FROM_PUJA_SHOP') || 
-                                         await this.walletFacade.getAdminCommissionFromSetting('COMMISION_FROM_PUJA_SHOP');
-                    await this.updateMerchantProfileWithQueryRunnerUseCase.execute(
-                        createdUser.id,
-                        {
-                            agent_commission_rate: agentCommissionRate,
-                            shopName: dto.name,
-                            ...(dto.phone ? { phone: dto.phone } : {})
-                        },
-                        queryRunner
-                    );
-                } else if (dto.phone) {
-                    await this.clientProfileFacade.updateProfileWithQueryRunner(
-                        createdUser.id,
-                        { phone: dto.phone },
-                        queryRunner
-                    );
-                }
-
-                await this.agentFacade.incrementRegistrationsWithQueryRunner(
-                    agentId,
-                    createdUser.id,
-                    hasRoles(dto.roles, 'EXPERT'),
-                    queryRunner
-                );
-
-                return createdUser;
-            });
-        } catch (error) {
-            this.logger.error(`Failed to register user/expert by agent: ${agentId}`, error.stack);
-            throw error;
+        // Update phone number in the specific profile if provided
+        // Handle Expert-specific logic (Lock Commission Rate)
+        if (hasRoles(dto.roles, 'EXPERT')) {
+          const agentCommissionRate =
+            await this.walletFacade.getAdminCommissionFromSetting(
+              'COMMISION_FROM_ASTROLOGER',
+            );
+          await this.expertProfileFacade.updateProfileWithQueryRunner(
+            createdUser.id,
+            {
+              agent_commission_rate: agentCommissionRate,
+              ...(dto.phone ? { phone_number: dto.phone } : {}),
+            },
+            queryRunner,
+          );
+        } else if (hasRoles(dto.roles, 'MERCHANT')) {
+          const agentCommissionRate =
+            (await this.walletFacade.getAdminCommissionFromSetting(
+              'COMMISSION_FROM_PUJA_SHOP',
+            )) ||
+            (await this.walletFacade.getAdminCommissionFromSetting(
+              'COMMISION_FROM_PUJA_SHOP',
+            ));
+          await this.updateMerchantProfileWithQueryRunnerUseCase.execute(
+            createdUser.id,
+            {
+              agent_commission_rate: agentCommissionRate,
+              shopName: dto.name,
+              ...(dto.phone ? { phone: dto.phone } : {}),
+            },
+            queryRunner,
+          );
+        } else if (dto.phone) {
+          await this.clientProfileFacade.updateProfileWithQueryRunner(
+            createdUser.id,
+            { phone: dto.phone },
+            queryRunner,
+          );
         }
 
-        const isExpert = hasRoles(dto.roles, 'EXPERT');
-        const isMerchant = hasRoles(dto.roles, 'MERCHANT');
+        await this.agentFacade.incrementRegistrationsWithQueryRunner(
+          agentId,
+          createdUser.id,
+          hasRoles(dto.roles, 'EXPERT'),
+          queryRunner,
+        );
 
-        // Generate verification link
-        const verification_token = this.tokenCrypto.signTemporaryToken({
-            userId: createdUser.id,
-            email: createdUser.email,
-        });
-        
-        const configKey = isExpert ? 'email.expertFrontendUrl' : 
-                         isMerchant ? 'email.merchantFrontendUrl' : 
-                         'email.frontendUrl';
-                         
-        const frontendUrl = this.configService.get(configKey) || 
-                          (isExpert ? process.env.ASTROLOGER_FRONTEND_URL : 
-                           isMerchant ? process.env.MERCHANT_FRONTEND_URL : 
-                           process.env.FRONTEND_URL);
-                           
-        const verifyLink = `${frontendUrl}/verify-email?verification_token=${verification_token}`;
+        return createdUser;
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to register user/expert by agent: ${agentId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      throw error;
+    }
 
-        let emailContent = '';
-        let emailSubject = '';
+    const isExpert = hasRoles(dto.roles, 'EXPERT');
+    const isMerchant = hasRoles(dto.roles, 'MERCHANT');
 
-        if (isMerchant) {
-            emailSubject = 'Merchant Account Created - Action Required';
-            emailContent = `
+    // Generate verification link
+    const verification_token = this.tokenCrypto.signTemporaryToken({
+      userId: createdUser.id,
+      email: createdUser.email,
+    });
+
+    const configKey = isExpert
+      ? 'email.expertFrontendUrl'
+      : isMerchant
+        ? 'email.merchantFrontendUrl'
+        : 'email.frontendUrl';
+
+    const frontendUrl =
+      this.configService.get<string>(configKey) ||
+      (isExpert
+        ? process.env.ASTROLOGER_FRONTEND_URL
+        : isMerchant
+          ? process.env.MERCHANT_FRONTEND_URL
+          : process.env.FRONTEND_URL);
+
+    const verifyLink = `${frontendUrl}/verify-email?verification_token=${verification_token}`;
+
+    let emailContent = '';
+    let emailSubject = '';
+
+    if (isMerchant) {
+      emailSubject = 'Merchant Account Created - Action Required';
+      emailContent = `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
                     <h2 style="color: #333;">Welcome to Astrology in Bharat, ${createdUser.name}!</h2>
                     <p>An account has been created for you as a <strong>Merchant</strong> for your Puja Shop.</p>
@@ -159,10 +178,10 @@ export class AgentRegisterUserUseCase {
                     <p style="font-size: 12px; color: #999; text-align: center;">If you have any questions, please contact our support team.</p>
                 </div>
             `;
-        } else {
-            const roleString = isExpert ? 'Astrologer' : 'User';
-            emailSubject = 'Verification Required & Account Credentials';
-            emailContent = `
+    } else {
+      const roleString = isExpert ? 'Astrologer' : 'User';
+      emailSubject = 'Verification Required & Account Credentials';
+      emailContent = `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
                     <h2 style="color: #333;">Welcome to Astrology in Bharat, ${createdUser.name}!</h2>
                     <p>An account has been created for you by our team as an <strong>${roleString}</strong>.</p>
@@ -184,26 +203,29 @@ export class AgentRegisterUserUseCase {
                     <p style="font-size: 12px; color: #999; text-align: center;">If you have any questions, please contact our support team.</p>
                 </div>
             `;
-        }
-
-        // Send the account email
-        let emailSent = true;
-        let emailError = null;
-        try {
-            await this.mailer.sendEmail(createdUser.email, emailSubject, emailContent);
-        } catch (err: any) {
-            this.logger.error('Registration email failed:', err.message);
-            emailSent = false;
-            emailError = err.message;
-        }
-
-        return {
-            success: true,
-            user: createdUser,
-            email_sent: emailSent,
-            email_error: emailError
-        };
     }
+
+    // Send the account email
+    let emailSent = true;
+    let emailError: string | null = null;
+    try {
+      await this.mailer.sendEmail(
+        createdUser.email,
+        emailSubject,
+        emailContent,
+      );
+    } catch (err: unknown) {
+      const error = err as Error;
+      this.logger.error('Registration email failed:', error.message);
+      emailSent = false;
+      emailError = error.message;
+    }
+
+    return {
+      success: true,
+      user: createdUser,
+      email_sent: emailSent,
+      email_error: emailError,
+    };
+  }
 }
-
-

@@ -17,24 +17,24 @@ import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/p
 import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/profile.module';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([Dispute, DisputeMessage]),
-        forwardRef(() => ClientProfileModule),
-        forwardRef(() => ExpertProfileModule),
-    ],
-    providers: [
-        SupportFacade,
-        SupportGateway,
-        GetDisputesUseCase,
-        CreateDisputeUseCase,
-        GetDisputeByIdUseCase,
-        SendDisputeMessageUseCase,
-        GetDisputeMessagesUseCase,
-        MarkMessagesAsReadUseCase,
-        GetAllDisputesUseCase,
-        UpdateDisputeStatusUseCase
-    ],
-    controllers: [SupportController],
-    exports: [SupportFacade],
+  imports: [
+    TypeOrmModule.forFeature([Dispute, DisputeMessage]),
+    forwardRef(() => ClientProfileModule),
+    forwardRef(() => ExpertProfileModule),
+  ],
+  providers: [
+    SupportFacade,
+    SupportGateway,
+    GetDisputesUseCase,
+    CreateDisputeUseCase,
+    GetDisputeByIdUseCase,
+    SendDisputeMessageUseCase,
+    GetDisputeMessagesUseCase,
+    MarkMessagesAsReadUseCase,
+    GetAllDisputesUseCase,
+    UpdateDisputeStatusUseCase,
+  ],
+  controllers: [SupportController],
+  exports: [SupportFacade],
 })
-export class SupportModule { }
+export class SupportModule {}

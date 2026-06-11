@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+﻿import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
+import { ProfileClient } from '../infrastructure/entities/profile-client.entity';
 import { GetProfileUseCase } from './use-cases/get-profile.usecase';
 import { CreateProfileUseCase } from './use-cases/create-profile.usecase';
 import { UpdateProfileUseCase } from './use-cases/update-profile.usecase';
@@ -7,7 +8,10 @@ import { UpdateProfilePictureUseCase } from './use-cases/update-profile-picture.
 import { UploadDocumentUseCase } from './use-cases/upload-document.usecase';
 import { SendPhoneOtpUseCase } from './use-cases/send-phone-otp.usecase';
 import { VerifyPhoneOtpUseCase } from './use-cases/verify-phone-otp.usecase';
-import { CreateProfileClientDto, UpdateProfileClientDto } from '../infrastructure/dto/profile-client.dto';
+import {
+  CreateProfileClientDto,
+  UpdateProfileClientDto,
+} from '../infrastructure/dto/profile-client.dto';
 import { UpdateClientProfileWithQueryRunnerUseCase } from './use-cases/update-profile-with-query-runner.usecase';
 
 @Injectable()
@@ -21,13 +25,17 @@ export class ClientProfileFacade {
     private readonly sendPhoneOtpUseCase: SendPhoneOtpUseCase,
     private readonly verifyPhoneOtpUseCase: VerifyPhoneOtpUseCase,
     private readonly updateClientProfileWithQueryRunnerUseCase: UpdateClientProfileWithQueryRunnerUseCase,
-  ) { }
+  ) {}
 
   async getProfile(userId: string, queryRunner?: QueryRunner) {
     return this.getProfileUseCase.execute(userId, queryRunner);
   }
 
-  async createProfile(userId: string, dto: CreateProfileClientDto, queryRunner?: QueryRunner) {
+  async createProfile(
+    userId: string,
+    dto: CreateProfileClientDto,
+    queryRunner?: QueryRunner,
+  ) {
     return this.createProfileUseCase.execute(userId, dto, queryRunner);
   }
 
@@ -51,7 +59,15 @@ export class ClientProfileFacade {
     return this.verifyPhoneOtpUseCase.execute(userId, phone, code);
   }
 
-  async updateProfileWithQueryRunner(userId: string, updates: Partial<any>, queryRunner: QueryRunner) {
-    return this.updateClientProfileWithQueryRunnerUseCase.execute(userId, updates, queryRunner);
+  async updateProfileWithQueryRunner(
+    userId: string,
+    updates: Partial<ProfileClient>,
+    queryRunner: QueryRunner,
+  ) {
+    return this.updateClientProfileWithQueryRunnerUseCase.execute(
+      userId,
+      updates,
+      queryRunner,
+    );
   }
 }

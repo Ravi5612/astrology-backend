@@ -1,11 +1,10 @@
-import { Module } from '@nestjs/common';
+﻿import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductLikeController } from './api/controllers/product-like.controller';
 import { ExpertLikeController } from './api/controllers/expert-like.controller';
 import { PujaLikeController } from './api/controllers/puja-like.controller';
 import { Wishlist } from './infrastructure/entities/wishlist.entity';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
-import { ExpertPuja } from '@/modules/expert/profile/infrastructure/entities/expert-puja.entity';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { UsersModule } from '../../users/users.module';
 import { ExpertModule } from '../../expert/expert.module';
@@ -36,7 +35,12 @@ import { ProfileModule as ExpertProfileModule } from '@/modules/expert/profile/p
     UsersModule,
     ExpertModule,
   ],
-  controllers: [ProductLikeController, ExpertLikeController, PujaLikeController, MerchantLikeController],
+  controllers: [
+    ProductLikeController,
+    ExpertLikeController,
+    PujaLikeController,
+    MerchantLikeController,
+  ],
   providers: [
     WishlistFacade,
     AddProductToWishlistUseCase,

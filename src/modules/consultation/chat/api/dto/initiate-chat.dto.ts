@@ -6,5 +6,5 @@ export class InitiateChatDto {
 
   @IsOptional()
   @IsObject()
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }

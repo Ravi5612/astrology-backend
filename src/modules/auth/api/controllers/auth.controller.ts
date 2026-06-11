@@ -1,4 +1,3 @@
-
 import { CookieOptions, Request, Response } from 'express';
 import {
   Controller,
@@ -18,7 +17,10 @@ import {
   ResetPasswordDto,
   SendMagicLinkDto,
 } from '../dto/register.dto';
-import { InitiateRegisterDto, CompleteRegisterDto } from '../dto/email-register.dto';
+import {
+  InitiateRegisterDto,
+  CompleteRegisterDto,
+} from '../dto/email-register.dto';
 import { JwtAuthGuard } from '../guards/auth.guard';
 import { RolesGuard } from '../guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -32,7 +34,7 @@ import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
   version: '1',
 })
 export class AuthController {
-  constructor(private readonly authFacade: AuthFacade) { }
+  constructor(private readonly authFacade: AuthFacade) {}
 
   @Post('email/register')
   async register(
@@ -131,7 +133,9 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const tokens = await this.authFacade.refreshToken(req['refreshToken']);
+    const tokens = await this.authFacade.refreshToken(
+      (req as unknown as Record<string, unknown>)['refreshToken'] as string,
+    );
     this.setCookies(res, tokens);
     return tokens;
   }
@@ -148,7 +152,7 @@ export class AuthController {
   }
 
   @Post('magic/new')
-  sendMagicLink(@Body() dto: SendMagicLinkDto, @Req() req: Request) {
+  sendMagicLink(@Body() dto: SendMagicLinkDto, @Req() _req: Request) {
     return this.authFacade.sendMagicLink(dto.email);
   }
 
@@ -183,7 +187,7 @@ export class AuthController {
   private setCookies(
     res: Response,
     tokens: { accessToken: string; refreshToken: string },
-  ){
+  ) {
     const isProduction = process.env.NODE_ENV === 'production';
 
     const cookieOptions: CookieOptions = {

@@ -13,7 +13,7 @@ export class IssueAuthTokensUseCase {
     private readonly tokenCrypto: TokenCryptoService,
     private readonly sessionRepo: SessionRepository,
     private readonly findProfileResolver: FindProfileResolver,
-  ) { }
+  ) {}
 
   async execute(
     user: User,
@@ -22,15 +22,15 @@ export class IssueAuthTokensUseCase {
     ua?: string,
     queryRunner?: QueryRunner,
   ) {
-
     const profileId = await this.findProfileForRole(user.id, targetRole);
-    
-    const accessToken = await this.tokenCrypto.createAccessToken<IAccessTokenPayload>({
-      sub: user.id,
-      roles: user.roles,
-      email: user.email,
-      profile: profileId ?? undefined,
-    });
+
+    const accessToken =
+      await this.tokenCrypto.createAccessToken<IAccessTokenPayload>({
+        sub: user.id,
+        roles: user.roles,
+        email: user.email,
+        profile: profileId ?? undefined,
+      });
 
     const { raw, hash } = await this.tokenCrypto.createRefreshToken();
 
@@ -49,11 +49,17 @@ export class IssueAuthTokensUseCase {
     return { accessToken, refreshToken: `${savedSession.id}.${raw}` };
   }
 
-  private async findProfileForRole(userId: string, targetRole?: RoleEnum): Promise<string | null> {
-    if(!targetRole) return null;
+  private async findProfileForRole(
+    userId: string,
+    targetRole?: RoleEnum,
+  ): Promise<string | null> {
+    if (!targetRole) return null;
 
-    const profileId = await this.findProfileResolver.findProfile(userId, targetRole);
+    const profileId = await this.findProfileResolver.findProfile(
+      userId,
+      targetRole,
+    );
 
-    return profileId; // Placeholder return  
-}
+    return profileId; // Placeholder return
+  }
 }

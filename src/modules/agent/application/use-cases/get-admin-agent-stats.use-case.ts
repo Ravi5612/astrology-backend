@@ -11,19 +11,30 @@ export class GetAdminAgentStatsUseCase {
     private readonly usersFacade: UsersFacade,
     @InjectRepository(ProfileAgent)
     private readonly profileAgentRepository: Repository<ProfileAgent>,
-  ) { }
+  ) {}
 
   async execute() {
-    const { total: total_agents } = await this.usersFacade.findAllByRole('agent', undefined, 1, 1);
-    const { total: active_agents } = await this.usersFacade.findAllByRole('agent', undefined, 1, 1, 'active');
+    const { total: total_agents } = await this.usersFacade.findAllByRole(
+      'agent',
+      undefined,
+      1,
+      1,
+    );
+    const { total: active_agents } = await this.usersFacade.findAllByRole(
+      'agent',
+      undefined,
+      1,
+      1,
+      'active',
+    );
 
     const blocked_agents = total_agents - active_agents;
 
     // Calculate total listings from all agent profiles
-    const listingsResult = await this.profileAgentRepository
+    const listingsResult = (await this.profileAgentRepository
       .createQueryBuilder('profile')
       .select('SUM(profile.total_registrations)', 'total')
-      .getRawOne();
+      .getRawOne()) as Record<string, unknown>;
 
     const total_listings = Number(listingsResult?.total) || 0;
 
@@ -37,5 +48,3 @@ export class GetAdminAgentStatsUseCase {
     };
   }
 }
-
-

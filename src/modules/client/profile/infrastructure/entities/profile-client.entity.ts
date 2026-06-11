@@ -80,7 +80,7 @@ export class ProfileClient {
   @Column({ type: 'text', nullable: true })
   profile_picture!: string | null;
 
-  @Column({type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true })
   marital_status!: string | null;
 
   @Column({ type: 'text', nullable: true })
@@ -105,9 +105,9 @@ export class ProfileClient {
   })
   total_spending!: number;
 
-  @CreateDateColumn({type: 'timestamptz'})
+  @CreateDateColumn({ type: 'timestamptz' })
   created_at!: Date;
 
-  @UpdateDateColumn({type: 'timestamptz'})
+  @UpdateDateColumn({ type: 'timestamptz' })
   updated_at!: Date;
 }

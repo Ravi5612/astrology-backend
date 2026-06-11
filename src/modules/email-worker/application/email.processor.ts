@@ -17,11 +17,15 @@ export class EmailProcessor extends WorkerHost {
     super();
   }
 
-  async process(job: Job<SendEmailPayload, any, string>): Promise<any> {
+  async process(job: Job<SendEmailPayload, unknown, string>): Promise<void> {
     this.logger.debug(`Processing email job ${job.id} for ${job.data.to}...`);
 
     try {
-      await this.mailerService.sendEmail(job.data.to, job.data.subject, job.data.html);
+      await this.mailerService.sendEmail(
+        job.data.to,
+        job.data.subject,
+        job.data.html,
+      );
       this.logger.debug(`Email job ${job.id} completed successfully.`);
     } catch (error) {
       this.logger.error(`Failed to send email for job ${job.id}:`, error);

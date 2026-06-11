@@ -1,7 +1,16 @@
-import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PujaAppointment, PujaAppointmentStatus, PujaMode } from '../../infrastructure/entities/puja-appointment.entity';
+import {
+  PujaAppointment,
+  PujaAppointmentStatus,
+  PujaMode,
+} from '../../infrastructure/entities/puja-appointment.entity';
 import { CreatePujaAppointmentDto } from '../dtos/create-puja-appointment.dto';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
@@ -22,7 +31,10 @@ export class CreatePujaAppointmentUseCase {
     private readonly expertGateway: ExpertGateway,
   ) {}
 
-  async execute(userId: string, dto: CreatePujaAppointmentDto): Promise<PujaAppointment> {
+  async execute(
+    userId: string,
+    dto: CreatePujaAppointmentDto,
+  ): Promise<PujaAppointment> {
     const puja = await this.expertProfileFacade.getPujaById(dto.puja_id);
 
     if (!puja) {
@@ -38,16 +50,18 @@ export class CreatePujaAppointmentUseCase {
     // --- SECURITY FIX: IGNORE DTO.PRICE (PRICE TAMPERING PROTECTION) ---
     let authoritativePrice = 0;
     if (dto.mode === PujaMode.ONLINE) {
-        authoritativePrice = puja.online_cost;
+      authoritativePrice = puja.online_cost;
     } else if (dto.mode === PujaMode.HOME_VISIT_WITH) {
-        authoritativePrice = puja.home_visit_with_samagri_cost;
+      authoritativePrice = puja.home_visit_with_samagri_cost;
     } else if (dto.mode === PujaMode.HOME_VISIT_WITHOUT) {
-        authoritativePrice = puja.home_visit_without_samagri_cost;
+      authoritativePrice = puja.home_visit_without_samagri_cost;
     }
 
     // Security Logging: Detect if user tried to manipulate price
     if (dto.price && Number(dto.price) !== authoritativePrice) {
-        console.warn(`[SECURITY_ALERT] Potential Price Tampering Attempt. User ${userId} sent price ₹${dto.price} for Puja ${dto.puja_id}, but authoritative price is ₹${authoritativePrice}. Override applied.`);
+      console.warn(
+        `[SECURITY_ALERT] Potential Price Tampering Attempt. User ${userId} sent price ₹${dto.price} for Puja ${dto.puja_id}, but authoritative price is ₹${authoritativePrice}. Override applied.`,
+      );
     }
 
     const appointment = this.pujaAppointmentRepository.create({
@@ -67,27 +81,30 @@ export class CreatePujaAppointmentUseCase {
 
     // Notify Expert
     const expertProfile = puja.expert;
-    
-    if (expertProfile && expertProfile.user_id as any) {
-        try {
-            await this.notificationFacade.create(
-                expertProfile.user_id as any as any,
-                NotificationType.PUJA_BOOKING,
-                'New Puja Booking Request',
-                `You have received a new booking request for ${puja.name}.`,
-                { appointment_id: saved.id, type: 'PUJA_BOOKING' }
-            );
 
-            // Real-time socket notification
-            this.expertGateway.notifyNewPujaBooking(expertProfile.user_id as any as any, {
-                ...saved,
-                user: clientProfile.user,
-                puja: puja
-            });
-        } catch (error) {
-            console.error('Failed to send notification to expert:', error);
-            // Non-blocking error
-        }
+    if (expertProfile && (expertProfile.user_id as unknown as string)) {
+      try {
+        await this.notificationFacade.create(
+          expertProfile.user_id as unknown as string,
+          NotificationType.PUJA_BOOKING,
+          'New Puja Booking Request',
+          `You have received a new booking request for ${puja.name}.`,
+          { appointment_id: saved.id, type: 'PUJA_BOOKING' },
+        );
+
+        // Real-time socket notification
+        this.expertGateway.notifyNewPujaBooking(
+          expertProfile.user_id as unknown as string,
+          {
+            ...saved,
+            user: clientProfile.user,
+            puja: puja,
+          },
+        );
+      } catch (error) {
+        console.error('Failed to send notification to expert:', error);
+        // Non-blocking error
+      }
     }
 
     return saved;

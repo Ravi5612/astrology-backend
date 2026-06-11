@@ -1,4 +1,3 @@
-import { EmailConfig } from '@/config/email.config';
 import { Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
@@ -9,21 +8,24 @@ export const NodemailerProvider: Provider = {
   provide: NODEMAILER_TRANSPORTER,
   inject: [ConfigService],
   useFactory: (config: ConfigService) => {
-    const email = config.get<EmailConfig>('email', { infer: true });
+    const email = config.get('email') as Record<string, unknown>;
 
     if (!email) {
       throw new Error('Email config not found');
     }
 
     return nodemailer.createTransport({
-      ...(email.host?.includes('gmail') ? { service: 'gmail' } : {
-        host: email.host,
-        port: email.port,
-        secure: email.port === 465 ? true : email.secure,
-      }),
+      ...((email.host as string)?.includes('gmail')
+        ? { service: 'gmail' }
+        : {
+            host: email.host as string,
+            port: email.port as number,
+            secure:
+              (email.port as number) === 465 ? true : (email.secure as boolean),
+          }),
       auth: {
-        user: email.user,
-        pass: (email.pass || '').replace(/\s+/g, ''),
+        user: email.user as string,
+        pass: ((email.pass as string) || '').replace(/\s+/g, ''),
       },
     });
   },

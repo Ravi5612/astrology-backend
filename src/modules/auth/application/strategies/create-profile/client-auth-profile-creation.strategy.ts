@@ -1,5 +1,5 @@
-
 import { Injectable } from '@nestjs/common';
+import { CreateProfileClientDto } from '@/modules/client/profile/infrastructure/dto/profile-client.dto';
 import { QueryRunner } from 'typeorm';
 import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
@@ -26,7 +26,7 @@ export class ClientAuthProfileCreationStrategy
           full_name: user.name || '',
           avatar: user.avatar,
           profile_picture: user.avatar,
-        } as any,
+        } as unknown as CreateProfileClientDto,
         queryRunner,
       );
     }

@@ -24,7 +24,10 @@ export class RemoveBankAccountUseCase {
     await this.bankAccountRepo.remove(account);
 
     // Emit event (optional, but good for consistency)
-    this.eventEmitter.emit('expert.bank-account.removed', { userId, accountId: id });
+    this.eventEmitter.emit('expert.bank-account.removed', {
+      userId,
+      accountId: id,
+    });
 
     return new BooleanMessage();
   }

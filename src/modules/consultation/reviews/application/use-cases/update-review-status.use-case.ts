@@ -9,7 +9,7 @@ export class UpdateReviewStatusUseCase {
   constructor(
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
-  ) { }
+  ) {}
 
   async execute(id: string, status: string) {
     const result = await this.reviewRepository.update(id, { status });

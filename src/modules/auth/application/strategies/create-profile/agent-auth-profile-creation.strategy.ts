@@ -6,28 +6,28 @@ import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-ag
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
-export class AgentAuthProfileCreationStrategy implements AuthProfileCreationStrategy {
-    readonly role = RoleEnum.AGENT;
+export class AgentAuthProfileCreationStrategy
+  implements AuthProfileCreationStrategy
+{
+  readonly role = RoleEnum.AGENT;
 
-    async ensureProfile(user: User, queryRunner?: QueryRunner): Promise<void> {
-        const repo = queryRunner
-            ? queryRunner.manager.getRepository(ProfileAgent)
-            : null;
+  async ensureProfile(user: User, queryRunner?: QueryRunner): Promise<void> {
+    const repo = queryRunner
+      ? queryRunner.manager.getRepository(ProfileAgent)
+      : null;
 
-        if (!repo) return; // Should always have queryRunner in this flow
+    if (!repo) return; // Should always have queryRunner in this flow
 
-        const existing = await repo.findOne({ where: { user_id: user.id } });
-        if (!existing) {
-            const profile = new ProfileAgent();
-            profile.user_id = user.id;
-            profile.commission_rate = 10;
-            profile.total_earnings = 0;
-            profile.total_registrations = 0;
-            profile.avatar = user.avatar;
-            profile.name = user.name;
-            await repo.save(profile);
-        }
+    const existing = await repo.findOne({ where: { user_id: user.id } });
+    if (!existing) {
+      const profile = new ProfileAgent();
+      profile.user_id = user.id;
+      profile.commission_rate = 10;
+      profile.total_earnings = 0;
+      profile.total_registrations = 0;
+      profile.avatar = user.avatar;
+      profile.name = user.name;
+      await repo.save(profile);
     }
+  }
 }
-
-

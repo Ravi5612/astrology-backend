@@ -5,17 +5,16 @@ import { ChatSession } from '../../infrastructure/entities/chat-session.entity';
 
 @Injectable()
 export class FindClientSessionsUseCase {
-    constructor(
-        @InjectRepository(ChatSession)
-        private sessionRepo: Repository<ChatSession>,
-    ) { }
+  constructor(
+    @InjectRepository(ChatSession)
+    private sessionRepo: Repository<ChatSession>,
+  ) {}
 
-    async execute(userId: string) {
-        return this.sessionRepo.find({
-            where: { client_id: userId as any },
-            relations: ['expert', 'expert.user'],
-            order: { created_at: 'DESC' },
-        });
-    }
+  async execute(userId: string) {
+    return this.sessionRepo.find({
+      where: { client_id: userId },
+      relations: ['expert', 'expert.user'],
+      order: { created_at: 'DESC' },
+    });
+  }
 }
-

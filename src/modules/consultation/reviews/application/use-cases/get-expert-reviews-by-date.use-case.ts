@@ -8,12 +8,12 @@ export class GetExpertReviewsByDateUseCase {
   constructor(
     @InjectRepository(Review)
     private readonly reviewRepo: Repository<Review>,
-  ) { }
+  ) {}
 
   async execute(expert_id: string, startDate: Date, endDate: Date) {
     return this.reviewRepo.find({
       where: {
-        expert_id: expert_id as any,
+        expert_id: expert_id,
         created_at: Between(startDate, endDate),
       },
     });

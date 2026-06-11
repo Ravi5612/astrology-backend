@@ -7,21 +7,21 @@ import { VerifyPaymentDto } from '../api/dto/verify-payment.dto';
 
 @Injectable()
 export class PaymentFacade {
-    constructor(
-        private readonly createPaymentOrderUseCase: CreatePaymentOrderUseCase,
-        private readonly verifyPaymentUseCase: VerifyPaymentUseCase,
-        private readonly handleWebhookUseCase: HandleWebhookUseCase,
-    ) {}
+  constructor(
+    private readonly createPaymentOrderUseCase: CreatePaymentOrderUseCase,
+    private readonly verifyPaymentUseCase: VerifyPaymentUseCase,
+    private readonly handleWebhookUseCase: HandleWebhookUseCase,
+  ) {}
 
-    async createOrder(userId: string, dto: CreateOrderDto) {
-        return this.createPaymentOrderUseCase.execute(userId, dto);
-    }
+  async createOrder(userId: string, dto: CreateOrderDto) {
+    return this.createPaymentOrderUseCase.execute(userId, dto);
+  }
 
-    async verifyPayment(dto: VerifyPaymentDto) {
-        return this.verifyPaymentUseCase.execute(dto);
-    }
+  async verifyPayment(dto: VerifyPaymentDto) {
+    return this.verifyPaymentUseCase.execute(dto);
+  }
 
-    async handleWebhook(signature: string, payload: any) {
-        return this.handleWebhookUseCase.execute(signature, payload);
-    }
+  async handleWebhook(signature: string, payload: Record<string, unknown>) {
+    return this.handleWebhookUseCase.execute(signature, payload);
+  }
 }

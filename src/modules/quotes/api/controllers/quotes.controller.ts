@@ -1,4 +1,4 @@
-import {
+﻿import {
   Body,
   Controller,
   Delete,
@@ -11,7 +11,7 @@ import {
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { QuotesFacade } from '../../application/quotes.facade';
 import { CreateQuoteDto } from '../dto/create-quote.dto';
-import { UpdateQuoteDto } from '../dto/update-quote.dto';   
+import { UpdateQuoteDto } from '../dto/update-quote.dto';
 
 @ApiTags('Quotes')
 @Controller({
@@ -23,7 +23,10 @@ export class QuotesController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new quote' })
-  @ApiResponse({ status: 201, description: 'The quote has been successfully created.' })
+  @ApiResponse({
+    status: 201,
+    description: 'The quote has been successfully created.',
+  })
   create(@Body() createQuoteDto: CreateQuoteDto) {
     return this.quotesFacade.create(createQuoteDto);
   }
@@ -45,20 +48,26 @@ export class QuotesController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a quote' })
-  @ApiResponse({ status: 200, description: 'The quote has been successfully updated.' })
+  @ApiResponse({
+    status: 200,
+    description: 'The quote has been successfully updated.',
+  })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateQuoteDto: UpdateQuoteDto,
   ) {
-    const result = await this.quotesFacade.update(id, updateQuoteDto);
+    const _result = await this.quotesFacade.update(id, updateQuoteDto);
     return { success: true };
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a quote' })
-  @ApiResponse({ status: 200, description: 'The quote has been successfully deleted.' })
+  @ApiResponse({
+    status: 200,
+    description: 'The quote has been successfully deleted.',
+  })
   async remove(@Param('id', ParseUUIDPipe) id: string) {
-    const result = await this.quotesFacade.remove(id);
+    const _result = await this.quotesFacade.remove(id);
     return { success: true };
   }
 }

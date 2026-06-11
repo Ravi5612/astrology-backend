@@ -1,10 +1,10 @@
-
-import { Injectable, NotFoundException } from '@nestjs/common';
+﻿import { Injectable, NotFoundException } from '@nestjs/common';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { DatabaseService } from '@/core/database/database.service';
-import { hasRoles, RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
-
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import {
+  hasRoles,
+  RoleEnum,
+} from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class GetMerchantProfileUseCase {
@@ -19,11 +19,13 @@ export class GetMerchantProfileUseCase {
       throw new NotFoundException('User not found');
     }
 
-    const { ProfileMerchant } = await import('../../../merchant/profile/infrastructure/entities/profile-merchant.entity');
+    const { ProfileMerchant } = await import(
+      '../../../merchant/profile/infrastructure/entities/profile-merchant.entity'
+    );
     const merchantProfile = await this.db.transaction(async (qr) => {
-        return qr.manager.findOne(ProfileMerchant, {
-            where: { user: { id: userId } }
-        });
+      return qr.manager.findOne(ProfileMerchant, {
+        where: { user: { id: userId } },
+      });
     });
 
     const isMerchant = hasRoles(user.roles, 'MERCHANT');

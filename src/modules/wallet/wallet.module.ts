@@ -45,11 +45,11 @@ import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-        Wallet, 
-        Transaction, 
-        Withdrawal, 
-        Idempotency,
-        SystemSetting,
+      Wallet,
+      Transaction,
+      Withdrawal,
+      Idempotency,
+      SystemSetting,
     ]),
     NotificationModule,
     BankAccountsModule,
@@ -90,4 +90,4 @@ import { BankAccountsModule } from '@/modules/expert/bank-accounts/bank-accounts
   controllers: [WalletController, PayoutWebhookController],
   exports: [WalletFacade],
 })
-export class WalletModule { }
+export class WalletModule {}

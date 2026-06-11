@@ -10,46 +10,50 @@ import { BulkAssignCouponUseCase } from './use-cases/bulk-assign-coupon.use-case
 
 @Injectable()
 export class CouponFacade {
-    constructor(
-        private readonly createCouponUseCase: CreateCouponUseCase,
-        private readonly getCouponsUseCase: GetCouponsUseCase,
-        private readonly getCouponStatsUseCase: GetCouponStatsUseCase,
-        private readonly updateCouponUseCase: UpdateCouponUseCase,
-        private readonly deleteCouponUseCase: DeleteCouponUseCase,
-        private readonly applyCouponUseCase: ApplyCouponUseCase,
-        private readonly markCouponAsUsedUseCase: MarkCouponAsUsedUseCase,
-        private readonly bulkAssignCouponUseCase: BulkAssignCouponUseCase,
-    ) { }
+  constructor(
+    private readonly createCouponUseCase: CreateCouponUseCase,
+    private readonly getCouponsUseCase: GetCouponsUseCase,
+    private readonly getCouponStatsUseCase: GetCouponStatsUseCase,
+    private readonly updateCouponUseCase: UpdateCouponUseCase,
+    private readonly deleteCouponUseCase: DeleteCouponUseCase,
+    private readonly applyCouponUseCase: ApplyCouponUseCase,
+    private readonly markCouponAsUsedUseCase: MarkCouponAsUsedUseCase,
+    private readonly bulkAssignCouponUseCase: BulkAssignCouponUseCase,
+  ) {}
 
-    async applyCoupon(userId: string, code: string, amount: number) {
-        return this.applyCouponUseCase.execute(userId, code, amount);
-    }
+  async applyCoupon(userId: string, code: string, amount: number) {
+    return this.applyCouponUseCase.execute(userId, code, amount);
+  }
 
-    async markCouponAsUsed(userId: string, code: string, manager?: any) {
-        return this.markCouponAsUsedUseCase.execute(userId, code, manager);
-    }
+  async markCouponAsUsed(userId: string, code: string, manager?: unknown) {
+    return this.markCouponAsUsedUseCase.execute(
+      userId,
+      code,
+      manager as import('typeorm').EntityManager,
+    );
+  }
 
-    async createCoupon(data: any) {
-        return this.createCouponUseCase.execute(data);
-    }
+  async createCoupon(data: Record<string, unknown>) {
+    return this.createCouponUseCase.execute(data);
+  }
 
-    async getCoupons(params?: any) {
-        return this.getCouponsUseCase.execute(params);
-    }
+  async getCoupons(params?: Record<string, unknown>) {
+    return this.getCouponsUseCase.execute(params);
+  }
 
-    async getCouponStats() {
-        return this.getCouponStatsUseCase.execute();
-    }
+  async getCouponStats() {
+    return this.getCouponStatsUseCase.execute();
+  }
 
-    async updateCoupon(id: string, data: any) {
-        return this.updateCouponUseCase.execute(id, data);
-    }
+  async updateCoupon(id: string, data: Record<string, unknown>) {
+    return this.updateCouponUseCase.execute(id, data);
+  }
 
-    async deleteCoupon(id: string) {
-        return this.deleteCouponUseCase.execute(id);
-    }
+  async deleteCoupon(id: string) {
+    return this.deleteCouponUseCase.execute(id);
+  }
 
-    async bulkAssign(couponCode: string, userIds: string[]) {
-        return this.bulkAssignCouponUseCase.execute(couponCode, userIds);
-    }
+  async bulkAssign(couponCode: string, userIds: string[]) {
+    return this.bulkAssignCouponUseCase.execute(couponCode, userIds);
+  }
 }

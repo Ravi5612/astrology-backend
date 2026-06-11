@@ -5,24 +5,27 @@ import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 
 @Controller({
-    path: 'expert-dashboard',
-    version: '1',
+  path: 'expert-dashboard',
+  version: '1',
 })
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ExpertDashboardController {
-    constructor(private readonly dashboardFacade: ExpertDashboardFacade) { }
+  constructor(private readonly dashboardFacade: ExpertDashboardFacade) {}
 
-    @Get('stats')
-    @Roles('EXPERT', 'CLIENT')
-    async getStats(@Req() req: any, @Query('type') type: 'today' | 'total') {
-        const userId = req.user.id;
-        const stats = await this.dashboardFacade.getDashboardStats(
-            userId,
-            type || 'today',
-        );
-        return {
-            success: true,
-            data: stats,
-        };
-    }
+  @Get('stats')
+  @Roles('EXPERT', 'CLIENT')
+  async getStats(
+    @Req() req: { user: { id: string } },
+    @Query('type') type: 'today' | 'total',
+  ) {
+    const userId = req.user.id;
+    const stats = await this.dashboardFacade.getDashboardStats(
+      userId,
+      type || 'today',
+    );
+    return {
+      success: true,
+      data: stats,
+    };
+  }
 }

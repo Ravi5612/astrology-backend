@@ -1,4 +1,3 @@
-
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,12 +11,12 @@ export class SendReviewResponseUseCase {
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
     private readonly notificationFacade: NotificationFacade,
-  ) { }
+  ) {}
 
   async execute(reviewId: string, message: string) {
     const review = await this.reviewRepository.findOne({
       where: { id: reviewId },
-      relations: ['expert', 'expert.user']
+      relations: ['expert', 'expert.user'],
     });
 
     if (!review) {
@@ -30,11 +29,11 @@ export class SendReviewResponseUseCase {
 
     // Send notification to the astrologer (expert)
     await this.notificationFacade.create(
-      review.expert.user.id as any,
+      review.expert.user.id,
       NotificationType.GENERAL,
       'Admin Message regarding review',
       message,
-      { reviewId: review.id }
+      { reviewId: review.id },
     );
 
     return { success: true };

@@ -16,7 +16,9 @@ import { Logger } from '@nestjs/common';
   },
   namespace: 'support',
 })
-export class SupportGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class SupportGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
@@ -32,19 +34,19 @@ export class SupportGateway implements OnGatewayConnection, OnGatewayDisconnect 
   }
 
   @SubscribeMessage('register_admin')
-  handleRegisterAdmin(@ConnectedSocket() client: Socket) {
-    client.join('admin_support_room');
+  async handleRegisterAdmin(@ConnectedSocket() client: Socket) {
+    await client.join('admin_support_room');
     this.logger.log(`Admin ${client.id} joined admin_support_room`);
     return { status: 'registered' };
   }
 
   @SubscribeMessage('join_dispute_room')
-  handleJoinDisputeRoom(
+  async handleJoinDisputeRoom(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { disputeId: string },
   ) {
     const roomName = `dispute_${payload.disputeId}`;
-    client.join(roomName);
+    await client.join(roomName);
     this.activeRooms.add(roomName);
     this.logger.log(`Client ${client.id} joined ${roomName}`);
     return { status: 'joined' };
@@ -57,25 +59,35 @@ export class SupportGateway implements OnGatewayConnection, OnGatewayDisconnect 
   ) {
     const data = { disputeId: payload.disputeId, userId: payload.userId };
     // Notify room
-    this.server.to(`dispute_${payload.disputeId}`).emit('dispute_close_requested', data);
+    this.server
+      .to(`dispute_${payload.disputeId}`)
+      .emit('dispute_close_requested', data);
     // Notify admin
     this.server.to('admin_support_room').emit('dispute_close_requested', data);
-    
+
     return { status: 'requested' };
   }
 
-  notifyNewMessage(disputeId: string, message: any) {
+  notifyNewMessage(disputeId: string, message: unknown) {
     const roomName = `dispute_${disputeId}`;
     this.logger.log(`Emitting new_message to ${roomName}`);
     this.server.to(roomName).emit('new_message', message);
-    
+
     // Also notify admin room for general updates
     this.server.to('admin_support_room').emit('new_message', message);
   }
 
-  notifyStatusUpdate(disputeId: string, status: string, data: any) {
+  notifyStatusUpdate(disputeId: string, status: string, data: unknown) {
     const roomName = `dispute_${disputeId}`;
-    this.server.to(roomName).emit('dispute_status_updated', { disputeId, status, ...data });
-    this.server.to('admin_support_room').emit('dispute_status_updated', { disputeId, status, ...data });
+    this.server.to(roomName).emit('dispute_status_updated', {
+      disputeId,
+      status,
+      ...(data as Record<string, unknown>),
+    });
+    this.server.to('admin_support_room').emit('dispute_status_updated', {
+      disputeId,
+      status,
+      ...(data as Record<string, unknown>),
+    });
   }
 }

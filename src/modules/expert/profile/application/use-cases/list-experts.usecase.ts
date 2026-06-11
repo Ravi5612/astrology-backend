@@ -13,7 +13,7 @@ export class ListExpertsUseCase {
     @InjectRepository(ProfileExpert)
     private readonly profileRepo: Repository<ProfileExpert>,
     private readonly expertGateway: ExpertGateway,
-  ) { }
+  ) {}
 
   async execute(query: QueryExpertDto) {
     const limit = query.limit || 20;
@@ -57,7 +57,7 @@ export class ListExpertsUseCase {
         .map((_, idx) => `profile.specialization ILIKE :spec${idx}`)
         .join(' OR ');
 
-      const specParams: any = {};
+      const specParams: Record<string, unknown> = {};
       specs.forEach((spec, idx) => {
         specParams[`spec${idx}`] = `%${spec}%`;
       });
@@ -127,7 +127,7 @@ export class ListExpertsUseCase {
         .map((_, idx) => `profile.languages ILIKE :lang${idx}`)
         .join(' OR ');
 
-      const langParams: any = {};
+      const langParams: Record<string, unknown> = {};
       langs.forEach((lang, idx) => {
         langParams[`lang${idx}`] = `%${lang}%`;
       });
@@ -157,25 +157,25 @@ export class ListExpertsUseCase {
         .getManyAndCount();
 
       const mapped = experts.map((ex) => {
-        const plain = { ...ex } as any;
+        const plain = { ...ex } as Record<string, unknown>;
         plain.languages = ex.languages
           ? ex.languages
-            .split(',')
-            .map((s) => s.trim())
-            .filter(Boolean)
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean)
           : [];
         plain.userId = ex.user?.id;
         plain.isAvailable = ex.is_available;
         plain.is_online = ex.user?.id
-          ? this.expertGateway.isExpertOnline(ex.user.id as any)
+          ? this.expertGateway.isExpertOnline(ex.user.id.toString())
           : false;
-        
+
         // Standard fallbacks (COALESCE logic shifted to backend)
         plain.price = ex.price || 0;
-        plain.video = ex.video || "https://www.youtube.com/embed/INoPh_oRooU";
+        plain.video = ex.video || 'https://www.youtube.com/embed/INoPh_oRooU';
         plain.rating = ex.rating !== undefined ? Math.round(ex.rating) : 5;
         plain.ratings = plain.rating; // align both rating and ratings
-        plain.bio = ex.bio || "";
+        plain.bio = ex.bio || '';
         plain.detailed_experience = ex.detailed_experience || [];
         plain.gallery = ex.gallery || [];
         plain.videos = ex.videos || [];
@@ -194,12 +194,14 @@ export class ListExpertsUseCase {
           hasMore: offset + limit < total,
         },
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(
-        `Failed to list experts: ${error.message}`,
-        error.stack,
+        `Failed to list experts: ${(error as Error).message}`,
+        (error as Error).stack,
       );
-      throw new BadRequestException(`Failed to load experts: ${error.message}`);
+      throw new BadRequestException(
+        `Failed to load experts: ${(error as Error).message}`,
+      );
     }
   }
 }

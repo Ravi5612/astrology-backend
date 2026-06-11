@@ -17,23 +17,25 @@ import { CouponController } from './api/controllers/coupon.controller';
 import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/profile.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Coupon, UserCoupon]), ClientProfileModule],
+  imports: [
+    TypeOrmModule.forFeature([Coupon, UserCoupon]),
+    ClientProfileModule,
+  ],
 
-    controllers: [CouponController],
+  controllers: [CouponController],
 
-    providers: [
-        CouponFacade,
-        CreateCouponUseCase,
-        GetCouponsUseCase,
-        GetCouponStatsUseCase,
-        UpdateCouponUseCase,
-        DeleteCouponUseCase,
-        GetMyRewardsUseCase,
-        ApplyCouponUseCase,
-        MarkCouponAsUsedUseCase,
-        BulkAssignCouponUseCase,
-    ],
-    exports: [CouponFacade],
+  providers: [
+    CouponFacade,
+    CreateCouponUseCase,
+    GetCouponsUseCase,
+    GetCouponStatsUseCase,
+    UpdateCouponUseCase,
+    DeleteCouponUseCase,
+    GetMyRewardsUseCase,
+    ApplyCouponUseCase,
+    MarkCouponAsUsedUseCase,
+    BulkAssignCouponUseCase,
+  ],
+  exports: [CouponFacade],
 })
-export class CouponModule { }
-
+export class CouponModule {}

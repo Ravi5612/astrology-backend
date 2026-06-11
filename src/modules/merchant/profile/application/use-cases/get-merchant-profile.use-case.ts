@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProfileMerchant, MerchantStatus } from '../../infrastructure/entities/profile-merchant.entity';
+import {
+  ProfileMerchant,
+  MerchantStatus,
+} from '../../infrastructure/entities/profile-merchant.entity';
 import { EncryptionService } from '@/common/services/encryption.service';
 
 @Injectable()
@@ -14,7 +17,7 @@ export class GetMerchantProfileUseCase {
 
   async execute(userId: string) {
     const profile = await this.merchantRepository.findOne({
-      where: { user: { id: userId as any } },
+      where: { user: { id: userId } },
       relations: ['user'],
     });
 
@@ -60,7 +63,7 @@ export class GetMerchantProfileUseCase {
       exists: true,
       data: {
         id: profile.id,
-        name: profile.shopName || (profile as any).user?.name || '',
+        name: profile.shopName || profile.user?.name || '',
         managerName: profile.managerName,
         phone: profile.phone,
         address: profile.address,
@@ -79,7 +82,9 @@ export class GetMerchantProfileUseCase {
         isGstExempt: profile.isGstExempt,
         bankName: profile.bankName,
         accountHolder: profile.accountHolder,
-        accountNumber: profile.accountNumber ? this.encryptionService.decrypt(profile.accountNumber) : null,
+        accountNumber: profile.accountNumber
+          ? this.encryptionService.decrypt(profile.accountNumber)
+          : null,
         ifsc: profile.ifsc,
         gstCertificate: profile.gstCertificate,
         panFront: profile.panFront,

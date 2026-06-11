@@ -67,6 +67,13 @@ import { ProfileModule as ClientProfileModule } from '@/modules/client/profile/p
     GetExpertSessionsByDateUseCase,
   ],
   controllers: [ChatController, ConsultationController],
-  exports: [ChatFacade, FindAllSessionsUseCase, AdminTerminateSessionUseCase, GetChatSessionStatsUseCase, RejectChatUseCase, GetChatEarningsUseCase],
+  exports: [
+    ChatFacade,
+    FindAllSessionsUseCase,
+    AdminTerminateSessionUseCase,
+    GetChatSessionStatsUseCase,
+    RejectChatUseCase,
+    GetChatEarningsUseCase,
+  ],
 })
-export class ChatModule { }
+export class ChatModule {}

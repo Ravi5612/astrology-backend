@@ -27,7 +27,7 @@ export class PaginationDto {
   @IsOptional()
   role?: string;
 
-get offset(): number {
+  get offset(): number {
     return (this.page - 1) * this.limit;
   }
 }

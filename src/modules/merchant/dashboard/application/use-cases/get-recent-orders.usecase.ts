@@ -13,20 +13,19 @@ export class GetRecentOrdersUseCase {
   ) {}
 
   async execute(userId: string) {
-    const profile = await this.profileRepo.findOne({
-      where: { user_id: userId as any },
-    });
-    
-    if (!profile) return [];
-
-    const merchantId = profile.id;
+    const merchantId = userId;
 
     console.log('[RECENT_ORDERS] Request for userId:', userId);
-    const recentOrderItems = await this.orderFacade.getMerchantRecentOrders(merchantId, 10);
+    const recentOrderItems = await this.orderFacade.getMerchantRecentOrders(
+      merchantId,
+      10,
+    );
 
     return recentOrderItems.map((item) => ({
       id: item.order.id.toString(),
-      customerName: (item.order as any).client?.user?.name || 'Guest',
+      customerName:
+        (item.order as unknown as { client?: { user?: { name?: string } } })
+          .client?.user?.name || 'Guest',
       amount: Number(item.price) * item.quantity,
       status: item.order.status,
       date: item.order.created_at.toISOString(),

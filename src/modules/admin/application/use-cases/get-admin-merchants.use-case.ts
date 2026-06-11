@@ -5,7 +5,7 @@ import { MerchantProfileFacade } from '@/modules/merchant/profile/application/pr
 export class GetAdminMerchantsUseCase {
   constructor(
     @Inject(forwardRef(() => MerchantProfileFacade))
-    private readonly merchantFacade: MerchantProfileFacade
+    private readonly merchantFacade: MerchantProfileFacade,
   ) {}
 
   async execute(params: {

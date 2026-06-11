@@ -7,9 +7,7 @@ import { Public } from '@/common/decorators/public.decorator';
   version: '1',
 })
 export class PublicSettingsController {
-  constructor(
-    private readonly getSupportSettings: GetSupportSettingsUseCase,
-  ) {}
+  constructor(private readonly getSupportSettings: GetSupportSettingsUseCase) {}
 
   @Public()
   @Get('support')

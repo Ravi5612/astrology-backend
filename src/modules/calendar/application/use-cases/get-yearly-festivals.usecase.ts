@@ -18,7 +18,9 @@ export class GetYearlyFestivalsUseCase {
     const type = 'festivals';
     const cacheKey = `${year}-${lang}`;
 
-    const cached = await this.cacheRepository.findOne({ where: { type, cacheKey } });
+    const cached = await this.cacheRepository.findOne({
+      where: { type, cacheKey },
+    });
     if (cached) {
       this.logger.log(`Serving cached yearly festivals for ${cacheKey}`);
       return cached.response;

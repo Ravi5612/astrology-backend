@@ -11,7 +11,6 @@ import {
   ParseUUIDPipe,
   UseInterceptors,
   UploadedFile,
-  HttpStatus,
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -49,7 +48,7 @@ export class ProfileController {
   constructor(
     private readonly profileFacade: ExpertProfileFacade,
     private readonly cloudinaryService: CloudinaryService,
-  ) { }
+  ) {}
 
   @Get()
   getProfile(@CurrentUser() user: User) {
@@ -76,8 +75,14 @@ export class ProfileController {
     @Body() dto: UpdateProfileExpertDto,
   ) {
     const result = await this.profileFacade.updateProfile(user, dto);
-    if (result && result.success && 'data' in result) {
-      const { data, ...rest } = result as any;
+    if (
+      result &&
+      typeof result === 'object' &&
+      'success' in result &&
+      'data' in result
+    ) {
+      const rest = { ...(result as Record<string, unknown>) };
+      delete rest['data'];
       return rest;
     }
     return result;
@@ -88,9 +93,18 @@ export class ProfileController {
     @CurrentUser() user: User,
     @Body() dto: UpdatePersonalInfoExpertDto,
   ) {
-    const result = await this.profileFacade.updateProfile(user, dto as any);
-    if (result && result.success && 'data' in result) {
-      const { data, ...rest } = result as any;
+    const result = await this.profileFacade.updateProfile(
+      user,
+      dto as unknown as UpdateProfileExpertDto,
+    );
+    if (
+      result &&
+      typeof result === 'object' &&
+      'success' in result &&
+      'data' in result
+    ) {
+      const rest = { ...(result as Record<string, unknown>) };
+      delete rest['data'];
       return rest;
     }
     return result;
@@ -101,9 +115,18 @@ export class ProfileController {
     @CurrentUser() user: User,
     @Body() dto: UpdatePricingExpertDto,
   ) {
-    const result = await this.profileFacade.updateProfile(user, dto as any);
-    if (result && result.success && 'data' in result) {
-      const { data, ...rest } = result as any;
+    const result = await this.profileFacade.updateProfile(
+      user,
+      dto as unknown as UpdateProfileExpertDto,
+    );
+    if (
+      result &&
+      typeof result === 'object' &&
+      'success' in result &&
+      'data' in result
+    ) {
+      const rest = { ...(result as Record<string, unknown>) };
+      delete rest['data'];
       return rest;
     }
     return result;
@@ -114,9 +137,18 @@ export class ProfileController {
     @CurrentUser() user: User,
     @Body() dto: UpdateBankDetailsExpertDto,
   ) {
-    const result = await this.profileFacade.updateProfile(user, dto as any);
-    if (result && result.success && 'data' in result) {
-      const { data, ...rest } = result as any;
+    const result = await this.profileFacade.updateProfile(
+      user,
+      dto as unknown as UpdateProfileExpertDto,
+    );
+    if (
+      result &&
+      typeof result === 'object' &&
+      'success' in result &&
+      'data' in result
+    ) {
+      const rest = { ...(result as Record<string, unknown>) };
+      delete rest['data'];
       return rest;
     }
     return result;
@@ -127,9 +159,18 @@ export class ProfileController {
     @CurrentUser() user: User,
     @Body() dto: UpdatePortfolioExpertDto,
   ) {
-    const result = await this.profileFacade.updateProfile(user, dto as any);
-    if (result && result.success && 'data' in result) {
-      const { data, ...rest } = result as any;
+    const result = await this.profileFacade.updateProfile(
+      user,
+      dto as unknown as UpdateProfileExpertDto,
+    );
+    if (
+      result &&
+      typeof result === 'object' &&
+      'success' in result &&
+      'data' in result
+    ) {
+      const rest = { ...(result as Record<string, unknown>) };
+      delete rest['data'];
       return rest;
     }
     return result;
@@ -140,9 +181,18 @@ export class ProfileController {
     @CurrentUser() user: User,
     @Body() dto: UpdateCertificatesExpertDto,
   ) {
-    const result = await this.profileFacade.updateProfile(user, dto as any);
-    if (result && result.success && 'data' in result) {
-      const { data, ...rest } = result as any;
+    const result = await this.profileFacade.updateProfile(
+      user,
+      dto as unknown as UpdateProfileExpertDto,
+    );
+    if (
+      result &&
+      typeof result === 'object' &&
+      'success' in result &&
+      'data' in result
+    ) {
+      const rest = { ...(result as Record<string, unknown>) };
+      delete rest['data'];
       return rest;
     }
     return result;
@@ -153,9 +203,18 @@ export class ProfileController {
     @CurrentUser() user: User,
     @Body() dto: UpdateDocumentsExpertDto,
   ) {
-    const result = await this.profileFacade.updateProfile(user, dto as any);
-    if (result && result.success && 'data' in result) {
-      const { data, ...rest } = result as any;
+    const result = await this.profileFacade.updateProfile(
+      user,
+      dto as unknown as UpdateProfileExpertDto,
+    );
+    if (
+      result &&
+      typeof result === 'object' &&
+      'success' in result &&
+      'data' in result
+    ) {
+      const rest = { ...(result as Record<string, unknown>) };
+      delete rest['data'];
       return rest;
     }
     return result;
@@ -166,9 +225,18 @@ export class ProfileController {
     @CurrentUser() user: User,
     @Body() dto: UpdateExperienceExpertDto,
   ) {
-    const result = await this.profileFacade.updateProfile(user, dto as any);
-    if (result && result.success && 'data' in result) {
-      const { data, ...rest } = result as any;
+    const result = await this.profileFacade.updateProfile(
+      user,
+      dto as unknown as UpdateProfileExpertDto,
+    );
+    if (
+      result &&
+      typeof result === 'object' &&
+      'success' in result &&
+      'data' in result
+    ) {
+      const rest = { ...(result as Record<string, unknown>) };
+      delete rest['data'];
       return rest;
     }
     return result;
@@ -180,8 +248,14 @@ export class ProfileController {
     @Body('is_available') is_available: boolean,
   ) {
     const result = await this.profileFacade.updateStatus(user, is_available);
-    if (result && result.success && 'data' in result) {
-      const { data, ...rest } = result as any;
+    if (
+      result &&
+      typeof result === 'object' &&
+      'success' in result &&
+      'data' in result
+    ) {
+      const rest = { ...(result as Record<string, unknown>) };
+      delete rest['data'];
       return rest;
     }
     return result;
@@ -214,8 +288,14 @@ export class ProfileController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     const result = await this.profileFacade.deletePuja(user, id);
-    if (result && result.success && 'data' in result) {
-      const { data, ...rest } = result as any;
+    if (
+      result &&
+      typeof result === 'object' &&
+      'success' in result &&
+      'data' in result
+    ) {
+      const rest = { ...(result as Record<string, unknown>) };
+      delete rest['data'];
       return rest;
     }
     return result;
@@ -233,12 +313,11 @@ export class ProfileController {
     return this.profileFacade.getPujaById(id);
   }
 
-
   @Post('upload-file')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @CurrentUser() user: User,
+    @CurrentUser() _user: User,
   ) {
     if (!file) {
       throw new BadRequestException('File is required');
@@ -253,17 +332,23 @@ export class ProfileController {
     }
 
     try {
-      const result = await this.cloudinaryService.uploadImage(file);
+      const result = (await this.cloudinaryService.uploadImage(file)) as {
+        secure_url: string;
+        duration?: number;
+        public_id?: string;
+      };
       const finalUrl = result.secure_url;
 
       // Backend Duration Validation (30-90 seconds)
       if (file.mimetype.startsWith('video')) {
-        const duration = result.duration; // in seconds
+        const duration = result.duration || 0; // in seconds
         if (duration < 30 || duration > 90) {
           // Delete the invalid video from Cloudinary
-          await cloudinary.uploader.destroy(result.public_id, {
-            resource_type: 'video',
-          });
+          if (result.public_id) {
+            await cloudinary.uploader.destroy(result.public_id, {
+              resource_type: 'video',
+            });
+          }
 
           throw new BadRequestException(
             `Video duration must be between 30 and 90 seconds. Your video is ${Math.round(duration)} seconds.`,

@@ -1,4 +1,3 @@
-
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -12,7 +11,10 @@ import { Server, Socket } from 'socket.io';
 import { Logger, Inject, forwardRef } from '@nestjs/common';
 import { ChatFacade } from './application/chat.facade';
 import { MessageType } from './infrastructure/entities/chat-message.entity';
-import { ChatSessionStatus } from './infrastructure/entities/chat-session.entity';
+import {
+  ChatSessionStatus,
+  ChatSession,
+} from './infrastructure/entities/chat-session.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
 @WebSocketGateway({
@@ -34,7 +36,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly chatFacade: ChatFacade,
     @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
-  ) { }
+  ) {}
 
   handleConnection(client: Socket) {
     this.logger.log(`Client connected to chat: ${client.id}`);
@@ -57,13 +59,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { expert_id: string },
   ) {
-    
     this.expertSockets.set(payload.expert_id, client.id);
-    client.join(`expert_${payload.expert_id}`); // Join a private notification room
+    void client.join(`expert_${payload.expert_id}`); // Join a private notification room
     this.logger.log(
       `Expert ${payload.expert_id} registered and joined expert_${payload.expert_id}`,
     );
-    
+
     return { status: 'registered' };
   }
 
@@ -75,8 +76,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return this.walletFacade.getWallet(userId);
   }
 
-  notifyExpertNewRequest(expert_id: string, session: any) {
-    
+  notifyExpertNewRequest(expert_id: string, session: ChatSession) {
     this.server.to(`expert_${expert_id}`).emit('new_chat_request', session);
     this.logger.log(
       `Notified expert room expert_${expert_id} of new session ${session.id}`,
@@ -89,9 +89,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   notifyExpertStatusUpdate(
     expert_id: string,
     event: 'session_activated' | 'session_ended',
-    data: any,
+    data: unknown,
   ) {
-    
     this.server.to(`expert_${expert_id}`).emit(event, data);
     this.logger.log(
       `Status update ${event} sent to expert room expert_${expert_id}`,
@@ -112,19 +111,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       session.status === ChatSessionStatus.COMPLETED ||
       session.status === ChatSessionStatus.EXPIRED
     ) {
-    
       return {
         status: 'error',
         message: `Session is already ${session.status}`,
       };
     }
 
-    client.join(`room_${payload.sessionId}`);
+    void client.join(`room_${payload.sessionId}`);
     this.logger.log(`Client ${client.id} joined room_${payload.sessionId}`);
     return { status: 'joined' };
   }
 
-  public async activateSession(sessionId: string, sessionData?: any, introCardData?: any) {
+  public async activateSession(
+    sessionId: string,
+    sessionData?: Partial<ChatSession>,
+    introCardData?: unknown,
+  ) {
     let session = sessionData;
     let introCard = introCardData;
 
@@ -137,8 +139,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!session) return null;
 
     // Calculate initial timer values for immediate sync
-    const wallet = await this.walletFacade.getWallet(session.client_id);
-    const totalAffordableBalance = Number(wallet.balance) + Number(wallet.reserved_balance);
+    const wallet = await this.walletFacade.getWallet(session.client_id!);
+    const totalAffordableBalance =
+      Number(wallet.balance) + Number(wallet.reserved_balance);
     const price = session.price_per_minute || 0;
 
     const maxMinutes = session.is_free
@@ -148,12 +151,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         : 60; // fallback 60 mins if price is 0
 
     console.log(`[ChatGateway] activateSession Debug:`, {
-        sessionId,
-        is_free: session.is_free,
-        free_minutes: session.free_minutes,
-        price,
-        totalAffordableBalance,
-        maxMinutes
+      sessionId,
+      is_free: session.is_free,
+      free_minutes: session.free_minutes,
+      price,
+      totalAffordableBalance,
+      maxMinutes,
     });
 
     const serverTime = new Date();
@@ -165,7 +168,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       Math.floor((serverTime.getTime() - startTime.getTime()) / 1000),
     );
 
-    const totalAllowedSeconds = maxMinutes * 60;
+    const totalAllowedSeconds = (maxMinutes ?? 60) * 60;
 
     const dataWithTimers = {
       ...session,
@@ -200,10 +203,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // Start a timer that checks balance every minute
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     const timer = setInterval(async () => {
-      const currentSession = await this.chatFacade.getSession(
-        sessionId,
-      );
+      const currentSession = await this.chatFacade.getSession(sessionId);
       if (
         !currentSession ||
         currentSession.status !== ChatSessionStatus.ACTIVE
@@ -245,16 +247,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         });
 
         // Set a 30s grace period to confirm or end
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         setTimeout(async () => {
           const s = await this.chatFacade.getSession(sessionId);
           // If still active but no reservation done (we'd need a flag or just check balance again)
           // For now, if they don't have balance after 30s, end it.
-          const b = await this.walletFacade.getBalance(currentSession.client_id);
+          const b = await this.walletFacade.getBalance(
+            currentSession.client_id,
+          );
           if (b < minReq && s?.status === ChatSessionStatus.ACTIVE) {
             const summary = await this.chatFacade.endChat(sessionId);
-            this.server
-              .to(`room_${sessionId}`)
-              .emit('session_ended', { ...summary, reason: 'free_limit_ended_no_balance' });
+            this.server.to(`room_${sessionId}`).emit('session_ended', {
+              ...summary,
+              reason: 'free_limit_ended_no_balance',
+            });
           }
         }, 30000);
       }
@@ -272,13 +278,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             message: 'Insufficient balance. Session will end in 30 seconds.',
           });
 
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
           setTimeout(async () => {
             const s = await this.chatFacade.getSession(sessionId);
             if (s?.status === ChatSessionStatus.ACTIVE) {
               const summary = await this.chatFacade.endChat(sessionId);
-              this.server
-                .to(`room_${sessionId}`)
-                .emit('session_ended', { ...summary, reason: 'insufficient_balance' });
+              this.server.to(`room_${sessionId}`).emit('session_ended', {
+                ...summary,
+                reason: 'insufficient_balance',
+              });
             }
           }, 30000);
         }
@@ -312,8 +320,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           session,
         });
       return { status: 'success' };
-    } catch (error) {
-      return { status: 'error', message: error.message };
+    } catch (error: unknown) {
+      return { status: 'error', message: (error as Error).message };
     }
   }
 
@@ -332,7 +340,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Validation: Only allow messages if session is active
     const session = await this.chatFacade.getSession(payload.sessionId);
     if (!session || session.status !== ChatSessionStatus.ACTIVE) {
-      
       return { status: 'error', message: 'Chat is not active' };
     }
 
@@ -353,16 +360,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { sessionId: string },
   ) {
-    
     const session = await this.chatFacade.endChat(payload.sessionId);
 
     // Broadcast to the room so BOTH User and Expert know immediately
     this.server.to(`room_${payload.sessionId}`).emit('session_ended', session);
-    
 
     // Notify expert dashboard directly (if they are in dashboard view)
     if (session && session.expert_id) {
-      this.notifyExpertStatusUpdate(session.expert_id, 'session_ended', session);
+      this.notifyExpertStatusUpdate(
+        session.expert_id,
+        'session_ended',
+        session,
+      );
     }
 
     if (this.sessionTimers.has(payload.sessionId)) {
@@ -401,8 +410,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         payload.expertMessage,
       );
       return { status: 'success', session };
-    } catch (error) {
-      return { status: 'error', message: error.message };
+    } catch (error: unknown) {
+      return { status: 'error', message: (error as Error).message };
     }
   }
 }

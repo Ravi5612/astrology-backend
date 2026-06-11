@@ -1,4 +1,3 @@
-
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, QueryRunner } from 'typeorm';
@@ -6,6 +5,8 @@ import { Order, OrderStatus } from '../../infrastructure/entities/order.entity';
 import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
+import { NotificationFacade } from '@/modules/notification/application/notification.facade';
+import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 
 @Injectable()
 export class MarkOrderAsPaidUseCase {
@@ -16,12 +17,13 @@ export class MarkOrderAsPaidUseCase {
     private walletFacade: WalletFacade,
     @Inject(forwardRef(() => CouponFacade))
     private couponFacade: CouponFacade,
+    private notificationFacade: NotificationFacade,
     private dataSource: DataSource,
-  ) { }
+  ) {}
 
   async execute(razorpayOrderId: string, externalQueryRunner?: QueryRunner) {
     const qr = externalQueryRunner || this.dataSource.createQueryRunner();
-    
+
     if (!externalQueryRunner) {
       await qr.connect();
       await qr.startTransaction();
@@ -45,30 +47,74 @@ export class MarkOrderAsPaidUseCase {
       // 1.5 Mark Coupon as used if applied
       if (order.coupon_code) {
         try {
-          await this.couponFacade.markCouponAsUsed(order.client_id, order.coupon_code, qr.manager);
+          await this.couponFacade.markCouponAsUsed(
+            order.client_id,
+            order.coupon_code,
+            qr.manager,
+          );
         } catch (e) {
           console.error('[MARK_AS_PAID] Coupon marking error:', e);
           // Don't fail the whole transaction if coupon marking fails, but it's better to log it.
         }
       }
 
-      // 2. Track Client Spending
+      // 2. Track Client Spending & Send Notification
       try {
-        let clientProfile = await qr.manager.findOne(ProfileClient, {
+        const clientProfile = await qr.manager.findOne(ProfileClient, {
           where: { id: order.client_id },
-          select: ['id']
+          select: ['id', 'user_id'],
         });
         if (!clientProfile) {
           // If the profile does not exist, we shouldn't attempt to track it since it's an FK dependency
-          console.error('[MARK_AS_PAID_TRACKING] Client profile not found for ID:', order.client_id);
+          console.error(
+            '[MARK_AS_PAID_TRACKING] Client profile not found for ID:',
+            order.client_id,
+          );
           return;
         }
 
-        await qr.manager.createQueryBuilder()
+        await qr.manager
+          .createQueryBuilder()
           .update(ProfileClient)
-          .set({ total_spending: () => `COALESCE(total_spending, 0) + ${Number(order.total_amount)}` })
+          .set({
+            total_spending: () =>
+              `COALESCE(total_spending, 0) + ${Number(order.total_amount)}`,
+          })
           .where('id = :id', { id: clientProfile.id })
           .execute();
+
+        // Send Order Placed Notification
+        if (clientProfile.user_id) {
+          try {
+            await this.notificationFacade.create(
+              clientProfile.user_id,
+              NotificationType.ORDER_PLACED,
+              'Order Placed Successfully',
+              `Your order #${order.id.split('-')[0].toUpperCase()} for ₹${Number(order.total_amount).toLocaleString('en-IN')} has been confirmed.`,
+              { orderId: order.id }
+            );
+          } catch (notifErr) {
+            console.error('[MARK_AS_PAID] Notification error:', notifErr);
+          }
+        }
+
+        // Send Notification to Merchants
+        if (order.items && order.items.length > 0) {
+          const merchantIds = [...new Set(order.items.map(item => item.product?.merchant_id).filter(Boolean))];
+          for (const mId of merchantIds) {
+            try {
+              await this.notificationFacade.create(
+                mId as string,
+                NotificationType.ORDER_PLACED,
+                'New Order Received!',
+                `You have received a new order (#${order.id.split('-')[0].toUpperCase()}). Please check your dashboard for details.`,
+                { orderId: order.id }
+              );
+            } catch (mErr) {
+              console.error('[MARK_AS_PAID] Merchant notification error:', mErr);
+            }
+          }
+        }
       } catch (e) {
         console.error('[MARK_AS_PAID_TRACKING] Client spending error:', e);
       }

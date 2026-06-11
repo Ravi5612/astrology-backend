@@ -26,24 +26,38 @@ export class OrderFacade {
     private readonly merchantOrderQueriesUseCase: MerchantOrderQueriesUseCase,
     private readonly getAdminMerchantSalesOverviewUseCase: GetAdminMerchantSalesOverviewUseCase,
     private readonly getAdminMerchantSalesDetailsUseCase: GetAdminMerchantSalesDetailsUseCase,
-  ) { }
+  ) {}
 
-  async createOrder(userId: string, dto: any) {
+  async createOrder(
+    userId: string,
+    dto: import('../api/dto/create-order.dto').CreateOrderDto,
+  ) {
     if (dto.product_id) {
       // Logic for single product order will be added to the use case
     }
     return this.createOrderFromCartUseCase.execute(userId, dto);
   }
 
-  async createOrderFromCart(userId: string, shippingAddress: any) {
-    return this.createOrderFromCartUseCase.execute(userId, { shipping_address: shippingAddress });
+  async createOrderFromCart(
+    userId: string,
+    shippingAddress: Record<string, unknown>,
+  ) {
+    return this.createOrderFromCartUseCase.execute(userId, {
+      shipping_address: shippingAddress,
+    });
   }
 
-  async markAsPaid(razorpayOrderId: string, externalQueryRunner?: any) {
-    return this.markOrderAsPaidUseCase.execute(razorpayOrderId, externalQueryRunner);
+  async markAsPaid(
+    razorpayOrderId: string,
+    externalQueryRunner?: import('typeorm').QueryRunner,
+  ) {
+    return this.markOrderAsPaidUseCase.execute(
+      razorpayOrderId,
+      externalQueryRunner,
+    );
   }
 
-  async setRazorpayOrderId(orderId: number, razorpayOrderId: string) {
+  async setRazorpayOrderId(orderId: string, razorpayOrderId: string) {
     return this.setOrderRazorpayIdUseCase.execute(orderId, razorpayOrderId);
   }
 
@@ -55,8 +69,18 @@ export class OrderFacade {
     return this.getOrderByIdUseCase.execute(id, userId);
   }
 
-  async updateOrderStatus(id: string, status: OrderStatus, cancellationReason?: string, merchantId?: string) {
-    return this.updateOrderStatusUseCase.execute(id, status, cancellationReason, merchantId);
+  async updateOrderStatus(
+    id: string,
+    status: OrderStatus,
+    cancellationReason?: string,
+    merchantId?: string,
+  ) {
+    return this.updateOrderStatusUseCase.execute(
+      id,
+      status,
+      cancellationReason,
+      merchantId,
+    );
   }
 
   async findAllOrders() {
@@ -68,7 +92,9 @@ export class OrderFacade {
   }
 
   async getExpertProductRevenueAndCount(expertProfileId: number) {
-    return this.findAllOrdersUseCase.getExpertProductRevenueAndCount(expertProfileId);
+    return this.findAllOrdersUseCase.getExpertProductRevenueAndCount(
+      expertProfileId,
+    );
   }
 
   async getMerchantTotalOrders(merchantId: string) {
@@ -76,39 +102,86 @@ export class OrderFacade {
   }
 
   async getMerchantGrossTotalEarnings(merchantId: string) {
-    return this.merchantOrderQueriesUseCase.getMerchantGrossTotalEarnings(merchantId);
+    return this.merchantOrderQueriesUseCase.getMerchantGrossTotalEarnings(
+      merchantId,
+    );
   }
 
-  async getMerchantGrossMonthlyEarnings(merchantId: string, startOfMonth: Date) {
-    return this.merchantOrderQueriesUseCase.getMerchantGrossMonthlyEarnings(merchantId, startOfMonth);
+  async getMerchantGrossMonthlyEarnings(
+    merchantId: string,
+    startOfMonth: Date,
+  ) {
+    return this.merchantOrderQueriesUseCase.getMerchantGrossMonthlyEarnings(
+      merchantId,
+      startOfMonth,
+    );
   }
 
-  async getMerchantOrders(merchantId: string, filters?: any) {
-    return this.merchantOrderQueriesUseCase.getMerchantOrders(merchantId, filters);
+  async getMerchantOrders(
+    merchantId: string,
+    filters?: Record<string, unknown>,
+  ) {
+    return this.merchantOrderQueriesUseCase.getMerchantOrders(
+      merchantId,
+      filters,
+    );
   }
 
   async getMerchantRecentOrders(merchantId: string, limit: number = 5) {
-    return this.merchantOrderQueriesUseCase.getMerchantRecentOrders(merchantId, limit);
+    return this.merchantOrderQueriesUseCase.getMerchantRecentOrders(
+      merchantId,
+      limit,
+    );
   }
 
-  async sendOrderOtp(orderId: number, merchantId: string) {
+  async sendOrderOtp(orderId: string, merchantId: string) {
     return this.merchantOrderQueriesUseCase.sendOrderOtp(orderId, merchantId);
   }
 
-  async verifyOrderOtp(orderId: number, otp: string, merchantId: string, walletFacade: any) {
-    return this.merchantOrderQueriesUseCase.verifyOrderOtp(orderId, otp, merchantId, walletFacade);
+  async verifyOrderOtp(
+    orderId: string,
+    otp: string,
+    merchantId: string,
+    walletFacade: import('@/modules/wallet/application/wallet.facade').WalletFacade,
+  ) {
+    return this.merchantOrderQueriesUseCase.verifyOrderOtp(
+      orderId,
+      otp,
+      merchantId,
+      walletFacade,
+    );
   }
 
-  async getMerchantRevenueTimeline(merchantId: string) {
-    return this.merchantOrderQueriesUseCase.getMerchantRevenueTimeline(merchantId);
+  async getMerchantRevenueTimeline(
+    merchantId: string,
+  ): Promise<Array<{ date: string; revenue: string }>> {
+    return this.merchantOrderQueriesUseCase.getMerchantRevenueTimeline(
+      merchantId,
+    );
   }
 
-  async getMerchantTopProducts(merchantId: string) {
+  async getMerchantTopProducts(
+    merchantId: string,
+  ): Promise<
+    Array<{ name: string; sales_count: string; total_revenue: string }>
+  > {
     return this.merchantOrderQueriesUseCase.getMerchantTopProducts(merchantId);
   }
 
-  async getMerchantOrdersWithStats(merchantId: string, page: number, limit: number, status?: string, search?: string) {
-    return this.merchantOrderQueriesUseCase.getMerchantOrdersWithStats(merchantId, page, limit, status, search);
+  async getMerchantOrdersWithStats(
+    merchantId: string,
+    page: number,
+    limit: number,
+    status?: string,
+    search?: string,
+  ) {
+    return this.merchantOrderQueriesUseCase.getMerchantOrdersWithStats(
+      merchantId,
+      page,
+      limit,
+      status,
+      search,
+    );
   }
 
   async getAdminMerchantSalesOverview() {

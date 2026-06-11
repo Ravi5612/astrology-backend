@@ -1,4 +1,3 @@
-
 export enum ConsultationType {
   CHAT = 'CHAT',
   AUDIO_CALL = 'AUDIO_CALL',

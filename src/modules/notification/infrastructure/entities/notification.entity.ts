@@ -1,81 +1,57 @@
 import {
-    Entity,
-    Column,
-    CreateDateColumn,
-    ManyToOne,
-    JoinColumn,
+  Entity,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
-import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
-import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-agent.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
 export enum NotificationType {
-    ORDER_CREATED = 'order_created',
-    ORDER_PLACED = 'order_placed',
-    ORDER_PACKED = 'order_packed',
-    ORDER_SHIPPED = 'order_shipped',
-    ORDER_DELIVERED = 'order_delivered',
-    ORDER_CANCELLED = 'order_cancelled',
-    WALLET_RECHARGE = 'wallet_recharge',
-    PUJA_BOOKING = 'puja_booking',
-    GENERAL = 'general',
+  ORDER_CREATED = 'order_created',
+  ORDER_PLACED = 'order_placed',
+  ORDER_PACKED = 'order_packed',
+  ORDER_SHIPPED = 'order_shipped',
+  ORDER_DELIVERED = 'order_delivered',
+  ORDER_CANCELLED = 'order_cancelled',
+  WALLET_RECHARGE = 'wallet_recharge',
+  PUJA_BOOKING = 'puja_booking',
+  GENERAL = 'general',
 }
 
 @Entity({ schema: 'support', name: 'notifications' })
 export class Notification {
-    @UuidPrimaryKeyColumn()
-    id!: string;
+  @UuidPrimaryKeyColumn()
+  id!: string;
 
-    @ManyToOne(() => ProfileClient, { nullable: true })
-    @JoinColumn({ name: 'client_id' })
-    client!: ProfileClient | null;
+  @ManyToOne(() => User, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user!: User | null;
 
-    @Column({ name: 'client_id', type: 'uuid', nullable: true })
-    client_id!: string | null;
+  @Column({ name: 'user_id', type: 'uuid', nullable: true })
+  user_id!: string | null;
 
-    @ManyToOne(() => ProfileExpert, { nullable: true })
-    @JoinColumn({ name: 'expert_id' })
-    expert!: ProfileExpert | null;
+  @Column({
+    type: 'enum',
+    enum: NotificationType,
+    default: NotificationType.GENERAL,
+    nullable: true,
+  })
+  type!: NotificationType | null;
 
-    @Column({ name: 'expert_id', type: 'uuid', nullable: true })
-    expert_id!: string | null;
+  @Column({ type: 'character varying', length: 255 })
+  title!: string;
 
-    @ManyToOne(() => ProfileMerchant, { nullable: true })
-    @JoinColumn({ name: 'merchant_id' })
-    merchant!: ProfileMerchant | null;
+  @Column({ type: 'text' })
+  message!: string;
 
-    @Column({ name: 'merchant_id', type: 'uuid', nullable: true })
-    merchant_id!: string | null;
+  @Column({ name: 'is_read', default: false })
+  is_read!: boolean;
 
-    @ManyToOne(() => ProfileAgent, { nullable: true })
-    @JoinColumn({ name: 'agent_id' })
-    agent!: ProfileAgent | null;
+  @Column({ type: 'json', nullable: true })
+  metadata: Record<string, unknown>; // orderId, etc.
 
-    @Column({ name: 'agent_id', type: 'uuid', nullable: true })
-    agent_id!: string | null;
-
-    @Column({
-        type: 'enum',
-        enum: NotificationType,
-        default: NotificationType.GENERAL,
-        nullable: true,
-    })
-    type!: NotificationType | null;
-
-    @Column({type: 'character varying', length: 255})
-    title!: string;
-
-    @Column({ type: 'text' })
-    message!: string;
-
-    @Column({ name: 'is_read', default: false })
-    is_read!: boolean;
-
-    @Column({ type: 'json', nullable: true })
-    metadata: any; // orderId, etc.
-
-    @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-    created_at!: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  created_at!: Date;
 }

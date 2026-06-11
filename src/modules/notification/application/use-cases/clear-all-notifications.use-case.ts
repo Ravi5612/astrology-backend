@@ -6,13 +6,15 @@ import { Notification } from '../../infrastructure/entities/notification.entity'
 
 @Injectable()
 export class ClearAllNotificationsUseCase {
-    constructor(
-        @InjectRepository(Notification)
-        private readonly notificationRepo: Repository<Notification>,
-    ) { }
+  constructor(
+    @InjectRepository(Notification)
+    private readonly notificationRepo: Repository<Notification>,
+  ) {}
 
-    async execute(userId: string) {
-        await this.notificationRepo.delete({ client_id: userId as any });
-        return new BooleanMessage();
-    }
+  async execute(userId: string) {
+    await this.notificationRepo.delete({
+      user_id: userId,
+    });
+    return new BooleanMessage();
+  }
 }

@@ -18,7 +18,6 @@ import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { CreateReviewDto } from '../dto/create-review.dto';
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Controller({
   path: 'reviews',
@@ -82,7 +81,14 @@ export class ReviewsController {
     @Query('ratingType') ratingType?: string,
     @Query('review_type') review_type?: string,
   ) {
-    return this.reviewsFacade.getAdminReviews({ page, limit, status, search, ratingType, review_type });
+    return this.reviewsFacade.getAdminReviews({
+      page,
+      limit,
+      status,
+      search,
+      ratingType,
+      review_type,
+    });
   }
 
   // ─── Admin: Get reviews stats ─────────────────────────────────────────────────
@@ -101,16 +107,16 @@ export class ReviewsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body('status') status: string,
   ) {
-    const result = await this.reviewsFacade.updateReviewStatus(id, status);
+    await this.reviewsFacade.updateReviewStatus(id, status);
     return { success: true };
   }
 
   // ─── Admin: Delete a review ───────────────────────────────────────────────────
   @Delete('admin/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN') 
+  @Roles('ADMIN')
   async deleteReview(@Param('id', ParseUUIDPipe) id: string) {
-    const result = await this.reviewsFacade.deleteReview(id);
+    await this.reviewsFacade.deleteReview(id);
     return { success: true };
   }
 }

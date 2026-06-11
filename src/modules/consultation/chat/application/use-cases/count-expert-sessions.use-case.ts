@@ -1,17 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, MoreThanOrEqual } from 'typeorm';
-import { ChatSession, ChatSessionStatus } from '../../infrastructure/entities/chat-session.entity';
+import {
+  ChatSession,
+  ChatSessionStatus,
+} from '../../infrastructure/entities/chat-session.entity';
 
 @Injectable()
 export class CountExpertSessionsUseCase {
   constructor(
     @InjectRepository(ChatSession)
     private readonly chatSessionRepo: Repository<ChatSession>,
-  ) { }
+  ) {}
 
-  async execute(expert_id: string, options: { status?: ChatSessionStatus | ChatSessionStatus[], startDate?: Date } = {}) {
-    const where: any = { expert_id: expert_id as any };
+  async execute(
+    expert_id: string,
+    options: {
+      status?: ChatSessionStatus | ChatSessionStatus[];
+      startDate?: Date;
+    } = {},
+  ) {
+    const where: import('typeorm').FindOptionsWhere<ChatSession> = {
+      expert_id,
+    };
 
     if (options.status) {
       if (Array.isArray(options.status)) {
@@ -29,15 +40,21 @@ export class CountExpertSessionsUseCase {
   }
 
   async getRevenueAndCount(expertProfileId: string) {
-    const stats = await this.chatSessionRepo
+    const stats = (await this.chatSessionRepo
       .createQueryBuilder('chat')
-      .select("SUM(chat.total_cost)", "total")
-      .addSelect("COUNT(chat.id)", "count")
-      .where('chat.expert_id = :id AND chat.status = :status', { id: expertProfileId, status: 'completed' })
-      .getRawOne();
+      .select('SUM(chat.total_cost)', 'total')
+      .addSelect('COUNT(chat.id)', 'count')
+      .where('chat.expert_id = :id AND chat.status = :status', {
+        id: expertProfileId,
+        status: 'completed',
+      })
+      .getRawOne<{ total: string | null; count: string | null }>()) ?? {
+      total: null,
+      count: null,
+    };
     return {
-      total: parseFloat(stats.total) || 0,
-      count: parseInt(stats.count, 10) || 0,
+      total: parseFloat(stats.total ?? '0') || 0,
+      count: parseInt(stats.count ?? '0', 10) || 0,
     };
   }
 }

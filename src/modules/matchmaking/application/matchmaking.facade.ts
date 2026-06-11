@@ -9,11 +9,27 @@ export class MatchmakingFacade {
     private readonly calculateLovePercentageUseCase: CalculateLovePercentageUseCase,
   ) {}
 
-  async calculateKundliMatching(girl: any, boy: any) {
-    return this.calculateKundliMatchingUseCase.execute(girl, boy);
+  async calculateKundliMatching(
+    girl: Record<string, any>,
+    boy: Record<string, any>,
+  ) {
+    return this.calculateKundliMatchingUseCase.execute(
+      girl as any,
+      boy as any,
+    );
   }
 
-  calculateLovePercentage(yourName: string, partnerName: string, yourGender?: string, partnerGender?: string) {
-    return this.calculateLovePercentageUseCase.execute(yourName, partnerName, yourGender, partnerGender);
+  calculateLovePercentage(
+    yourName: string,
+    partnerName: string,
+    yourGender?: string,
+    partnerGender?: string,
+  ) {
+    return this.calculateLovePercentageUseCase.execute(
+      yourName,
+      partnerName,
+      yourGender,
+      partnerGender,
+    );
   }
 }

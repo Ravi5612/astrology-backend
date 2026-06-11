@@ -1,9 +1,8 @@
-import { EventEmitter2 } from '@nestjs/event-emitter';
+﻿import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { TokenCryptoService } from '../../infrastructure/tokens/token-crypto.service';
 import { SendMagicLinkEvent } from '../../domain/events/send-magic-link.event';
-import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class SendMagicLinkUseCase {
@@ -11,7 +10,7 @@ export class SendMagicLinkUseCase {
     private readonly usersFacade: UsersFacade,
     private readonly tokenCrypto: TokenCryptoService,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async execute(email: string) {
     const existingUser = await this.usersFacade.findByEmail(email);

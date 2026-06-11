@@ -12,32 +12,49 @@ export class GetMerchantOrdersUseCase {
     private readonly merchantRepo: Repository<ProfileMerchant>,
   ) {}
 
-  async execute(userId: string, page: number = 1, limit: number = 20, status?: string, search?: string) {
-    // Resolve merchant profile ID from user ID
-    const merchantProfile = await this.merchantRepo.findOne({
-      where: { user_id: userId as any },
-      select: ['id'],
-    });
-    const merchantId = merchantProfile?.id;
+  async execute(
+    userId: string,
+    page: number = 1,
+    limit: number = 20,
+    status?: string,
+    search?: string,
+  ) {
+    const merchantId = userId;
 
     if (!merchantId) {
-      return { orders: [], stats: { total: 0, pending: 0, shipped: 0, delivered: 0, cancelled: 0, revenue: 0 }, total: 0, page, limit };
+      return {
+        orders: [],
+        stats: {
+          total: 0,
+          pending: 0,
+          shipped: 0,
+          delivered: 0,
+          cancelled: 0,
+          revenue: 0,
+        },
+        total: 0,
+        page,
+        limit,
+      };
     }
 
-    const { stats, items, totalCount } = await this.orderFacade.getMerchantOrdersWithStats(
-      merchantId, 
-      page, 
-      limit, 
-      status, 
-      search
-    );
+    const { stats, items, totalCount } =
+      await this.orderFacade.getMerchantOrdersWithStats(
+        merchantId,
+        page,
+        limit,
+        status,
+        search,
+      );
 
     return {
       orders: items.map((item) => ({
         id: item.id.toString(),
         orderId: item.order.id.toString(),
         orderNumber: `ORD-${item.order.id}`,
-        customerName: (item.order as any).client?.user?.name || 'Guest',
+        customerName:
+          (item.order as unknown as { client?: { user?: { name?: string } } })
+            .client?.user?.name || 'Guest',
         amount: Number(item.price) * item.quantity,
         status: item.order.status,
         date: item.order.created_at.toISOString(),

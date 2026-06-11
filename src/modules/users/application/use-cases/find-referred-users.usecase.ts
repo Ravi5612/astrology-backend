@@ -8,15 +8,19 @@ export class FindReferredUsersUseCase {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) { }
+  ) {}
 
   async execute(roles: string[], search?: string) {
-    const qb = this.userRepository.createQueryBuilder('user')
+    const qb = this.userRepository
+      .createQueryBuilder('user')
       .leftJoinAndSelect('user.referred_by', 'agent')
       .where('user.referred_by_id IS NOT NULL');
 
     if (roles && roles.length > 0) {
-      qb.andWhere('cast("user"."roles" as varchar[]) && ARRAY[:...roleNames]::varchar[]', { roleNames: roles });
+      qb.andWhere(
+        'cast("user"."roles" as varchar[]) && ARRAY[:...roleNames]::varchar[]',
+        { roleNames: roles },
+      );
     }
 
     if (search) {

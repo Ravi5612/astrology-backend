@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards, Header } from '@nestjs/common';
+﻿import { Controller, Get, Query, UseGuards, Header } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
@@ -66,7 +66,9 @@ export class ConsultationController {
         await this.callFacade.reject(sessionId);
         return { success: true, message: 'Call rejected' };
       }
-    } catch {}
+    } catch (_e) {
+      console.debug('Not a call session');
+    }
 
     try {
       const chatSession = await this.chatFacade.getSession(sessionId);
@@ -74,7 +76,9 @@ export class ConsultationController {
         await this.chatFacade.rejectSession(sessionId);
         return { success: true, message: 'Chat rejected' };
       }
-    } catch {}
+    } catch (_e) {
+      console.debug('Not a chat session');
+    }
 
     return { success: false, message: 'Session not found' };
   }

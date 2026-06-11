@@ -13,7 +13,7 @@ export class Place {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @Column({type: 'text'})
+  @Column({ type: 'text' })
   query!: string;
 
   @Column({ type: 'character varying', length: 100, default: 'India' })
@@ -22,10 +22,10 @@ export class Place {
   @Column({ type: 'json' })
   results: any; // Stores the full array of places from Serper
 
-  @CreateDateColumn({type: 'timestamptz'})
+  @CreateDateColumn({ type: 'timestamptz' })
   created_at!: Date;
 
-  @UpdateDateColumn({type: 'timestamptz'})
+  @UpdateDateColumn({ type: 'timestamptz' })
   last_synced!: Date;
 }
 
@@ -35,15 +35,15 @@ export class PlaceImage {
   @UuidPrimaryKeyColumn()
   id!: string;
 
-  @Column({type: 'text'})
+  @Column({ type: 'text' })
   query!: string;
 
   @Column({ type: 'json' })
   results: any; // Stores the array of image results from Serper
 
-  @CreateDateColumn({type: 'timestamptz'})
+  @CreateDateColumn({ type: 'timestamptz' })
   created_at!: Date;
 
-  @UpdateDateColumn({type: 'timestamptz'})
+  @UpdateDateColumn({ type: 'timestamptz' })
   last_synced!: Date;
 }

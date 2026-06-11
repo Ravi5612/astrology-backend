@@ -18,8 +18,6 @@ import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator'
 @Unique(['client', 'expert'])
 @Unique(['client', 'puja'])
 @Unique(['client', 'merchant'])
-
-
 export class Wishlist {
   @UuidPrimaryKeyColumn()
   id!: string;
@@ -31,7 +29,11 @@ export class Wishlist {
   @Column({ name: 'client_id', type: 'uuid' })
   client_id!: string;
 
-  @ManyToOne(() => ProfileExpert, { onDelete: 'CASCADE', eager: true, nullable: true })
+  @ManyToOne(() => ProfileExpert, {
+    onDelete: 'CASCADE',
+    eager: true,
+    nullable: true,
+  })
   @JoinColumn({ name: 'expert_id' })
   expert!: ProfileExpert | null;
 
@@ -61,7 +63,6 @@ export class Wishlist {
   })
   @JoinColumn({ name: 'merchant_id' })
   merchant!: ProfileMerchant | null;
-
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at!: Date;

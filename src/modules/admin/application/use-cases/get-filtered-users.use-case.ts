@@ -8,7 +8,7 @@ export { FilterCriteria };
 export class GetFilteredUsersUseCase {
   constructor(
     @Inject(forwardRef(() => UsersFacade))
-    private readonly usersFacade: UsersFacade
+    private readonly usersFacade: UsersFacade,
   ) {}
 
   async executeCount(filters: FilterCriteria) {

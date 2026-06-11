@@ -5,7 +5,7 @@ import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 export class GetAdminRevenueTrendUseCase {
   constructor(
     @Inject(forwardRef(() => WalletFacade))
-    private readonly walletFacade: WalletFacade
+    private readonly walletFacade: WalletFacade,
   ) {}
 
   async execute(days: number = 7) {

@@ -20,6 +20,8 @@ export class PujaAppointmentFacade {
   }
 
   getExpertRevenueAndCount(expertProfileId: string) {
-    return this.getExpertPujaAppointmentsUseCase.getRevenueAndCount(expertProfileId);
+    return this.getExpertPujaAppointmentsUseCase.getRevenueAndCount(
+      expertProfileId,
+    );
   }
 }

@@ -1,4 +1,4 @@
-import {
+﻿import {
   Controller,
   Get,
   Post,
@@ -27,24 +27,24 @@ import { User } from '@/modules/users/infrastructure/entities/user.entity';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('EXPERT')
 export class BankAccountsController {
-  constructor(private readonly bankAccountsFacade: BankAccountsFacade) { }
+  constructor(private readonly bankAccountsFacade: BankAccountsFacade) {}
 
   @Post()
   create(
     @CurrentUser() user: User,
     @Body() createBankAccountDto: CreateBankAccountDto,
   ) {
-    return this.bankAccountsFacade.create(user.id as any, createBankAccountDto);
+    return this.bankAccountsFacade.create(user.id, createBankAccountDto);
   }
 
   @Get()
   findAll(@CurrentUser() user: User) {
-    return this.bankAccountsFacade.findAll(user.id as any);
+    return this.bankAccountsFacade.findAll(user.id);
   }
 
   @Get(':id')
   findOne(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
-    return this.bankAccountsFacade.findOne(user.id as any, id);
+    return this.bankAccountsFacade.findOne(user.id, id);
   }
 
   @Patch(':id')
@@ -53,7 +53,11 @@ export class BankAccountsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateBankAccountDto: UpdateBankAccountDto,
   ) {
-    const result = await this.bankAccountsFacade.update(user.id as any, id, updateBankAccountDto);
+    const _result = await this.bankAccountsFacade.update(
+      user.id,
+      id,
+      updateBankAccountDto,
+    );
     return { success: true };
   }
 
@@ -62,13 +66,16 @@ export class BankAccountsController {
     @CurrentUser() user: User,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    const result = await this.bankAccountsFacade.setPrimary(user.id as any, id);
+    const _result = await this.bankAccountsFacade.setPrimary(user.id, id);
     return { success: true };
   }
 
   @Delete(':id')
-  async remove(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
-    const result = await this.bankAccountsFacade.remove(user.id as any, id);
+  async remove(
+    @CurrentUser() user: User,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const _result = await this.bankAccountsFacade.remove(user.id, id);
     return { success: true };
   }
 }

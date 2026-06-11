@@ -1,5 +1,4 @@
-
-import {
+﻿import {
   Controller,
   Get,
   Post,
@@ -8,7 +7,6 @@ import {
   Body,
   Param,
   UseGuards,
-  Req,
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { CartFacade } from '../../application/cart.facade';
@@ -44,13 +42,19 @@ export class CartController {
     @CurrentUser() user: User,
     @Body() updateCartItemDto: UpdateCartItemDto & { productId: string },
   ) {
-    const result = await this.cartFacade.updateCartItem(user.id, updateCartItemDto);
+    const _result = await this.cartFacade.updateCartItem(
+      user.id,
+      updateCartItemDto,
+    );
     return { success: true };
   }
 
   @Delete('/remove/:id')
-  async removeCartItem(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
-    const result = await this.cartFacade.removeCartItem(user.id, id);
+  async removeCartItem(
+    @CurrentUser() user: User,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const _result = await this.cartFacade.removeCartItem(user.id, id);
     return { success: true };
   }
 }

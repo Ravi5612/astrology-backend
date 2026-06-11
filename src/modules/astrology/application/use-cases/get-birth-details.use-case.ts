@@ -5,7 +5,12 @@ import { ProkeralaService } from '@/external/prokerala/prokerala.service';
 export class GetBirthDetailsUseCase {
   constructor(private readonly prokeralaService: ProkeralaService) {}
 
-  async execute(params: { datetime: string; lat: string; lon: string; ayanamsa?: string }) {
+  async execute(params: {
+    datetime: string;
+    lat: string;
+    lon: string;
+    ayanamsa?: string;
+  }) {
     return this.prokeralaService.getBirthDetails(params);
   }
 }

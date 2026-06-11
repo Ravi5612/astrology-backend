@@ -3,7 +3,9 @@ import { GetDashboardStatsUseCase } from './use-cases/get-dashboard-stats.use-ca
 
 @Injectable()
 export class ExpertDashboardFacade {
-  constructor(private readonly getDashboardStatsUseCase: GetDashboardStatsUseCase) {}
+  constructor(
+    private readonly getDashboardStatsUseCase: GetDashboardStatsUseCase,
+  ) {}
 
   async getDashboardStats(userId: string, type: 'today' | 'total') {
     return this.getDashboardStatsUseCase.execute(userId, type);

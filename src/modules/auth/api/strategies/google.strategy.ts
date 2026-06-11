@@ -6,6 +6,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthConfig } from '@/config/auth.config';
 import { LoginWithGoogleUseCase } from '../../application/use-cases/login-with-google.usecase';
+import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -31,7 +32,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   }
 
   async validate(
-    req: any,
+    req: Request & {
+      _strategy_validated?: boolean;
+      user?: Record<string, unknown>;
+    },
     accessToken: string,
     refreshToken: string,
     profile: Profile,
@@ -39,7 +43,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   ) {
     const email = profile.emails?.[0]?.value;
     if (req._strategy_validated) {
-      this.logger.log(`GoogleStrategy.validate already called for ${email}, skipping.`);
+      this.logger.log(
+        `GoogleStrategy.validate already called for ${email}, skipping.`,
+      );
       return done(null, req.user);
     }
     req._strategy_validated = true;
@@ -52,10 +58,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     }
 
     const rawState = req?.query?.state as string | undefined;
-    let state: any = {};
+    let state: { redirect_uri?: string; redirectUrl?: string; role?: string } =
+      {};
     if (rawState) {
       try {
-        state = JSON.parse(decodeURIComponent(rawState));
+        state = JSON.parse(decodeURIComponent(rawState)) as typeof state;
       } catch {
         state = {};
       }
@@ -68,7 +75,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       profile,
       ip: req?.ip,
       userAgent: req.get('user-agent'),
-      role: state?.role,
+      role: state?.role as RoleEnum | undefined,
     });
 
     const authResult = {
@@ -77,7 +84,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       redirectUri: state?.redirect_uri || state?.redirectUrl,
     };
 
-    this.logger.log(`Google auth validated for ${email}. Tokens present: ${!!authResult.accessToken}`);
+    this.logger.log(
+      `Google auth validated for ${email}. Tokens present: ${!!authResult.accessToken}`,
+    );
 
     // 3️⃣ Return user, tokens, and redirectUri to AuthController via Passport
     return done(null, authResult);

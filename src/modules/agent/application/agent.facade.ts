@@ -18,71 +18,103 @@ import { QueryRunner } from 'typeorm';
 
 @Injectable()
 export class AgentFacade {
-    constructor(
-        private readonly getAgentProfileUseCase: GetAgentProfileUseCase,
-        private readonly updateAgentProfileUseCase: UpdateAgentProfileUseCase,
-        private readonly getAgentStatsUseCase: GetAgentStatsUseCase,
-        private readonly getAgentListingsUseCase: GetAgentListingsUseCase,
-        private readonly getAgentCommissionsUseCase: GetAgentCommissionsUseCase,
-        private readonly settleAgentCommissionsUseCase: SettleAgentCommissionsUseCase,
-        private readonly createAgentListingUseCase: CreateAgentListingUseCase,
-        private readonly incrementRegistrationsWithQueryRunnerUseCase: IncrementRegistrationsWithQueryRunnerUseCase,
-        private readonly updateAgentProfileWithQueryRunnerUseCase: UpdateAgentProfileWithQueryRunnerUseCase,
-        private readonly getAdminAgentsUseCase: GetAdminAgentsUseCase,
-        private readonly getAdminAgentStatsUseCase: GetAdminAgentStatsUseCase,
-        private readonly getAdminListingsUseCase: GetAdminListingsUseCase,
-        private readonly updateAdminListingStatusUseCase: UpdateAdminListingStatusUseCase,
-    ) {}
+  constructor(
+    private readonly getAgentProfileUseCase: GetAgentProfileUseCase,
+    private readonly updateAgentProfileUseCase: UpdateAgentProfileUseCase,
+    private readonly getAgentStatsUseCase: GetAgentStatsUseCase,
+    private readonly getAgentListingsUseCase: GetAgentListingsUseCase,
+    private readonly getAgentCommissionsUseCase: GetAgentCommissionsUseCase,
+    private readonly settleAgentCommissionsUseCase: SettleAgentCommissionsUseCase,
+    private readonly createAgentListingUseCase: CreateAgentListingUseCase,
+    private readonly incrementRegistrationsWithQueryRunnerUseCase: IncrementRegistrationsWithQueryRunnerUseCase,
+    private readonly updateAgentProfileWithQueryRunnerUseCase: UpdateAgentProfileWithQueryRunnerUseCase,
+    private readonly getAdminAgentsUseCase: GetAdminAgentsUseCase,
+    private readonly getAdminAgentStatsUseCase: GetAdminAgentStatsUseCase,
+    private readonly getAdminListingsUseCase: GetAdminListingsUseCase,
+    private readonly updateAdminListingStatusUseCase: UpdateAdminListingStatusUseCase,
+  ) {}
 
-    async getProfile(userId: string) {
-        return this.getAgentProfileUseCase.execute(userId);
-    }
+  async getProfile(userId: string) {
+    return this.getAgentProfileUseCase.execute(userId);
+  }
 
-    async updateProfile(userId: string, body: any) {
-        return this.updateAgentProfileUseCase.execute(userId, body);
-    }
+  async updateProfile(userId: string, body: Record<string, unknown>) {
+    return this.updateAgentProfileUseCase.execute(userId, body);
+  }
 
-    async getStats(userId: string, range: string = '30d', dateRangeDto?: DateRangeDto) {
-        return this.getAgentStatsUseCase.execute(userId, range, dateRangeDto);
-    }
+  async getStats(
+    userId: string,
+    range: string = '30d',
+    dateRangeDto?: DateRangeDto,
+  ) {
+    return this.getAgentStatsUseCase.execute(userId, range, dateRangeDto);
+  }
 
-    async getListings(userId: string, pagination: PaginationDto, type?: string, search?: string) {
-        return this.getAgentListingsUseCase.execute(userId, pagination, type, search);
-    }
+  async getListings(
+    userId: string,
+    pagination: PaginationDto,
+    type?: string,
+    search?: string,
+  ) {
+    return this.getAgentListingsUseCase.execute(
+      userId,
+      pagination,
+      type,
+      search,
+    );
+  }
 
-    async getCommissions(userId: string, pagination: PaginationDto) {
-        return this.getAgentCommissionsUseCase.execute(userId, pagination);
-    }
+  async getCommissions(userId: string, pagination: PaginationDto) {
+    return this.getAgentCommissionsUseCase.execute(userId, pagination);
+  }
 
-    async settleCommissions(userId: string) {
-        return this.settleAgentCommissionsUseCase.execute(userId);
-    }
+  async settleCommissions(userId: string) {
+    return this.settleAgentCommissionsUseCase.execute(userId);
+  }
 
-    async createListing(userId: string, body: any) {
-        return this.createAgentListingUseCase.execute(userId, body);
-    }
+  async createListing(userId: string, body: Record<string, unknown>) {
+    return this.createAgentListingUseCase.execute(userId, body);
+  }
 
-    async incrementRegistrationsWithQueryRunner(agentId: string, registeredUserId: string, isExpert: boolean, queryRunner: QueryRunner) {
-        return this.incrementRegistrationsWithQueryRunnerUseCase.execute(agentId, registeredUserId, isExpert, queryRunner);
-    }
+  async incrementRegistrationsWithQueryRunner(
+    agentId: string,
+    registeredUserId: string,
+    isExpert: boolean,
+    queryRunner: QueryRunner,
+  ) {
+    return this.incrementRegistrationsWithQueryRunnerUseCase.execute(
+      agentId,
+      registeredUserId,
+      isExpert,
+      queryRunner,
+    );
+  }
 
-    async updateProfileWithQueryRunner(agentId: string, updates: any, queryRunner: QueryRunner) {
-        return this.updateAgentProfileWithQueryRunnerUseCase.execute(agentId, updates, queryRunner);
-    }
+  async updateProfileWithQueryRunner(
+    agentId: string,
+    updates: Record<string, unknown>,
+    queryRunner: QueryRunner,
+  ) {
+    return this.updateAgentProfileWithQueryRunnerUseCase.execute(
+      agentId,
+      updates,
+      queryRunner,
+    );
+  }
 
-    async getAdminAgents(params: any) {
-        return this.getAdminAgentsUseCase.execute(params);
-    }
+  async getAdminAgents(params: Record<string, unknown>) {
+    return this.getAdminAgentsUseCase.execute(params);
+  }
 
-    async getAdminAgentStats() {
-        return this.getAdminAgentStatsUseCase.execute();
-    }
+  async getAdminAgentStats() {
+    return this.getAdminAgentStatsUseCase.execute();
+  }
 
-    async getAdminListings(params: any) {
-        return this.getAdminListingsUseCase.execute(params);
-    }
+  async getAdminListings(params: Record<string, unknown>) {
+    return this.getAdminListingsUseCase.execute(params);
+  }
 
-    async updateAdminListingStatus(id: string, data: { status: string }) {
-        return this.updateAdminListingStatusUseCase.execute(id, data);
-    }
+  async updateAdminListingStatus(id: string, data: { status: string }) {
+    return this.updateAdminListingStatusUseCase.execute(id, data);
+  }
 }

@@ -53,6 +53,4 @@ export class ResetPasswordDto {
   confirm_password?: string;
 }
 
-export class SendMagicLinkDto extends PickType(RegisterDto, ['email']) { }
-
-
+export class SendMagicLinkDto extends PickType(RegisterDto, ['email']) {}

@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Transaction, TransactionPurpose } from '../../infrastructure/entities/transaction.entity';
+import {
+  Transaction,
+  TransactionPurpose,
+} from '../../infrastructure/entities/transaction.entity';
 import { Wallet } from '../../infrastructure/entities/wallet.entity';
 import { Withdrawal } from '../../infrastructure/entities/withdrawal.entity';
 
@@ -16,10 +19,15 @@ export class GetMerchantTransactionsUseCase {
     private readonly withdrawalRepo: Repository<Withdrawal>,
   ) {}
 
-  async execute(userId: string, options: { search?: string; page?: number; limit?: number }) {
+  async execute(
+    userId: string,
+    options: { search?: string; page?: number; limit?: number },
+  ) {
     const { search, page = 1, limit = 10 } = options;
 
-    const wallet = await this.walletRepo.findOne({ where: { id: userId as any } });
+    const wallet = await this.walletRepo.findOne({
+      where: { id: userId as unknown as string },
+    });
     if (!wallet) {
       return { transactions: [], total: 0, page, limit };
     }
@@ -30,9 +38,12 @@ export class GetMerchantTransactionsUseCase {
       .orderBy('t.created_at', 'DESC');
 
     if (search) {
-      query.andWhere('(t.reference_id LIKE :search OR CAST(t.id AS TEXT) LIKE :search)', {
-        search: `%${search}%`,
-      });
+      query.andWhere(
+        '(t.reference_id LIKE :search OR CAST(t.id AS TEXT) LIKE :search)',
+        {
+          search: `%${search}%`,
+        },
+      );
     }
 
     const [transactions, total] = await query
@@ -64,17 +75,24 @@ export class GetMerchantTransactionsUseCase {
           typeLabel = 'Credit';
           color = 'green';
           icon = 'in';
-          
+
           if (txn.reference_id?.startsWith('REFUND-WD-')) {
-            const withdrawalId = parseInt(txn.reference_id.replace('REFUND-WD-', ''));
-            const withdrawal = await this.withdrawalRepo.findOne({ where: { id: withdrawalId as any } });
+            const withdrawalId = parseInt(
+              txn.reference_id.replace('REFUND-WD-', ''),
+            );
+            const withdrawal = await this.withdrawalRepo.findOne({
+              where: { id: withdrawalId as unknown as string },
+            });
             if (withdrawal) {
-                orderId = `WD-${withdrawalId}`;
-                info = `Refund for Withdrawal #${withdrawalId}`;
-                remark = withdrawal.remark || 'Withdrawal Refunded';
+              orderId = `WD-${withdrawalId}`;
+              info = `Refund for Withdrawal #${withdrawalId}`;
+              remark = withdrawal.remark || 'Withdrawal Refunded';
             }
           }
-        } else if (txn.purpose === TransactionPurpose.PRODUCT_PURCHASE || txn.purpose === TransactionPurpose.CONSULTATION) {
+        } else if (
+          txn.purpose === TransactionPurpose.PRODUCT_PURCHASE ||
+          txn.purpose === TransactionPurpose.CONSULTATION
+        ) {
           type = 'sale';
           status = 'completed';
           typeLabel = 'Credit';
@@ -82,10 +100,10 @@ export class GetMerchantTransactionsUseCase {
           icon = 'in';
           if (txn.reference_id?.includes('order_')) {
             const parts = txn.reference_id.split('_');
-            const idPart = parts.find(p => !isNaN(Number(p)));
+            const idPart = parts.find((p) => !isNaN(Number(p)));
             if (idPart) {
-                orderId = `ORD-${idPart}`;
-                info = `Order #${idPart}`;
+              orderId = `ORD-${idPart}`;
+              info = `Order #${idPart}`;
             }
           }
         }
@@ -106,7 +124,7 @@ export class GetMerchantTransactionsUseCase {
           status,
           remark: remark || txn.reference_id,
         };
-      })
+      }),
     );
 
     return {

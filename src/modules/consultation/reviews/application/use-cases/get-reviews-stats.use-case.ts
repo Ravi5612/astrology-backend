@@ -11,14 +11,16 @@ export class GetReviewsStatsUseCase {
     private readonly expertProfileFacade: ExpertProfileFacade,
     @InjectRepository(Review)
     private readonly reviewRepository: Repository<Review>,
-  ) { }
+  ) {}
 
   async execute(expert_id: string) {
-    const expert = await this.expertProfileFacade.getExpertById(expert_id) || await this.expertProfileFacade.getExpertByUserId(expert_id);
+    const expert =
+      (await this.expertProfileFacade.getExpertById(expert_id)) ||
+      (await this.expertProfileFacade.getExpertByUserId(expert_id));
     if (!expert) return null;
 
     // Get star-wise distribution counts
-    const countsResult = await this.reviewRepository
+    const result: unknown = await this.reviewRepository
       .createQueryBuilder('review')
       .select('CAST(review.rating AS INTEGER)', 'rating')
       .addSelect('COUNT(*)', 'count')
@@ -35,13 +37,13 @@ export class GetReviewsStatsUseCase {
       '5': 0,
     };
 
+    const countsResult = result as Array<Record<string, string>>;
     countsResult.forEach((row) => {
       const ratingKey = row.rating.toString();
-      if (counts.hasOwnProperty(ratingKey)) {
+      if (Object.prototype.hasOwnProperty.call(counts, ratingKey)) {
         counts[ratingKey] = parseInt(row.count, 10);
       }
     });
-
     return {
       rating: expert.rating,
       totalReviews: expert.total_reviews,

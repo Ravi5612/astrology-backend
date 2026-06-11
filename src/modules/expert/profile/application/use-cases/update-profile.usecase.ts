@@ -9,7 +9,10 @@ import { Address } from '@/common/address/address.entity';
 import { GetProfileUseCase } from './get-profile.usecase';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfilePolicy } from '../../domain/policies/profile.policy';
-import { ProfileUpdatedEvent, ExpertStatusChangedEvent } from '../../domain/events/profile-events';
+import {
+  ProfileUpdatedEvent,
+  ExpertStatusChangedEvent,
+} from '../../domain/events/profile-events';
 
 @Injectable()
 export class UpdateProfileUseCase {
@@ -24,7 +27,7 @@ export class UpdateProfileUseCase {
     private readonly userRepo: Repository<User>,
     private readonly getProfileUseCase: GetProfileUseCase,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async execute(user: User, dto: UpdateProfileExpertDto) {
     let profile = await this.profileRepo.findOne({
@@ -35,7 +38,7 @@ export class UpdateProfileUseCase {
     if (!profile) {
       // If profile doesn't exist (old users), create it on the fly
       profile = this.profileRepo.create({
-        user: { id: user.id } as any,
+        user: { id: user.id } as unknown as User,
         is_available: false,
       });
       await this.profileRepo.save(profile);
@@ -51,11 +54,15 @@ export class UpdateProfileUseCase {
 
     if (dto.gender !== undefined) profile.gender = dto.gender;
     if (dto.date_of_birth !== undefined) {
-      profile.date_of_birth = dto.date_of_birth ? new Date(dto.date_of_birth) : null;
+      profile.date_of_birth = dto.date_of_birth
+        ? new Date(dto.date_of_birth)
+        : null;
     }
-    if (dto.specialization !== undefined) profile.specialization = dto.specialization;
+    if (dto.specialization !== undefined)
+      profile.specialization = dto.specialization;
     if (dto.bio !== undefined) profile.bio = dto.bio;
-    if (dto.experience_in_years !== undefined) profile.experience_in_years = dto.experience_in_years;
+    if (dto.experience_in_years !== undefined)
+      profile.experience_in_years = dto.experience_in_years;
 
     if (dto.price !== undefined) {
       this.logger.log(`Updating price to ${dto.price}`);
@@ -82,25 +89,38 @@ export class UpdateProfileUseCase {
       profile.horoscope_price = dto.horoscope_price;
     }
     if (dto.custom_services !== undefined) {
-      this.logger.log(`Updating custom_services: ${JSON.stringify(dto.custom_services)}`);
-      profile.custom_services = dto.custom_services;
+      this.logger.log(
+        `Updating custom_services: ${JSON.stringify(dto.custom_services)}`,
+      );
+      profile.custom_services = dto.custom_services as unknown as Record<
+        string,
+        unknown
+      >[];
     }
     if (dto.bank_details !== undefined) profile.bank_details = dto.bank_details;
 
-    if (dto.documents !== undefined) profile.documents = dto.documents;
+    if (dto.documents !== undefined)
+      profile.documents = dto.documents as unknown as Record<string, unknown>[];
     if (dto.gallery !== undefined) profile.gallery = dto.gallery;
     if (dto.videos !== undefined) profile.videos = dto.videos;
     if (dto.video !== undefined) profile.video = dto.video;
     if (dto.certificates !== undefined) profile.certificates = dto.certificates;
 
-    if (dto.detailed_experience !== undefined) profile.detailed_experience = dto.detailed_experience;
+    if (dto.detailed_experience !== undefined)
+      profile.detailed_experience =
+        dto.detailed_experience as unknown as Record<string, unknown>[];
 
-    if ((dto as any).languages) {
-      profile.languages = (dto as any).languages.join(',');
+    if ((dto as unknown as { languages: string[] }).languages) {
+      profile.languages = (
+        dto as unknown as { languages: string[] }
+      ).languages.join(',');
     }
 
-    if ((dto as any).phone_number !== undefined) {
-      profile.phone_number = (dto as any).phone_number;
+    if (
+      (dto as unknown as { phone_number?: string }).phone_number !== undefined
+    ) {
+      profile.phone_number = (dto as unknown as { phone_number?: string })
+        .phone_number as string;
     }
 
     if (dto.addresses) {
@@ -110,15 +130,20 @@ export class UpdateProfileUseCase {
 
       profile.addresses = dto.addresses.map((addr: any) =>
         this.addressRepo.create({
-          line1: [addr.line1, addr.line2].filter(Boolean).join(', ') || addr.house_no || '',
-          house_no: addr.house_no,
-          city: addr.city,
-          district: addr.district,
-          state: addr.state,
-          country: addr.country,
-          zip_code: addr.zip_code || addr.pincode || '',
-          pincode: addr.pincode,
-          tag: addr.tag || 'other',
+          line1:
+            [addr.line1 as string, addr.line2 as string]
+              .filter(Boolean)
+              .join(', ') ||
+            (addr.house_no as string) ||
+            '',
+          house_no: addr.house_no as string,
+          city: addr.city as string,
+          district: addr.district as string,
+          state: addr.state as string,
+          country: addr.country as string,
+          zip_code: (addr.zip_code as string) || (addr.pincode as string) || '',
+          pincode: addr.pincode as string,
+          tag: ((addr.tag as string) || 'other') as import('@/common/address/address.entity').AddressTag,
         }),
       );
     }
@@ -127,8 +152,10 @@ export class UpdateProfileUseCase {
       await this.userRepo.update(user.id, { avatar: dto.avatar });
     }
 
-    if ((dto as any).name !== undefined) {
-      await this.userRepo.update(user.id, { name: (dto as any).name });
+    if ((dto as unknown as { name?: string }).name !== undefined) {
+      await this.userRepo.update(user.id, {
+        name: (dto as unknown as { name?: string }).name as string,
+      });
     }
 
     const savedProfile = await this.profileRepo.save(profile);
@@ -136,13 +163,20 @@ export class UpdateProfileUseCase {
     // Emit events
     this.eventEmitter.emit(
       'expert.profile.updated',
-      new ProfileUpdatedEvent(user.id as any, savedProfile.id as any, dto),
+      new ProfileUpdatedEvent(
+        user.id as unknown as string,
+        savedProfile.id as unknown as string,
+        dto,
+      ),
     );
 
     if (dto.is_available !== undefined) {
       this.eventEmitter.emit(
         'expert.status.changed',
-        new ExpertStatusChangedEvent(user.id as any, dto.is_available),
+        new ExpertStatusChangedEvent(
+          user.id as unknown as string,
+          dto.is_available,
+        ),
       );
     }
 

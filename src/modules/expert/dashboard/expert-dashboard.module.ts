@@ -7,15 +7,12 @@ import { ProfileModule } from '@/modules/expert/profile/profile.module';
 import { ConsultationModule } from '@/modules/consultation/consultation.module';
 
 @Module({
-    imports: [
-        forwardRef(() => ConsultationModule),
-        WalletModule,
-        forwardRef(() => ProfileModule),
-    ],
-    controllers: [ExpertDashboardController],
-    providers: [
-        ExpertDashboardFacade,
-        GetDashboardStatsUseCase,
-    ],
+  imports: [
+    forwardRef(() => ConsultationModule),
+    WalletModule,
+    forwardRef(() => ProfileModule),
+  ],
+  controllers: [ExpertDashboardController],
+  providers: [ExpertDashboardFacade, GetDashboardStatsUseCase],
 })
-export class ExpertDashboardModule { }
+export class ExpertDashboardModule {}

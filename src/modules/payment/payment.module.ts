@@ -29,4 +29,4 @@ import { ProfileModule } from '@/modules/client/profile/profile.module';
   ],
   exports: [PaymentFacade],
 })
-export class PaymentModule { }
+export class PaymentModule {}

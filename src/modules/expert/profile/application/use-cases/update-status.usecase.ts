@@ -21,7 +21,7 @@ export class UpdateStatusUseCase {
     private readonly eventEmitter: EventEmitter2,
     @Inject(forwardRef(() => ChatFacade))
     private readonly chatFacade: ChatFacade,
-  ) { }
+  ) {}
 
   async execute(user: User, isAvailable: boolean) {
     const profile = await this.profileRepo.findOne({
@@ -32,12 +32,17 @@ export class UpdateStatusUseCase {
 
     // Business Logic: Prevent going offline if there are active sessions
     if (isAvailable === false) {
-      const activeSessionsCount = await this.chatFacade.getExpertSessionCount(profile.id as any, {
-        status: [ChatSessionStatus.ACTIVE, ChatSessionStatus.PENDING]
-      });
+      const activeSessionsCount = await this.chatFacade.getExpertSessionCount(
+        profile.id as unknown as string,
+        {
+          status: [ChatSessionStatus.ACTIVE, ChatSessionStatus.PENDING],
+        },
+      );
 
       if (activeSessionsCount > 0) {
-        this.logger.warn(`Expert ${user.email} tried to go offline with ${activeSessionsCount} active sessions.`);
+        this.logger.warn(
+          `Expert ${user.email} tried to go offline with ${activeSessionsCount} active sessions.`,
+        );
         throw new ActiveSessionOfflineError();
       }
     }
@@ -48,7 +53,7 @@ export class UpdateStatusUseCase {
     // Emit event
     this.eventEmitter.emit(
       'expert.status.changed',
-      new ExpertStatusChangedEvent(user.id as any, isAvailable),
+      new ExpertStatusChangedEvent(user.id as unknown as string, isAvailable),
     );
 
     return new BooleanMessage(true, 'Expert status updated successfully');

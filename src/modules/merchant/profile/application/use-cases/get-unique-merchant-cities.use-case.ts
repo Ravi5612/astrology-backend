@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProfileMerchant, MerchantStatus } from '../../infrastructure/entities/profile-merchant.entity';
+import {
+  ProfileMerchant,
+  MerchantStatus,
+} from '../../infrastructure/entities/profile-merchant.entity';
 
 @Injectable()
 export class GetUniqueMerchantCitiesUseCase {
@@ -18,7 +21,7 @@ export class GetUniqueMerchantCitiesUseCase {
       .andWhere('merchant.city IS NOT NULL')
       .getRawMany();
 
-    const cities = results
+    const cities = (results as Array<{ city: string }>)
       .map((r) => r.city)
       .filter((city) => city && city.trim() !== '')
       .sort();

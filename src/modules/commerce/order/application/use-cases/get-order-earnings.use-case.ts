@@ -11,13 +11,13 @@ export class GetOrderEarningsUseCase {
   ) {}
 
   async execute(dateLimit: Date): Promise<number> {
-    const productStats = await this.orderRepository
+    const productStats = (await this.orderRepository
       .createQueryBuilder('order')
-      .select("SUM(order.total_amount)", "total")
+      .select('SUM(order.total_amount)', 'total')
       .where('order.created_at >= :date', { date: dateLimit })
       .andWhere("order.status IN ('paid', 'packed', 'shipped', 'delivered')")
-      .getRawOne();
+      .getRawOne<{ total: string | null }>()) ?? { total: null };
 
-    return parseFloat(productStats?.total) || 0;
+    return parseFloat(productStats.total ?? '0') || 0;
   }
 }

@@ -34,11 +34,19 @@ export class ReviewsFacade {
     return this.createReviewUseCase.execute(userId, dto);
   }
 
-  async getExpertReviews(expert_id: string, page: number = 1, limit: number = 20) {
+  async getExpertReviews(
+    expert_id: string,
+    page: number = 1,
+    limit: number = 20,
+  ) {
     return this.getExpertReviewsUseCase.execute(expert_id, page, limit);
   }
 
-  async getMerchantReviews(merchantId: string, page: number = 1, limit: number = 20) {
+  async getMerchantReviews(
+    merchantId: string,
+    page: number = 1,
+    limit: number = 20,
+  ) {
     return this.getMerchantReviewsUseCase.execute(merchantId, page, limit);
   }
 
@@ -50,7 +58,14 @@ export class ReviewsFacade {
     return this.getMerchantReviewsStatsUseCase.execute(merchantId);
   }
 
-  async getAdminReviews(params: any) {
+  async getAdminReviews(params: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+    ratingType?: string;
+    review_type?: string;
+  }) {
     return this.getAdminReviewsUseCase.execute(params);
   }
 
@@ -74,7 +89,15 @@ export class ReviewsFacade {
     return this.getApprovedPlatformReviewsUseCase.execute(limit);
   }
 
-  async getExpertReviewsByDate(expert_id: string, startDate: Date, endDate: Date) {
-    return this.getExpertReviewsByDateUseCase.execute(expert_id, startDate, endDate);
+  async getExpertReviewsByDate(
+    expert_id: string,
+    startDate: Date,
+    endDate: Date,
+  ) {
+    return this.getExpertReviewsByDateUseCase.execute(
+      expert_id,
+      startDate,
+      endDate,
+    );
   }
 }
