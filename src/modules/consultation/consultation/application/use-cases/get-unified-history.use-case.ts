@@ -59,7 +59,7 @@ export class GetUnifiedHistoryUseCase {
     // 2. Fetch Sessions with relations
     const chatSessions = await this.chatRepo.find({
       where: chatFilter,
-      relations: ['expert', 'expert.user', 'user'],
+      relations: ['expert', 'expert.user', 'client', 'client.user'],
       order: { created_at: 'DESC' },
     });
 
@@ -107,29 +107,11 @@ export class GetUnifiedHistoryUseCase {
         });
     });
 
-    // 4. Fetch Client Profiles for chat session users (call sessions load client directly)
-    const chatUserIds = [
-      ...new Set(chatSessions.map((s) => s.user?.id).filter((id) => id)),
-    ];
-    const clientProfiles =
-      chatUserIds.length > 0
-        ? await this.profileClientRepo.find({
-            where: { user_id: In(chatUserIds) },
-          })
-        : [];
-
-    const clientProfileMap = new Map<string, ProfileClient>();
-    clientProfiles.forEach((p) => {
-      if (p.user_id) clientProfileMap.set(p.user_id, p);
-    });
-
     // 5. Map to Standardized DTO
     const unifiedHistory: ConsultationHistoryDto[] = [
       ...chatSessions.map((s) => {
         const duration = this.calculateDuration(s.start_time, s.end_time);
-        const profile = s.user?.id
-          ? clientProfileMap.get(s.user.id)
-          : undefined;
+        const profile = s.client;
         return this.mapChatSession(
           s,
           chatReviewMap.get(s.id),
@@ -201,12 +183,12 @@ export class GetUnifiedHistoryUseCase {
       user_image:
         clientProfile?.profile_picture ||
         clientProfile?.avatar ||
-        session.user?.avatar ||
+        session.client?.user?.avatar ||
         '/images/dummy-user.jpg',
       expert_name:
         session.expert?.user?.name || session.expert?.name || 'Expert',
       expert_category: session.expert?.specialization || 'Astrologer',
-      user_name: session.user?.name || 'Client',
+      user_name: session.client?.user?.name || 'Client',
       expert: {
         id: session.expert?.id || '',
         name: session.expert?.user?.name || session.expert?.name || 'Expert',
