@@ -15,6 +15,7 @@ import { UpdateAdminListingStatusUseCase } from './use-cases/update-admin-listin
 import { DateRangeDto } from '@/common/dto/date-range.dto';
 import { PaginationDto } from '@/common/dto/pagination.dto';
 import { QueryRunner } from 'typeorm';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class AgentFacade {
@@ -34,30 +35,30 @@ export class AgentFacade {
     private readonly updateAdminListingStatusUseCase: UpdateAdminListingStatusUseCase,
   ) {}
 
-  async getProfile(userId: string) {
-    return this.getAgentProfileUseCase.execute(userId);
+  async getProfile(user: IUser) {
+    return this.getAgentProfileUseCase.execute(user);
   }
 
-  async updateProfile(userId: string, body: Record<string, unknown>) {
-    return this.updateAgentProfileUseCase.execute(userId, body);
+  async updateProfile(user: IUser, body: Record<string, unknown>) {
+    return this.updateAgentProfileUseCase.execute(user, body);
   }
 
   async getStats(
-    userId: string,
+    user: IUser,
     range: string = '30d',
     dateRangeDto?: DateRangeDto,
   ) {
-    return this.getAgentStatsUseCase.execute(userId, range, dateRangeDto);
+    return this.getAgentStatsUseCase.execute(user, range, dateRangeDto);
   }
 
   async getListings(
-    userId: string,
+    user: IUser,
     pagination: PaginationDto,
     type?: string,
     search?: string,
   ) {
     return this.getAgentListingsUseCase.execute(
-      userId,
+      user,
       pagination,
       type,
       search,

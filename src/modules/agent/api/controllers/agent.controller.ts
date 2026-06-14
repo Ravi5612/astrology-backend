@@ -35,7 +35,7 @@ export class AgentController {
 
   @Get('profile')
   async getProfile(@CurrentUser() user: IUser) {
-    return this.agentFacade.getProfile(user.id);
+    return this.agentFacade.getProfile(user);
   }
 
   @Patch('profile')
@@ -43,7 +43,7 @@ export class AgentController {
     @CurrentUser() user: IUser,
     @Body() body: Record<string, unknown>,
   ) {
-    const result = await this.agentFacade.updateProfile(user.id, body);
+    const result = await this.agentFacade.updateProfile(user, body);
     if (result && result.success && 'data' in result) {
       const { data: _data, ...rest } = result as Record<string, unknown>;
       return rest;
@@ -57,7 +57,7 @@ export class AgentController {
     @Query('range') range: string = '30d',
     @Query() dateRangeDto: DateRangeDto,
   ) {
-    return this.agentFacade.getStats(user.id, range, dateRangeDto);
+    return this.agentFacade.getStats(user, range, dateRangeDto);
   }
 
   @Post('listings')
@@ -75,7 +75,7 @@ export class AgentController {
     @Query('type') type?: string,
     @Query('search') search?: string,
   ) {
-    return this.agentFacade.getListings(user.id, pagination, type, search);
+    return this.agentFacade.getListings(user, pagination, type, search);
   }
 
   @Get('commissions')

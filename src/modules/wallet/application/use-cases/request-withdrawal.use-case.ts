@@ -138,7 +138,7 @@ export class RequestWithdrawalUseCase {
       walletOwnerId = profile_merchant!.id;
       ownerIdField = 'w.merchant_id';
     } else if (hasRoles(roles, 'AGENT')) {
-      const agent_profile = await this.agentFacade.getProfile(userId);
+      const agent_profile = await this.agentFacade.getProfile({ id: userId, email: '', roles: [] });
       if (!agent_profile?.pan_no || !agent_profile?.bank_name) {
         throw new BadRequestException(
           'Please complete your agent profile and bank details to withdraw funds.',
@@ -281,7 +281,7 @@ export class RequestWithdrawalUseCase {
             merchant_account_holder: merchant.accountHolder || 'N/A',
           };
         } else {
-          const agent = (await this.agentFacade.getProfile(userId)) as Record<
+          const agent = (await this.agentFacade.getProfile({ id: userId, email: '', roles: [] })) as Record<
             string,
             unknown
           >;

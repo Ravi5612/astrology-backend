@@ -12,6 +12,7 @@ import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 import { DateRangeDto } from '@/common/dto/date-range.dto';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class GetAgentStatsUseCase {
@@ -30,16 +31,20 @@ export class GetAgentStatsUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    user: IUser,
     range: string = '30d',
     dateRangeDto?: DateRangeDto,
   ) {
+    const userId = user.id;
     const queryRunner = this.databaseService.getQueryRunner();
     await queryRunner.connect();
 
     try {
+      const profileWhere = user.profile
+        ? { id: user.profile, user_id: userId }
+        : { user_id: userId };
       const profile = await this.profileAgentRepo.findOne({
-        where: { user_id: userId },
+        where: profileWhere,
       });
 
       let fromDate = "NOW() - INTERVAL '30 days'";

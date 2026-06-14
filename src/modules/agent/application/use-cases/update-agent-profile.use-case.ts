@@ -6,6 +6,7 @@ import { ProfileAgent } from '../../infrastructure/entities/profile-agent.entity
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { DatabaseService } from '@/core/database/database.service';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class UpdateAgentProfileUseCase {
@@ -17,7 +18,7 @@ export class UpdateAgentProfileUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    user: IUser,
     body: {
       bank_name?: string;
       account_number?: string;
@@ -26,9 +27,13 @@ export class UpdateAgentProfileUseCase {
       bank_accounts?: unknown;
     },
   ) {
+    const userId = user.id;
     await this.databaseService.transaction(async (queryRunner) => {
+      const whereClause = user.profile
+        ? { id: user.profile, user_id: userId }
+        : { user_id: userId };
       const currentProfile = await queryRunner.manager.findOne(ProfileAgent, {
-        where: { user_id: userId },
+        where: whereClause,
       });
 
       // Check if bank details are changing
@@ -40,7 +45,7 @@ export class UpdateAgentProfileUseCase {
 
       await queryRunner.manager.update(
         ProfileAgent,
-        { user_id: userId },
+        user.profile ? { id: user.profile } : { user_id: userId },
         {
           bank_name: body.bank_name,
           account_number: body.account_number,

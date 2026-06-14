@@ -11,6 +11,7 @@ import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/
 import { ProfileMerchant } from '@/modules/merchant/profile/infrastructure/entities/profile-merchant.entity';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
 import { PaginationDto } from '@/common/dto/pagination.dto';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class GetAgentListingsUseCase {
@@ -27,11 +28,12 @@ export class GetAgentListingsUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    user: IUser,
     pagination: PaginationDto,
     type?: string,
     search?: string,
   ) {
+    const userId = user.id;
     const queryRunner = this.databaseService.getQueryRunner();
     await queryRunner.connect();
 
@@ -51,8 +53,11 @@ export class GetAgentListingsUseCase {
       let placeData: Record<string, unknown>[] = [];
       let placeTotal = 0;
 
+      const agentProfileWhere = user.profile
+        ? { id: user.profile, user_id: userId }
+        : { user_id: userId };
       const agentProfile = await this.profileAgentRepo.findOne({
-        where: { user_id: userId },
+        where: agentProfileWhere,
       });
 
       const registeredUserIds = agentProfile?.registered_user_ids || [];
