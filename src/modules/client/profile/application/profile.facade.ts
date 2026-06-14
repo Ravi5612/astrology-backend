@@ -13,6 +13,7 @@ import {
   UpdateProfileClientDto,
 } from '../infrastructure/dto/profile-client.dto';
 import { UpdateClientProfileWithQueryRunnerUseCase } from './use-cases/update-profile-with-query-runner.usecase';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class ClientProfileFacade {
@@ -27,8 +28,8 @@ export class ClientProfileFacade {
     private readonly updateClientProfileWithQueryRunnerUseCase: UpdateClientProfileWithQueryRunnerUseCase,
   ) {}
 
-  async getProfile(userId: string, queryRunner?: QueryRunner) {
-    return this.getProfileUseCase.execute(userId, queryRunner);
+  async getProfile(user: IUser, queryRunner?: QueryRunner) {
+    return this.getProfileUseCase.execute(user, queryRunner);
   }
 
   async createProfile(
@@ -39,12 +40,12 @@ export class ClientProfileFacade {
     return this.createProfileUseCase.execute(userId, dto, queryRunner);
   }
 
-  async updateProfile(userId: string, dto: UpdateProfileClientDto) {
-    return this.updateProfileUseCase.execute(userId, dto);
+  async updateProfile(user: IUser, dto: UpdateProfileClientDto) {
+    return this.updateProfileUseCase.execute(user, dto);
   }
 
-  async updateProfilePicture(userId: string, file: Express.Multer.File) {
-    return this.updateProfilePictureUseCase.execute(userId, file);
+  async updateProfilePicture(user: IUser, file: Express.Multer.File) {
+    return this.updateProfilePictureUseCase.execute(user, file);
   }
 
   async uploadDocument(userId: string, file: Express.Multer.File) {

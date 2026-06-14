@@ -11,6 +11,7 @@ import { GetOrderEarningsUseCase } from './use-cases/get-order-earnings.use-case
 import { GetAdminMerchantSalesOverviewUseCase } from './use-cases/get-admin-merchant-sales-overview.use-case';
 import { GetAdminMerchantSalesDetailsUseCase } from './use-cases/get-admin-merchant-sales-details.use-case';
 import { OrderStatus } from '../infrastructure/entities/order.entity';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class OrderFacade {
@@ -29,20 +30,20 @@ export class OrderFacade {
   ) {}
 
   async createOrder(
-    userId: string,
+    user: IUser,
     dto: import('../api/dto/create-order.dto').CreateOrderDto,
   ) {
     if (dto.product_id) {
       // Logic for single product order will be added to the use case
     }
-    return this.createOrderFromCartUseCase.execute(userId, dto);
+    return this.createOrderFromCartUseCase.execute(user, dto);
   }
 
   async createOrderFromCart(
-    userId: string,
+    user: IUser,
     shippingAddress: Record<string, unknown>,
   ) {
-    return this.createOrderFromCartUseCase.execute(userId, {
+    return this.createOrderFromCartUseCase.execute(user, {
       shipping_address: shippingAddress,
     });
   }

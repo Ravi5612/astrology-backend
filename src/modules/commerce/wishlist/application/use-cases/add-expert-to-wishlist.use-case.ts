@@ -7,6 +7,7 @@ import { ClientProfileFacade } from '@/modules/client/profile/application/profil
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { DataSource } from 'typeorm';
+import { IUser } from '@/common/types/access-token.payload';
 import {
   ExpertAlreadyInWishlistError,
   ExpertNotFoundError,
@@ -23,8 +24,8 @@ export class AddExpertToWishlistUseCase {
     private readonly dataSource: DataSource,
   ) {}
 
-  async execute(userId: string, expert_id: string): Promise<BooleanMessage> {
-    const client = await this.clientProfileFacade.getProfile(userId);
+  async execute(user: IUser, expert_id: string): Promise<BooleanMessage> {
+    const client = await this.clientProfileFacade.getProfile(user);
     if (!client) {
       throw new UserNotFoundError();
     }

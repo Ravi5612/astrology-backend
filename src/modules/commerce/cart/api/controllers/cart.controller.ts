@@ -34,7 +34,7 @@ export class CartController {
     @CurrentUser() user: IUser,
     @Body() addToCartDto: AddToCartDto,
   ) {
-    return this.cartFacade.addToCart(user.id, addToCartDto);
+    return this.cartFacade.addToCart(user, addToCartDto);
   }
 
   @Put('/update')

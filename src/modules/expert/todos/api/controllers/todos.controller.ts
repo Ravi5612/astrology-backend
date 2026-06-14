@@ -28,12 +28,12 @@ export class TodosController {
 
   @Get()
   findAll(@CurrentUser() user: IUser) {
-    return this.todosFacade.findAll(user.id);
+    return this.todosFacade.findAll(user);
   }
 
   @Post()
   create(@CurrentUser() user: IUser, @Body() dto: CreateTodoDto) {
-    return this.todosFacade.create(user.id, dto);
+    return this.todosFacade.create(user, dto);
   }
 
   @Patch(':id')
@@ -42,7 +42,7 @@ export class TodosController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateTodoDto,
   ) {
-    const _result = await this.todosFacade.update(user.id, id, dto);
+    const _result = await this.todosFacade.update(user, id, dto);
     return { success: true };
   }
 
@@ -51,7 +51,7 @@ export class TodosController {
     @CurrentUser() user: IUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    await this.todosFacade.remove(user.id, id);
+    await this.todosFacade.remove(user, id);
     return { success: true };
   }
 }

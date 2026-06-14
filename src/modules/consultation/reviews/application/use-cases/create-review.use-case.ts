@@ -17,6 +17,7 @@ import { OrderStatus } from '@/modules/commerce/order/infrastructure/entities/or
 import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { CallSession } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { CreateReviewDto } from '../../api/dto/create-review.dto';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class CreateReviewUseCase {
@@ -38,7 +39,8 @@ export class CreateReviewUseCase {
     private readonly dataSource: DataSource,
   ) {}
 
-  async execute(userId: string, dto: CreateReviewDto): Promise<Review> {
+  async execute(user: IUser, dto: CreateReviewDto): Promise<Review> {
+    const userId = user.id;
     const {
       expert_id,
       merchantId,
@@ -60,7 +62,7 @@ export class CreateReviewUseCase {
       );
     }
 
-    const client = await this.clientProfileFacade.getProfile(userId);
+    const client = await this.clientProfileFacade.getProfile(user);
     if (!client) {
       throw new BadRequestException('Client profile not found for this user');
     }

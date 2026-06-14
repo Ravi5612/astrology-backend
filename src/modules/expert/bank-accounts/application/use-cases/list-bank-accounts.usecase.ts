@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BankAccount } from '../../infrastructure/entities/bank-account.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class ListBankAccountsUseCase {
@@ -13,16 +14,17 @@ export class ListBankAccountsUseCase {
     private readonly profileRepo: Repository<ProfileExpert>,
   ) {}
 
-  private async getExpertProfile(userId: string) {
-    const profile = await this.profileRepo.findOne({
-      where: { user: { id: userId } },
-    });
+  private async getExpertProfile(user: IUser) {
+    const where = user.profile
+      ? { id: user.profile, user: { id: user.id } }
+      : { user: { id: user.id } };
+    const profile = await this.profileRepo.findOne({ where });
     if (!profile) throw new NotFoundException('Expert profile not found');
     return profile;
   }
 
-  async execute(userId: string) {
-    const profile = await this.getExpertProfile(userId);
+  async execute(user: IUser) {
+    const profile = await this.getExpertProfile(user);
     return this.bankAccountRepo.find({
       where: { expert_id: profile.id },
       order: { is_primary: 'DESC', created_at: 'DESC' },

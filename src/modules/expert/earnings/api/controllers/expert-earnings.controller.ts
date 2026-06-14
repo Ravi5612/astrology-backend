@@ -22,6 +22,6 @@ export class ExpertEarningsController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    return this.earningsFacade.getStats(user.id, period, startDate, endDate);
+    return this.earningsFacade.getStats(user, period, startDate, endDate);
   }
 }

@@ -41,7 +41,7 @@ export class SupportController {
     @CurrentUser() user: IUser,
     @Body() dto: CreateDisputeDto,
   ) {
-    return this.supportFacade.createDispute(user.id, dto);
+    return this.supportFacade.createDispute(user, dto);
   }
 
   @Get('disputes/:id/messages')

@@ -4,6 +4,7 @@ import { CreateTodoUseCase } from './use-cases/create-todo.use-case';
 import { UpdateTodoUseCase } from './use-cases/update-todo.use-case';
 import { RemoveTodoUseCase } from './use-cases/remove-todo.use-case';
 import { CreateTodoDto, UpdateTodoDto } from '../infrastructure/dto/todo.dto';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class TodosFacade {
@@ -14,19 +15,19 @@ export class TodosFacade {
     private readonly removeTodoUseCase: RemoveTodoUseCase,
   ) {}
 
-  async findAll(userId: string) {
-    return this.findAllTodosUseCase.execute(userId);
+  async findAll(user: IUser) {
+    return this.findAllTodosUseCase.execute(user);
   }
 
-  async create(userId: string, dto: CreateTodoDto) {
-    return this.createTodoUseCase.execute(userId, dto);
+  async create(user: IUser, dto: CreateTodoDto) {
+    return this.createTodoUseCase.execute(user, dto);
   }
 
-  async update(userId: string, id: string, dto: UpdateTodoDto) {
-    return this.updateTodoUseCase.execute(userId, id, dto);
+  async update(user: IUser, id: string, dto: UpdateTodoDto) {
+    return this.updateTodoUseCase.execute(user, id, dto);
   }
 
-  async remove(userId: string, id: string) {
-    return this.removeTodoUseCase.execute(userId, id);
+  async remove(user: IUser, id: string) {
+    return this.removeTodoUseCase.execute(user, id);
   }
 }

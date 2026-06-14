@@ -8,6 +8,7 @@ import {
 import { CreateDisputeDto } from '../../api/dto/create-dispute.dto';
 import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class CreateDisputeUseCase {
@@ -20,8 +21,9 @@ export class CreateDisputeUseCase {
     private readonly expertProfileFacade: ExpertProfileFacade,
   ) {}
 
-  async execute(userId: string, dto: CreateDisputeDto) {
-    const client = await this.clientProfileFacade.getProfile(userId);
+  async execute(user: IUser, dto: CreateDisputeDto) {
+    const userId = user.id;
+    const client = await this.clientProfileFacade.getProfile(user);
     const expert = await this.expertProfileFacade.getExpertByUserId(userId);
 
     const dispute = this.disputeRepo.create({

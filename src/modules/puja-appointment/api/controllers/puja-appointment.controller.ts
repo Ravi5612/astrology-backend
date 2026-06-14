@@ -34,7 +34,7 @@ export class PujaAppointmentController {
     @CurrentUser() user: IUser,
     @Body() dto: CreatePujaAppointmentDto,
   ) {
-    return await this.createPujaAppointmentUseCase.execute(user.id, dto);
+    return await this.createPujaAppointmentUseCase.execute(user, dto);
   }
 
   @Get('user')

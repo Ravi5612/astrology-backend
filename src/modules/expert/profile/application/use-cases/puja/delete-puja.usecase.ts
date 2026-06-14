@@ -15,9 +15,10 @@ export class DeletePujaUseCase {
   ) {}
 
   async execute(user: IUser, id: string) {
-    const profile = await this.profileRepo.findOne({
-      where: { user: { id: user.id } },
-    });
+    const where = user.profile
+      ? { id: user.profile, user: { id: user.id } }
+      : { user: { id: user.id } };
+    const profile = await this.profileRepo.findOne({ where });
 
     if (!profile) {
       throw new NotFoundException('Expert profile not found');

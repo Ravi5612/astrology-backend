@@ -1,9 +1,10 @@
 ﻿import { Injectable, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, QueryRunner } from 'typeorm';
+import { Repository, QueryRunner, FindOptionsWhere } from 'typeorm';
 import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class GetProfileUseCase {
@@ -13,21 +14,28 @@ export class GetProfileUseCase {
     private readonly usersFacade: UsersFacade,
   ) {}
 
-  async execute(userId: string, queryRunner?: QueryRunner) {
+  async execute(user: IUser, queryRunner?: QueryRunner) {
     const profileRepo = queryRunner
       ? queryRunner.manager.getRepository(ProfileClient)
       : this.repo;
 
+    const where: FindOptionsWhere<ProfileClient> = user.profile
+      ? { id: user.profile, user: { id: user.id } }
+      : { user: { id: user.id } };
+
     const profile = await profileRepo.findOne({
-      where: { user: { id: userId } },
+      where,
       relations: ['user'],
     });
 
     if (!profile) {
       // Check if user exists and what their role is
-      const user = await this.usersFacade.findById(userId, queryRunner);
+      const existingUser = await this.usersFacade.findById(
+        user.id,
+        queryRunner,
+      );
 
-      const roles = user?.roles || [];
+      const roles = existingUser?.roles || [];
       const hasClientRole = hasRoles(roles, 'CLIENT');
       const hasExpertRole = hasRoles(roles, 'EXPERT');
 

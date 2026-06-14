@@ -75,7 +75,7 @@ export class ActivateSessionUseCase {
 
     if (!existingCard) {
       const profileClient = await this.clientProfileFacade.getProfile(
-        session.client_id,
+        { id: session.client_id, email: '', roles: [] },
       );
 
       const userData = session.metadata || {

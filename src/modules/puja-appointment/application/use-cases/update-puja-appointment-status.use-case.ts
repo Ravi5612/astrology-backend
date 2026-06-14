@@ -205,7 +205,7 @@ export class UpdatePujaAppointmentStatusUseCase {
           try {
             // Not strictly part of financial transaction, but good to have
             await this.todosFacade.create(
-              appointment.expert.user_id as unknown as string,
+              { id: appointment.expert.user_id, email: '', roles: [] },
               {
                 text: `Confirmed Puja: ${appointment.puja?.name} with ${appointment.client?.user?.name || 'Client'} on ${String(appointment.scheduled_date || 'TBD')} at ${String(appointment.scheduled_time || 'TBD')}`,
               },

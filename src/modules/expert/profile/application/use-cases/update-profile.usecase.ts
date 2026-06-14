@@ -6,7 +6,7 @@ import { ProfileExpert } from '../../infrastructure/entities/profile-expert.enti
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
 import { IUser } from '@/common/types/access-token.payload';
 import { UpdateProfileExpertDto } from '../../api/dto/profile-expert.dto';
-import { Address } from '@/common/address/address.entity';
+import { Address, AddressTag } from '@/common/address/address.entity';
 import { GetProfileUseCase } from './get-profile.usecase';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfilePolicy } from '../../domain/policies/profile.policy';
@@ -31,20 +31,23 @@ export class UpdateProfileUseCase {
   ) {}
 
   async execute(user: IUser, dto: UpdateProfileExpertDto) {
+    const whereClause = user.profile
+      ? { id: user.profile, user: { id: user.id } }
+      : { user: { id: user.id } };
     let profile = await this.profileRepo.findOne({
-      where: { user: { id: user.id } },
+      where: whereClause,
       relations: ['addresses'],
     });
 
     if (!profile) {
       // If profile doesn't exist (old users), create it on the fly
       profile = this.profileRepo.create({
-        user: { id: user.id } as unknown as User,
+        user: { id: user.id },
         is_available: false,
       });
       await this.profileRepo.save(profile);
       profile = await this.profileRepo.findOne({
-        where: { user: { id: user.id } },
+        where: whereClause,
         relations: ['addresses'],
       });
     }
@@ -129,22 +132,17 @@ export class UpdateProfileUseCase {
         await this.addressRepo.remove(profile.addresses);
       }
 
-      profile.addresses = dto.addresses.map((addr: any) =>
+      profile.addresses = dto.addresses.map((addr: Partial<Address>) =>
         this.addressRepo.create({
-          line1:
-            [addr.line1 as string, addr.line2 as string]
-              .filter(Boolean)
-              .join(', ') ||
-            (addr.house_no as string) ||
-            '',
-          house_no: addr.house_no as string,
-          city: addr.city as string,
-          district: addr.district as string,
-          state: addr.state as string,
-          country: addr.country as string,
-          zip_code: (addr.zip_code as string) || (addr.pincode as string) || '',
-          pincode: addr.pincode as string,
-          tag: ((addr.tag as string) || 'other') as import('@/common/address/address.entity').AddressTag,
+          line1: addr.line1 || '',
+          house_no: addr.house_no,
+          city: addr.city,
+          district: addr.district,
+          state: addr.state,
+          country: addr.country,
+          zip_code: addr.zip_code || addr.pincode || '',
+          pincode: addr.pincode,
+          tag: addr.tag || AddressTag.OTHER,
         }),
       );
     }

@@ -34,17 +34,17 @@ export class BankAccountsController {
     @CurrentUser() user: IUser,
     @Body() createBankAccountDto: CreateBankAccountDto,
   ) {
-    return this.bankAccountsFacade.create(user.id, createBankAccountDto);
+    return this.bankAccountsFacade.create(user, createBankAccountDto);
   }
 
   @Get()
   findAll(@CurrentUser() user: IUser) {
-    return this.bankAccountsFacade.findAll(user.id);
+    return this.bankAccountsFacade.findAll(user);
   }
 
   @Get(':id')
   findOne(@CurrentUser() user: IUser, @Param('id', ParseUUIDPipe) id: string) {
-    return this.bankAccountsFacade.findOne(user.id, id);
+    return this.bankAccountsFacade.findOne(user, id);
   }
 
   @Patch(':id')
@@ -54,7 +54,7 @@ export class BankAccountsController {
     @Body() updateBankAccountDto: UpdateBankAccountDto,
   ) {
     const _result = await this.bankAccountsFacade.update(
-      user.id,
+      user,
       id,
       updateBankAccountDto,
     );
@@ -66,7 +66,7 @@ export class BankAccountsController {
     @CurrentUser() user: IUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    const _result = await this.bankAccountsFacade.setPrimary(user.id, id);
+    const _result = await this.bankAccountsFacade.setPrimary(user, id);
     return { success: true };
   }
 
@@ -75,7 +75,7 @@ export class BankAccountsController {
     @CurrentUser() user: IUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    const _result = await this.bankAccountsFacade.remove(user.id, id);
+    const _result = await this.bankAccountsFacade.remove(user, id);
     return { success: true };
   }
 }

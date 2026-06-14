@@ -29,7 +29,7 @@ export class OrderController {
 
   @Post()
   async createOrder(@CurrentUser() user: IUser, @Body() dto: CreateOrderDto) {
-    return this.orderFacade.createOrder(user.id, dto);
+    return this.orderFacade.createOrder(user, dto);
   }
 
   @Get('my-orders')
@@ -107,7 +107,7 @@ export class OrderSingularController {
 
   @Post()
   async createOrder(@CurrentUser() user: IUser, @Body() dto: CreateOrderDto) {
-    return this.orderFacade.createOrder(user.id, dto);
+    return this.orderFacade.createOrder(user, dto);
   }
 
   @Get('my-orders')

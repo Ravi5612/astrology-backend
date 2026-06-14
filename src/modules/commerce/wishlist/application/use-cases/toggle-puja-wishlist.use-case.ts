@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
 import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class TogglePujaWishlistUseCase {
@@ -15,10 +16,10 @@ export class TogglePujaWishlistUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    user: IUser,
     pujaId: string,
   ): Promise<{ liked: boolean; total_likes: number }> {
-    const client = await this.clientProfileFacade.getProfile(userId);
+    const client = await this.clientProfileFacade.getProfile(user);
     if (!client) throw new NotFoundException('Client profile not found');
 
     const puja = await this.expertProfileFacade.getPujaById(pujaId);

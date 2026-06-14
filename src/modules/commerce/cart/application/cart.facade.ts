@@ -6,6 +6,7 @@ import { RemoveCartItemUseCase } from './use-cases/remove-cart-item.use-case';
 import { ClearCartUseCase } from './use-cases/clear-cart.use-case';
 import { AddToCartDto } from '../api/dto/create-cart.dto';
 import { UpdateCartItemDto } from '../api/dto/update-cart.dto';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class CartFacade {
@@ -21,8 +22,8 @@ export class CartFacade {
     return this.getCartUseCase.execute(userId);
   }
 
-  async addToCart(userId: string, addToCartDto: AddToCartDto) {
-    return this.addToCartUseCase.execute(userId, addToCartDto);
+  async addToCart(user: IUser, addToCartDto: AddToCartDto) {
+    return this.addToCartUseCase.execute(user, addToCartDto);
   }
 
   async updateCartItem(

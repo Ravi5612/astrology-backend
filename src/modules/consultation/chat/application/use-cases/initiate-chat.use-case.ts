@@ -132,7 +132,7 @@ export class InitiateChatUseCase {
 
     if (sessionWithUser && sessionWithUser.user) {
       const profileClient = await this.clientProfileFacade.getProfile(
-        sessionWithUser.user.id,
+        { id: sessionWithUser.user.id, email: '', roles: [] },
       );
       if (profileClient && profileClient.profile_picture) {
         (sessionWithUser as unknown as { user_image: string }).user_image =

@@ -11,6 +11,7 @@ import {
   UserNotFoundError,
 } from '../../domain/errors/wishlist.errors';
 import { DataSource } from 'typeorm';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class RemoveExpertFromWishlistUseCase {
@@ -23,10 +24,10 @@ export class RemoveExpertFromWishlistUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    user: IUser,
     expert_id: string,
   ): Promise<{ message: string }> {
-    const client = await this.clientProfileFacade.getProfile(userId);
+    const client = await this.clientProfileFacade.getProfile(user);
     if (!client) {
       throw new UserNotFoundError();
     }

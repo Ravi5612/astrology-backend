@@ -9,6 +9,7 @@ import {
   CreateBankAccountDto,
   UpdateBankAccountDto,
 } from '../api/dto/bank-account.dto';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class BankAccountsFacade {
@@ -21,27 +22,27 @@ export class BankAccountsFacade {
     private readonly removeBankAccountUseCase: RemoveBankAccountUseCase,
   ) {}
 
-  async create(userId: string, dto: CreateBankAccountDto) {
-    return this.createBankAccountUseCase.execute(userId, dto);
+  async create(user: IUser, dto: CreateBankAccountDto) {
+    return this.createBankAccountUseCase.execute(user, dto);
   }
 
-  async findAll(userId: string) {
-    return this.listBankAccountsUseCase.execute(userId);
+  async findAll(user: IUser) {
+    return this.listBankAccountsUseCase.execute(user);
   }
 
-  async findOne(userId: string, id: string) {
-    return this.getBankAccountUseCase.execute(userId, id);
+  async findOne(user: IUser, id: string) {
+    return this.getBankAccountUseCase.execute(user, id);
   }
 
-  async update(userId: string, id: string, dto: UpdateBankAccountDto) {
-    return this.updateBankAccountUseCase.execute(userId, id, dto);
+  async update(user: IUser, id: string, dto: UpdateBankAccountDto) {
+    return this.updateBankAccountUseCase.execute(user, id, dto);
   }
 
-  async setPrimary(userId: string, id: string) {
-    return this.setPrimaryBankAccountUseCase.execute(userId, id);
+  async setPrimary(user: IUser, id: string) {
+    return this.setPrimaryBankAccountUseCase.execute(user, id);
   }
 
-  async remove(userId: string, id: string) {
-    return this.removeBankAccountUseCase.execute(userId, id);
+  async remove(user: IUser, id: string) {
+    return this.removeBankAccountUseCase.execute(user, id);
   }
 }

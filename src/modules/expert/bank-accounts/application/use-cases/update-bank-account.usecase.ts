@@ -7,6 +7,7 @@ import { UpdateBankAccountDto } from '../../api/dto/bank-account.dto';
 import { GetBankAccountUseCase } from './get-bank-account.usecase';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BankAccountUpdatedEvent } from '../../domain/events/bank-account-events';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class UpdateBankAccountUseCase {
@@ -17,8 +18,8 @@ export class UpdateBankAccountUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(userId: string, id: string, dto: UpdateBankAccountDto) {
-    const account = await this.getBankAccountUseCase.execute(userId, id);
+  async execute(user: IUser, id: string, dto: UpdateBankAccountDto) {
+    const account = await this.getBankAccountUseCase.execute(user, id);
 
     if (!account.expert || !account.expert_id) {
       throw new NotFoundException('No Expert profile associated');
@@ -36,7 +37,7 @@ export class UpdateBankAccountUseCase {
 
     this.eventEmitter.emit(
       'expert.bank-account.updated',
-      new BankAccountUpdatedEvent(userId, updatedAccount.id),
+      new BankAccountUpdatedEvent(user.id, updatedAccount.id),
     );
 
     return new BooleanMessage();

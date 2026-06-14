@@ -16,7 +16,7 @@ export class ClientAuthProfileCreationStrategy
 
   async ensureProfile(user: User, queryRunner?: QueryRunner): Promise<void> {
     const profile = await this.clientProfileFacade.getProfile(
-      user.id,
+      { id: user.id, email: user.email || '', roles: [] },
       queryRunner,
     );
     if (!profile) {

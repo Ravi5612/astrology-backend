@@ -7,6 +7,7 @@ import { GetDisputeMessagesUseCase } from './use-cases/get-messages.use-case';
 import { MarkMessagesAsReadUseCase } from './use-cases/mark-as-read.use-case';
 import { CreateDisputeDto } from '../api/dto/create-dispute.dto';
 import { SendDisputeMessageDto } from '../api/dto/send-dispute-message.dto';
+import { IUser } from '@/common/types/access-token.payload';
 import { GetAllDisputesUseCase } from './use-cases/get-all-disputes.use-case';
 import { UpdateDisputeStatusUseCase } from './use-cases/update-dispute-status.use-case';
 
@@ -23,8 +24,8 @@ export class SupportFacade {
     private readonly updateDisputeStatusUseCase: UpdateDisputeStatusUseCase,
   ) {}
 
-  async createDispute(userId: string, dto: CreateDisputeDto) {
-    return this.createDisputeUseCase.execute(userId, dto);
+  async createDispute(user: IUser, dto: CreateDisputeDto) {
+    return this.createDisputeUseCase.execute(user, dto);
   }
 
   async getDisputes(userId: string) {

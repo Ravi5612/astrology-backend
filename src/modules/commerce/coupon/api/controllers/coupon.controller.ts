@@ -18,7 +18,7 @@ export class CouponController {
 
   @Get('my-rewards')
   async getMyRewards(@CurrentUser() user: IUser) {
-    return this.getMyRewardsUseCase.execute(user.id);
+    return this.getMyRewardsUseCase.execute(user);
   }
 
   @Post('apply')

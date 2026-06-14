@@ -19,7 +19,7 @@ export class PaymentController {
     @CurrentUser() user: IUser,
     @Body() createOrderDto: CreateOrderDto,
   ) {
-    return this.paymentFacade.createOrder(user.id, createOrderDto);
+    return this.paymentFacade.createOrder(user, createOrderDto);
   }
 
   @UseGuards(JwtAuthGuard)

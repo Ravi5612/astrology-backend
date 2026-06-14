@@ -15,6 +15,7 @@ import { ClientProfileFacade } from '@/modules/client/profile/application/profil
 import { ConfigService } from '@nestjs/config';
 import { DomainError } from '@/common/types/domain.error';
 import { PaymentOrderCreationFailedError } from '../../domain/errors/payment.errors';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class CreatePaymentOrderUseCase {
@@ -30,7 +31,8 @@ export class CreatePaymentOrderUseCase {
     private readonly configService: ConfigService,
   ) {}
 
-  async execute(userId: string, dto: CreateOrderDto) {
+  async execute(user: IUser, dto: CreateOrderDto) {
+    const userId = user.id;
     this.logger.log(
       `Creating order for user ${userId} with data:`,
       JSON.stringify(dto, null, 2),
@@ -57,7 +59,7 @@ export class CreatePaymentOrderUseCase {
         notes: options.notes,
       });
 
-      const clientProfile = await this.clientProfileFacade.getProfile(userId);
+      const clientProfile = await this.clientProfileFacade.getProfile(user);
 
       const paymentOrder = this.paymentOrderRepo.create({
         client_id: clientProfile ? clientProfile.id : null,

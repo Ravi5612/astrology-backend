@@ -20,6 +20,7 @@ import { Product } from '@/modules/commerce/product/infrastructure/entities/prod
 import { CreateOrderDto } from '../../api/dto/create-order.dto';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class CreateOrderFromCartUseCase {
@@ -45,7 +46,8 @@ export class CreateOrderFromCartUseCase {
     private emailService: NodeMailerService,
   ) {}
 
-  async execute(userId: string, dto: CreateOrderDto) {
+  async execute(user: IUser, dto: CreateOrderDto) {
+    const userId = user.id;
     const shipping_address = dto.shipping_address as
       | Record<string, unknown>
       | undefined;
@@ -263,7 +265,7 @@ export class CreateOrderFromCartUseCase {
       ).toString();
 
       // 3. Create Order record
-      const client = await this.clientFacade.getProfile(userId, queryRunner);
+      const client = await this.clientFacade.getProfile(user, queryRunner);
       if (!client) {
         throw new BadRequestException('Client profile not found');
       }

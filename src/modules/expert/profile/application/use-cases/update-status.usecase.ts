@@ -24,9 +24,10 @@ export class UpdateStatusUseCase {
   ) {}
 
   async execute(user: IUser, isAvailable: boolean) {
-    const profile = await this.profileRepo.findOne({
-      where: { user: { id: user.id } },
-    });
+    const where = user.profile
+      ? { id: user.profile, user: { id: user.id } }
+      : { user: { id: user.id } };
+    const profile = await this.profileRepo.findOne({ where });
 
     ProfilePolicy.ensureProfileExists(profile);
 
@@ -53,7 +54,7 @@ export class UpdateStatusUseCase {
     // Emit event
     this.eventEmitter.emit(
       'expert.status.changed',
-      new ExpertStatusChangedEvent(user.id as unknown as string, isAvailable),
+      new ExpertStatusChangedEvent(user.id, isAvailable),
     );
 
     return new BooleanMessage(true, 'Expert status updated successfully');

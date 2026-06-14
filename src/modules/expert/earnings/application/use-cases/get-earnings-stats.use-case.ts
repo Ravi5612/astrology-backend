@@ -8,6 +8,7 @@ import { ReviewsFacade } from '@/modules/consultation/reviews/application/review
 import { CallType } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class GetEarningsStatsUseCase {
@@ -22,15 +23,17 @@ export class GetEarningsStatsUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    user: IUser,
     period: string,
     startDateStr?: string,
     endDateStr?: string,
   ) {
-    const expert = await this.expertRepo.findOne({
-      where: { user: { id: userId as unknown as string } },
-    });
+    const where = user.profile
+      ? { id: user.profile, user: { id: user.id } }
+      : { user: { id: user.id } };
+    const expert = await this.expertRepo.findOne({ where });
     if (!expert) return null;
+    const userId = user.id;
 
     const expert_id = expert.id;
 

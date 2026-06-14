@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
 import { MerchantProfileFacade } from '@/modules/merchant/profile/application/profile.facade';
 import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
+import { IUser } from '@/common/types/access-token.payload';
 import {
   MerchantAlreadyInWishlistError,
   MerchantNotFoundError,
@@ -20,14 +21,14 @@ export class AddMerchantToWishlistUseCase {
     private readonly clientProfileFacade: ClientProfileFacade,
   ) {}
 
-  async execute(userId: string, merchantId: string): Promise<BooleanMessage> {
+  async execute(user: IUser, merchantId: string): Promise<BooleanMessage> {
     const merchant =
       await this.merchantProfileFacade.getProfileById(merchantId);
     if (!merchant) {
       throw new MerchantNotFoundError(merchantId);
     }
 
-    const client = await this.clientProfileFacade.getProfile(userId);
+    const client = await this.clientProfileFacade.getProfile(user);
     if (!client) {
       throw new UserNotFoundError();
     }

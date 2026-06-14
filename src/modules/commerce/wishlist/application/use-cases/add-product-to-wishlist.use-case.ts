@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
 import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import {
   ProductAlreadyInWishlistError,
   ProductNotFoundError,
@@ -21,8 +22,8 @@ export class AddProductToWishlistUseCase {
     private readonly productRepo: Repository<Product>,
   ) {}
 
-  async execute(userId: string, productId: string): Promise<BooleanMessage> {
-    const client = await this.clientProfileFacade.getProfile(userId);
+  async execute(user: IUser, productId: string): Promise<BooleanMessage> {
+    const client = await this.clientProfileFacade.getProfile(user);
     if (!client) {
       throw new UserNotFoundError();
     }

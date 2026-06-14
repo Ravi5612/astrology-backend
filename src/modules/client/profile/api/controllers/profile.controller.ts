@@ -29,7 +29,7 @@ export class ProfileController {
 
   @Get()
   async getProfile(@CurrentUser() user: IUser) {
-    return this.profileFacade.getProfile(user.id);
+    return this.profileFacade.getProfile(user, undefined);
   }
 
   @Post()
@@ -45,7 +45,7 @@ export class ProfileController {
     @CurrentUser() user: IUser,
     @Body() dto: UpdateProfileClientDto,
   ) {
-    const _result = await this.profileFacade.updateProfile(user.id, dto);
+    const _result = await this.profileFacade.updateProfile(user, dto);
     return { success: true };
   }
 
@@ -55,10 +55,7 @@ export class ProfileController {
     @CurrentUser() user: IUser,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const _result = await this.profileFacade.updateProfilePicture(
-      user.id,
-      file,
-    );
+    const _result = await this.profileFacade.updateProfilePicture(user, file);
     return { success: true };
   }
 

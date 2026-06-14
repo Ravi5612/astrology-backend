@@ -18,6 +18,7 @@ import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { CreateReviewDto } from '../dto/create-review.dto';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Controller({
   path: 'reviews',
@@ -30,10 +31,10 @@ export class ReviewsController {
   @Post()
   @UseGuards(JwtAuthGuard)
   async createReview(
-    @CurrentUser('id') userId: string,
+    @CurrentUser() user: IUser,
     @Body() body: CreateReviewDto,
   ) {
-    return this.reviewsFacade.createReview(userId, body);
+    return this.reviewsFacade.createReview(user, body);
   }
 
   // ─── Public: Get approved platform reviews for homepage ─────────────────────

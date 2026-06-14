@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
 import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
+import { IUser } from '@/common/types/access-token.payload';
 import {
   PujaAlreadyInWishlistError,
   PujaNotFoundError,
@@ -20,14 +21,14 @@ export class AddPujaToWishlistUseCase {
     private readonly expertProfileFacade: ExpertProfileFacade,
   ) {}
 
-  async execute(userId: string, pujaId: string): Promise<BooleanMessage> {
+  async execute(user: IUser, pujaId: string): Promise<BooleanMessage> {
     const puja = await this.expertProfileFacade.getPujaById(pujaId);
 
     if (!puja) {
       throw new PujaNotFoundError();
     }
 
-    const client = await this.clientProfileFacade.getProfile(userId);
+    const client = await this.clientProfileFacade.getProfile(user);
     if (!client) {
       throw new UserNotFoundError();
     }

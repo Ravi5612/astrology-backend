@@ -5,11 +5,12 @@ import { Repository } from 'typeorm';
 import { ProfileClient } from '../../infrastructure/entities/profile-client.entity';
 import { UpdateProfileClientDto } from '../../infrastructure/dto/profile-client.dto';
 import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { IUser } from '@/common/types/access-token.payload';
 import { ProfilePolicy } from '../../domain/policies/profile.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfileUpdatedEvent } from '../../domain/events/profile-events';
 import { UsersFacade } from '@/modules/users/application/users.facade';
-import { Address } from '@/common/address/address.entity';
+import { Address, AddressTag } from '@/common/address/address.entity';
 
 @Injectable()
 export class UpdateProfileUseCase {
@@ -24,31 +25,34 @@ export class UpdateProfileUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(userId: string, dto: UpdateProfileClientDto) {
+  async execute(user: IUser, dto: UpdateProfileClientDto) {
+    const whereClause = user.profile
+      ? { id: user.profile, user: { id: user.id } }
+      : { user: { id: user.id } };
     let profile = await this.repo.findOne({
-      where: { user: { id: userId } },
+      where: whereClause,
       relations: ['user', 'addresses'],
     });
 
     if (!profile) {
       // Auto-create profile for users that don't have one yet
       this.logger.log(
-        `No client profile found for user ${userId}, creating one on-the-fly`,
+        `No client profile found for user ${user.id}, creating one on-the-fly`,
       );
       profile = this.repo.create({
-        user: { id: userId } as unknown as User,
+        user: { id: user.id } as unknown as User,
         gender: 'other',
       });
       await this.repo.save(profile);
       profile = await this.repo.findOne({
-        where: { user: { id: userId } },
+        where: whereClause,
         relations: ['user', 'addresses'],
       });
     }
 
     ProfilePolicy.ensureProfileExists(profile);
 
-    this.logger.log(`Updating client profile for user ${userId}`);
+    this.logger.log(`Updating client profile for user ${user.id}`);
 
     const { full_name, addresses, ...scalarFields } =
       dto as UpdateProfileClientDto & {
@@ -58,7 +62,7 @@ export class UpdateProfileUseCase {
 
     // Update the user's name in the User table if full_name is provided
     if (full_name !== undefined) {
-      await this.usersFacade.update(userId, { name: full_name });
+      await this.usersFacade.update(user.id, { name: full_name });
     }
 
     // Apply scalar fields to the profile
@@ -83,7 +87,7 @@ export class UpdateProfileUseCase {
           zip_code: addr.zip_code || addr.pincode || '',
           pincode: addr.pincode,
           is_primary: addr.is_primary ?? false,
-          tag: (addr.tag || 'other') as import('@/common/address/address.entity').AddressTag,
+          tag: addr.tag || AddressTag.OTHER,
         };
         return this.addressRepo.create(addrData);
       });
@@ -94,7 +98,7 @@ export class UpdateProfileUseCase {
     this.eventEmitter.emit(
       'client.profile.updated',
       new ProfileUpdatedEvent(
-        userId,
+        user.id,
         updatedProfile.id,
         dto as unknown as Record<string, unknown>,
       ),

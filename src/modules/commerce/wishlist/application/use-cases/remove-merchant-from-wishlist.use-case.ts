@@ -8,6 +8,7 @@ import {
   UserNotFoundError,
 } from '../../domain/errors/wishlist.errors';
 import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class RemoveMerchantFromWishlistUseCase {
@@ -17,8 +18,8 @@ export class RemoveMerchantFromWishlistUseCase {
     private readonly clientProfileFacade: ClientProfileFacade,
   ) {}
 
-  async execute(userId: string, merchantId: string): Promise<BooleanMessage> {
-    const client = await this.clientProfileFacade.getProfile(userId);
+  async execute(user: IUser, merchantId: string): Promise<BooleanMessage> {
+    const client = await this.clientProfileFacade.getProfile(user);
     if (!client) {
       throw new UserNotFoundError();
     }

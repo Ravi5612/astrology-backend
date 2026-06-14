@@ -3,6 +3,7 @@ import { GetEarningsStatsUseCase } from './use-cases/get-earnings-stats.use-case
 import { GetWalletBalanceUseCase } from './use-cases/get-wallet-balance.use-case';
 import { GetWalletTransactionsUseCase } from './use-cases/get-wallet-transactions.use-case';
 import { RequestWithdrawalUseCase } from './use-cases/request-withdrawal.use-case';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class ExpertEarningsFacade {
@@ -14,17 +15,12 @@ export class ExpertEarningsFacade {
   ) {}
 
   async getStats(
-    userId: string,
+    user: IUser,
     period: string,
     startDate?: string,
     endDate?: string,
   ) {
-    return this.getEarningsStatsUseCase.execute(
-      userId,
-      period,
-      startDate,
-      endDate,
-    );
+    return this.getEarningsStatsUseCase.execute(user, period, startDate, endDate);
   }
 
   async getWalletBalance(userId: string) {

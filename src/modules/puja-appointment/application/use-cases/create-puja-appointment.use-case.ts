@@ -17,6 +17,7 @@ import { ClientProfileFacade } from '@/modules/client/profile/application/profil
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { ExpertGateway } from '@/modules/expert/profile/api/gateways/expert.gateway';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class CreatePujaAppointmentUseCase {
@@ -32,16 +33,17 @@ export class CreatePujaAppointmentUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    user: IUser,
     dto: CreatePujaAppointmentDto,
   ): Promise<PujaAppointment> {
+    const userId = user.id;
     const puja = await this.expertProfileFacade.getPujaById(dto.puja_id);
 
     if (!puja) {
       throw new NotFoundException('Puja not found');
     }
 
-    const clientProfile = await this.clientProfileFacade.getProfile(userId);
+    const clientProfile = await this.clientProfileFacade.getProfile(user);
 
     if (!clientProfile) {
       throw new NotFoundException('Client profile not found');

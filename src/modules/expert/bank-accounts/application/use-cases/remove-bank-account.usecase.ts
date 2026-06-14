@@ -6,6 +6,7 @@ import { BankAccount } from '../../infrastructure/entities/bank-account.entity';
 import { GetBankAccountUseCase } from './get-bank-account.usecase';
 import { BankAccountPolicy } from '../../domain/policies/bank-account.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class RemoveBankAccountUseCase {
@@ -16,16 +17,15 @@ export class RemoveBankAccountUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(userId: string, id: string) {
-    const account = await this.getBankAccountUseCase.execute(userId, id);
+  async execute(user: IUser, id: string) {
+    const account = await this.getBankAccountUseCase.execute(user, id);
 
     BankAccountPolicy.ensureCanDelete(account);
 
     await this.bankAccountRepo.remove(account);
 
-    // Emit event (optional, but good for consistency)
     this.eventEmitter.emit('expert.bank-account.removed', {
-      userId,
+      userId: user.id,
       accountId: id,
     });
 
