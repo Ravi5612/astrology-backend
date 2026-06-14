@@ -36,15 +36,15 @@ export class CallFacade {
   ) {}
 
   async initiate(
-    userId: string,
+    clientId: string,
     expert_id: string,
     type: CallType = CallType.AUDIO,
   ) {
-    return this.initiateCallUseCase.execute(userId, expert_id, type);
+    return this.initiateCallUseCase.execute(clientId, expert_id, type);
   }
 
-  async accept(expert_id: string, sessionId: string) {
-    return this.acceptCallUseCase.execute(expert_id, sessionId);
+  async accept(expertProfileId: string, sessionId: string) {
+    return this.acceptCallUseCase.execute(expertProfileId, sessionId);
   }
 
   async end(sessionId: string, terminatedBy?: string, reason?: string) {
@@ -52,12 +52,12 @@ export class CallFacade {
   }
 
   async getExpertSessions(
-    expertUserId: string,
+    expertProfileId: string,
     filter: CallSessionFilter,
     options: { limit?: number; offset?: number; search?: string } = {},
   ) {
     return this.getExpertCallSessionsUseCase.execute(
-      expertUserId,
+      expertProfileId,
       filter,
       options,
     );
@@ -67,8 +67,8 @@ export class CallFacade {
     return this.getCallSessionUseCase.execute(sessionId);
   }
 
-  async getCallToken(userId: string, sessionId: string) {
-    return this.getCallTokenUseCase.execute(userId, sessionId);
+  async getCallToken(profileId: string, sessionId: string) {
+    return this.getCallTokenUseCase.execute(profileId, sessionId);
   }
 
   async reject(sessionId: string) {

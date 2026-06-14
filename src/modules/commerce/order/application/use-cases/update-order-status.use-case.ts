@@ -218,24 +218,43 @@ export class UpdateOrderStatusUseCase {
                     (grossAmount - platformFee - gstOnFee).toFixed(2),
                   );
 
-                  console.log(
-                    `[ORDER_CANCELLED_WALLET] Debiting merchant ${debitId} for net amount ${netToDebit} (Gross was ${grossAmount}) because order was previously DELIVERED`,
+                  const { ProfileMerchant } = await import(
+                    '../../../../merchant/profile/infrastructure/entities/profile-merchant.entity'
+                  );
+                  const merchantProfile = await queryRunner.manager.findOne(
+                    ProfileMerchant,
+                    {
+                      where: { user_id: debitId },
+                      select: ['id'],
+                    },
                   );
 
-                  await this.walletFacade.debit(
-                    debitId,
-                    netToDebit,
-                    TransactionPurpose.REFUND,
-                    `order_cancel_debit_${orderInsideTx.id}`,
-                    queryRunner,
-                    true, // allowNegative
-                  );
+                  if (merchantProfile) {
+                    console.log(
+                      `[ORDER_CANCELLED_WALLET] Debiting merchant ${merchantProfile.id} for net amount ${netToDebit} (Gross was ${grossAmount}) because order was previously DELIVERED`,
+                    );
+
+                    await this.walletFacade.debit(
+                      merchantProfile.id,
+                      'merchant_id',
+                      netToDebit,
+                      TransactionPurpose.REFUND,
+                      `order_cancel_debit_${orderInsideTx.id}`,
+                      queryRunner,
+                      true, // allowNegative
+                    );
+                  } else {
+                    console.error(
+                      `[ORDER_CANCELLED_WALLET] Merchant profile not found for user ID: ${debitId}`,
+                    );
+                  }
                 }
               }
 
               // Credit Client (Refund)
               await this.walletFacade.credit(
                 orderInsideTx.client_id,
+                'client_id',
                 refundAmount,
                 TransactionPurpose.REFUND,
                 `order_cancel_refund_${orderInsideTx.id}`,
@@ -387,34 +406,71 @@ export class UpdateOrderStatusUseCase {
                 // --- EXECUTE CREDITS ---
 
                 // A. Credit Merchant
-                await this.walletFacade.credit(
-                  merchantId,
-                  merchantNet,
-                  TransactionPurpose.CONSULTATION, // Reusing for earnings
-                  `order_item_${item.id}`,
-                  qr,
-                );
-
-                // B. Credit Seller's Agent
-                if (agent_commission > 0 && agent_id) {
+                if (merchantProfile) {
                   await this.walletFacade.credit(
-                    agent_id,
-                    agent_commission,
-                    'agent_commission' as unknown as TransactionPurpose,
+                    merchantProfile.id,
+                    'merchant_id',
+                    merchantNet,
+                    TransactionPurpose.CONSULTATION, // Reusing for earnings
                     `order_item_${item.id}`,
                     qr,
                   );
                 }
 
+                // B. Credit Seller's Agent
+                if (agent_commission > 0 && agent_id) {
+                  const { ProfileAgent } = await import(
+                    '../../../../agent/infrastructure/entities/profile-agent.entity'
+                  );
+                  const agentProfile = await qr.manager.findOne(
+                    ProfileAgent,
+                    {
+                      where: { user_id: agent_id },
+                      select: ['id'],
+                    },
+                  );
+                  if (agentProfile) {
+                    await this.walletFacade.credit(
+                      agentProfile.id,
+                      'agent_id',
+                      agent_commission,
+                      TransactionPurpose.AGENT_COMMISSION,
+                      `order_item_${item.id}`,
+                      qr,
+                    );
+                  } else {
+                    console.error(
+                      `[OrderSettlement] Agent profile not found for user_id: ${agent_id}`,
+                    );
+                  }
+                }
+
                 // C. Credit Buyer's Agent
                 if (buyer_agent_commission > 0 && buyer_agent_id) {
-                  await this.walletFacade.credit(
-                    buyer_agent_id,
-                    buyer_agent_commission,
-                    'agent_commission' as unknown as TransactionPurpose,
-                    `order_item_buyer_ref_${item.id}`,
-                    qr,
+                  const { ProfileAgent } = await import(
+                    '../../../../agent/infrastructure/entities/profile-agent.entity'
                   );
+                  const agentProfile = await qr.manager.findOne(
+                    ProfileAgent,
+                    {
+                      where: { user_id: buyer_agent_id },
+                      select: ['id'],
+                    },
+                  );
+                  if (agentProfile) {
+                    await this.walletFacade.credit(
+                      agentProfile.id,
+                      'agent_id',
+                      buyer_agent_commission,
+                      TransactionPurpose.AGENT_COMMISSION,
+                      `order_item_buyer_ref_${item.id}`,
+                      qr,
+                    );
+                  } else {
+                    console.error(
+                      `[OrderSettlement] Buyer agent profile not found for user_id: ${buyer_agent_id}`,
+                    );
+                  }
                 }
               }
             }

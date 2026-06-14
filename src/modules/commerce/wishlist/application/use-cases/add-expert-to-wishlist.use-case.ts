@@ -3,11 +3,9 @@ import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
-import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
 import { DataSource } from 'typeorm';
-import { IUser } from '@/common/types/access-token.payload';
 import {
   ExpertAlreadyInWishlistError,
   ExpertNotFoundError,
@@ -19,14 +17,12 @@ export class AddExpertToWishlistUseCase {
   constructor(
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
-    private readonly clientProfileFacade: ClientProfileFacade,
     private readonly expertProfileFacade: ExpertProfileFacade,
     private readonly dataSource: DataSource,
   ) {}
 
-  async execute(user: IUser, expert_id: string): Promise<BooleanMessage> {
-    const client = await this.clientProfileFacade.getProfile(user);
-    if (!client) {
+  async execute(profileId: string, expert_id: string): Promise<BooleanMessage> {
+    if (!profileId) {
       throw new UserNotFoundError();
     }
 
@@ -42,7 +38,7 @@ export class AddExpertToWishlistUseCase {
     }
 
     const existing = await this.wishlistRepository.findOne({
-      where: { client_id: client.id, expert_id: expert.id },
+      where: { client_id: profileId, expert_id: expert.id },
     });
 
     if (existing) {
@@ -50,7 +46,7 @@ export class AddExpertToWishlistUseCase {
     }
 
     const wishlist = this.wishlistRepository.create({
-      client_id: client.id,
+      client_id: profileId,
       expert_id: expert.id,
     });
 

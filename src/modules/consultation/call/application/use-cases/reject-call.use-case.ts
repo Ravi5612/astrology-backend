@@ -49,7 +49,7 @@ export class RejectCallUseCase {
     const reservedAmount = session.price_per_minute * 5;
     try {
       await this.walletFacade.releaseReserved(
-        session.user_id,
+        session.client_id,
         reservedAmount,
         referenceId,
       );

@@ -3,9 +3,7 @@ import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
-import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
-import { IUser } from '@/common/types/access-token.payload';
 import {
   ProductAlreadyInWishlistError,
   ProductNotFoundError,
@@ -17,14 +15,12 @@ export class AddProductToWishlistUseCase {
   constructor(
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
-    private readonly clientProfileFacade: ClientProfileFacade,
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
   ) {}
 
-  async execute(user: IUser, productId: string): Promise<BooleanMessage> {
-    const client = await this.clientProfileFacade.getProfile(user);
-    if (!client) {
+  async execute(profileId: string, productId: string): Promise<BooleanMessage> {
+    if (!profileId) {
       throw new UserNotFoundError();
     }
 
@@ -36,7 +32,7 @@ export class AddProductToWishlistUseCase {
     }
 
     const existing = await this.wishlistRepository.findOne({
-      where: { client: { id: client.id }, product: { id: productId } },
+      where: { client_id: profileId, product: { id: productId } },
     });
 
     if (existing) {
@@ -44,7 +40,7 @@ export class AddProductToWishlistUseCase {
     }
 
     const wishlist = this.wishlistRepository.create({
-      client,
+      client_id: profileId,
       product,
     });
 

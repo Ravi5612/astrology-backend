@@ -38,36 +38,28 @@ export class InitiateCallUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    clientId: string,
     expert_id: string,
     type: CallType = CallType.AUDIO,
   ) {
-    // ✅ Block duplicate sessions — user can only have ONE active/pending call at a time
+    // Block duplicate sessions — client can only have ONE active/pending call at a time
     const existingSession = await this.sessionRepo.findOne({
       where: [
-        {
-          user_id: userId as unknown as string,
-          status: CallSessionStatus.ACTIVE,
-        },
-        {
-          user_id: userId as unknown as string,
-          status: CallSessionStatus.PENDING,
-        },
+        { client_id: clientId, status: CallSessionStatus.ACTIVE },
+        { client_id: clientId, status: CallSessionStatus.PENDING },
       ],
-      relations: ['user'],
+      relations: ['client', 'client.user'],
     });
 
     if (existingSession) {
-      // Same expert → return existing session so frontend can redirect/resume
       if (existingSession.expert_id === expert_id) {
         return {
           session: { ...existingSession, isResumed: true },
-          token: '', // Frontend will handle resume logic
+          token: '',
           roomName: `call_room_${existingSession.id}`,
         };
       }
 
-      // Different expert → block completely
       throw new InternalServerErrorException(
         existingSession.status === CallSessionStatus.ACTIVE
           ? `You already have an ongoing ${existingSession.type} call with another astrologer.`
@@ -95,10 +87,7 @@ export class InitiateCallUseCase {
     const minBalanceRequired = callPrice * minMins;
 
     const callCount = await this.sessionRepo.count({
-      where: {
-        user_id: userId as unknown as string,
-        status: CallSessionStatus.COMPLETED,
-      },
+      where: { client_id: clientId, status: CallSessionStatus.COMPLETED },
     });
 
     const isFreeEnabled = process.env.FREE_CHAT_ENABLED === 'true';
@@ -109,7 +98,7 @@ export class InitiateCallUseCase {
 
     if (!isEligibleForFree) {
       const hasBalance = await this.walletFacade.validateBalance(
-        userId,
+        clientId,
         minBalanceRequired,
       );
       CallPolicy.ensureSufficientBalance(
@@ -121,11 +110,11 @@ export class InitiateCallUseCase {
     }
 
     const session = this.sessionRepo.create({
-      user_id: userId,
-      expert_id: expert_id,
+      client_id: clientId,
+      expert_id,
       price_per_minute: callPrice,
       status: CallSessionStatus.PENDING,
-      type: type,
+      type,
       is_free: isEligibleForFree,
       free_minutes: freeMins,
     });
@@ -135,18 +124,16 @@ export class InitiateCallUseCase {
       `Session saved: id=${savedSession.id} (is_free: ${isEligibleForFree})`,
     );
 
-    // Reserve balance only if not free
     if (!isEligibleForFree) {
       await this.walletFacade.reserveBalance(
-        userId,
+        clientId,
         minBalanceRequired,
         `call_${savedSession.id}`,
       );
       this.logger.log(`Balance reserved for sessionId=${savedSession.id}`);
     }
 
-    // Generate Twilio Token for the user
-    const identity = `user_${userId}_${savedSession.id}`;
+    const identity = `client_${clientId}_${savedSession.id}`;
     const roomName = `call_room_${savedSession.id}`;
 
     let token: string;
@@ -158,28 +145,14 @@ export class InitiateCallUseCase {
       throw new InternalServerErrorException('Failed to generate call token');
     }
 
-    // Fetch session with expert & user details for client
     const sessionWithDetails = await this.sessionRepo.findOne({
       where: { id: savedSession.id },
-      relations: ['user'], // 'expert' is not a relation anymore, or maybe it's not defined in the entity since we separated domains?
+      relations: ['client', 'client.user'],
     });
 
-    // Attach expert manually
     if (sessionWithDetails) {
       (sessionWithDetails as unknown as { expert: typeof expert }).expert =
         expert;
-    }
-
-    if (sessionWithDetails?.user) {
-      // Priority: User.avatar || ProfileClient.profile_picture
-      (sessionWithDetails.user as unknown as { avatar: string }).avatar =
-        sessionWithDetails.user.avatar ||
-        (
-          sessionWithDetails.user as unknown as {
-            profile_client?: { profile_picture: string };
-          }
-        ).profile_client?.profile_picture ||
-        '';
     }
 
     const result = {
@@ -192,7 +165,7 @@ export class InitiateCallUseCase {
     this.logger.log(`Expert notified of new call sessionId=${savedSession.id}`);
     this.eventEmitter.emit(
       'call.initiated',
-      new CallInitiatedEvent(savedSession.id, userId, expert_id, type),
+      new CallInitiatedEvent(savedSession.id, clientId, expert_id, type),
     );
 
     return result;

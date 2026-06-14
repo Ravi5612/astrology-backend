@@ -11,6 +11,7 @@ import { CallPolicy } from '../../domain/policies/call.policy';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CallAcceptedEvent } from '../../domain/events/call.events';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
+import { CallSessionAccessDeniedError } from '../../domain/errors/call.errors';
 
 @Injectable()
 export class AcceptCallUseCase {
@@ -27,18 +28,22 @@ export class AcceptCallUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(expert_id: string, sessionId: string) {
+  async execute(expertProfileId: string, sessionId: string) {
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId },
-      relations: ['user', 'expert', 'expert.user'],
+      relations: ['client', 'expert', 'expert.user'],
     });
 
     CallPolicy.ensureSessionExists(session);
-    CallPolicy.ensureExpertAssignedToSession(session.expert.user.id, expert_id);
+
+    // Validate that this expert profile is assigned to the session
+    if (session.expert_id !== expertProfileId) {
+      throw new CallSessionAccessDeniedError();
+    }
 
     if (session.status === CallSessionStatus.ACTIVE) {
       // If already active and it's the same expert, just return the session/token
-      const identity = `expert_${expert_id}_${sessionId}`;
+      const identity = `expert_${expertProfileId}_${sessionId}`;
       const roomName = `call_room_${sessionId}`;
       const token = this.twilioService.generateToken(
         identity,
@@ -54,7 +59,7 @@ export class AcceptCallUseCase {
     session.start_time = new Date();
 
     // Calculate Max Duration based on Wallet Balance + Free Minutes
-    const balance = await this.walletFacade.getBalance(session.user_id);
+    const balance = await this.walletFacade.getBalance(session.client_id);
     const paidMinutes =
       session.price_per_minute > 0 ? balance / session.price_per_minute : 0;
     const totalMinutes =
@@ -69,7 +74,7 @@ export class AcceptCallUseCase {
     this.logger.log(`Session activated: id=${savedSession.id}`);
 
     // Generate token for expert
-    const identity = `expert_${expert_id}_${sessionId}`;
+    const identity = `expert_${expertProfileId}_${sessionId}`;
     const roomName = `call_room_${sessionId}`;
     const token = this.twilioService.generateToken(
       identity,
@@ -103,7 +108,7 @@ export class AcceptCallUseCase {
     );
     this.eventEmitter.emit(
       'call.accepted',
-      new CallAcceptedEvent(savedSession.id, expert_id, savedSession.type),
+      new CallAcceptedEvent(savedSession.id, expertProfileId, savedSession.type),
     );
 
     return result;

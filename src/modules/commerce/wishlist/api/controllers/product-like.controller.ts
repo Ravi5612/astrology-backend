@@ -1,4 +1,4 @@
-﻿import {
+import {
   Controller,
   Get,
   Post,
@@ -10,8 +10,7 @@
 import { WishlistFacade } from '../../application/wishlist.facade';
 import { CreateWishlistDto } from '../dto/create-wishlist.dto';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { IUser } from '@/common/types/access-token.payload';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 
 @Controller({
   path: 'product-like',
@@ -22,28 +21,28 @@ export class ProductLikeController {
   constructor(private readonly wishlistFacade: WishlistFacade) {}
 
   @Get()
-  findAll(@CurrentUser() user: IUser) {
-    return this.wishlistFacade.getProductWishlist(user.id);
+  findAll(@CurrentProfile() profileId: string) {
+    return this.wishlistFacade.getProductWishlist(profileId);
   }
 
   @Post('add')
   create(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Body() createWishlistDto: CreateWishlistDto,
   ) {
     return this.wishlistFacade.addProductToWishlist(
-      user,
+      profileId,
       createWishlistDto.productId,
     );
   }
 
   @Delete('remove/:productId')
   async remove(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Param('productId') productId: string,
   ) {
     const _result = await this.wishlistFacade.removeProductFromWishlist(
-      user,
+      profileId,
       productId,
     );
     return { success: true };

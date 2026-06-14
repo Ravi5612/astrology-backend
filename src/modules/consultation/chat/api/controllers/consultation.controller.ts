@@ -52,7 +52,6 @@ export class ConsultationController {
     if (dto.coupon_code) {
       try {
         const couponResult = await this.couponFacade.applyCoupon(
-          user.id,
           dto.coupon_code,
           amount,
         );

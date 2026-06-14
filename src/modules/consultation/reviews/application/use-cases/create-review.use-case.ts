@@ -230,7 +230,8 @@ export class CreateReviewUseCase {
     const actualMerchantId = merchant.id;
 
     if (orderId) {
-      const order = await this.orderFacade.getOrderById(orderId, userId);
+      // Use clientId (profile ID) to look up the order since orders are keyed to client_id
+      const order = await this.orderFacade.getOrderById(orderId, clientId);
 
       if (!order) throw new NotFoundException('Order not found');
       if (order.status !== OrderStatus.DELIVERED) {

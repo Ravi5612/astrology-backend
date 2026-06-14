@@ -13,15 +13,20 @@ export class GetUserOrdersUseCase {
     private pujaAppointmentFacade: PujaAppointmentFacade,
   ) {}
 
-  async execute(userId: string, limit?: number, offset?: number) {
-    // 1. Fetch Product Orders
+  async execute(
+    profileId: string,
+    userId: string,
+    limit?: number,
+    offset?: number,
+  ) {
+    // 1. Fetch Product Orders by client profile ID
     const productOrders = await this.orderRepo.find({
-      where: { client: { user: { id: userId } } },
+      where: { client_id: profileId },
       relations: ['items', 'items.product', 'client', 'client.user'],
       order: { created_at: 'DESC' },
     });
 
-    // 2. Fetch Puja Appointments (as Service Orders)
+    // 2. Fetch Puja Appointments (as Service Orders) — keyed to user ID
     const pujaOrders =
       await this.pujaAppointmentFacade.getUserAppointments(userId);
 

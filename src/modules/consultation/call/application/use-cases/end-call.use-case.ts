@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import {
   CallSession,
   CallSessionStatus,
+  CallType,
 } from '../../infrastructure/entities/call-session.entity';
 import { CallGateway } from '../../call.gateway';
 import { CallPolicy } from '../../domain/policies/call.policy';
@@ -11,11 +12,10 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CallEndedEvent } from '../../domain/events/call.events';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
-import { UsersFacade } from '@/modules/users/application/users.facade';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
-import { CallType } from '../../infrastructure/entities/call-session.entity';
+import { User } from '@/modules/users/infrastructure/entities/user.entity';
 
 @Injectable()
 export class EndCallUseCase {
@@ -24,7 +24,6 @@ export class EndCallUseCase {
     private readonly sessionRepo: Repository<CallSession>,
     @Inject(forwardRef(() => ExpertProfileFacade))
     private readonly expertProfileFacade: ExpertProfileFacade,
-    private readonly usersFacade: UsersFacade,
     @Inject(forwardRef(() => CallGateway))
     private readonly callGateway: CallGateway,
     @Inject(forwardRef(() => WalletFacade))
@@ -40,6 +39,7 @@ export class EndCallUseCase {
 
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId as unknown as string },
+      relations: ['client', 'client.user'],
     });
 
     CallPolicy.ensureSessionExists(session);
@@ -87,14 +87,12 @@ export class EndCallUseCase {
         'COMMISION_FOR_BUYER_AGENT',
       );
 
-    // Fetch Expert with User to check for referral
+    // Fetch Expert with User (user relation loaded by getExpertById)
     const expert = await this.expertProfileFacade.getExpertById(
       session.expert_id,
     );
+    const expertUser = expert?.user as unknown as User | null;
 
-    const expertUser = await this.usersFacade.findById(
-      expert?.userId as string,
-    );
     let agent_commission = 0;
     let agent_id: string | undefined = undefined;
 
@@ -112,8 +110,7 @@ export class EndCallUseCase {
     let buyer_agent_commission = 0;
     let buyer_agent_id: string | undefined = undefined;
 
-    const buyerUser = await this.usersFacade.findById(session.user_id);
-
+    const buyerUser = session.client?.user as User | null;
     if (buyerUser?.referred_by_id) {
       buyer_agent_id = buyerUser.referred_by_id;
       buyer_agent_commission = Number(
@@ -148,7 +145,7 @@ export class EndCallUseCase {
 
     const split = {
       totalAmount: finalPrice,
-      totalCost: finalPrice, // Alias for compatibility
+      totalCost: finalPrice,
       platformFee: Number((finalPrice - expertShare).toFixed(2)),
       expertShare: expertShare,
       agent_commission,
@@ -160,7 +157,7 @@ export class EndCallUseCase {
       if (finalPrice <= initialReservation) {
         if (finalPrice > 0) {
           await this.walletFacade.deductFromReserved(
-            session.user_id,
+            session.client_id,
             finalPrice,
             referenceId,
           );
@@ -168,20 +165,20 @@ export class EndCallUseCase {
         const remainingReserved = initialReservation - finalPrice;
         if (remainingReserved > 0) {
           await this.walletFacade.releaseReserved(
-            session.user_id,
+            session.client_id,
             remainingReserved,
             referenceId,
           );
         }
       } else {
         await this.walletFacade.deductFromReserved(
-          session.user_id,
+          session.client_id,
           initialReservation,
           referenceId,
         );
         const excessCost = finalPrice - initialReservation;
         await this.walletFacade.debit(
-          session.user_id,
+          session.client_id,
           excessCost,
           TransactionPurpose.CONSULTATION,
           referenceId,
@@ -190,9 +187,10 @@ export class EndCallUseCase {
 
       // 💳 Credit Expert and Agents (Using pre-calculated earnings)
       if (finalPrice > 0) {
-        if (expertUser?.id) {
+        const expertUserId = expert?.userId as string | undefined;
+        if (expertUserId) {
           await this.walletFacade.credit(
-            expertUser.id,
+            expertUserId,
             session.expert_earning,
             TransactionPurpose.CONSULTATION,
             referenceId,
@@ -246,22 +244,15 @@ export class EndCallUseCase {
       'call.ended',
       new CallEndedEvent(
         session.id,
-        session.user_id,
+        session.client_id,
         session.expert_id,
         session.duration_seconds,
         session.final_price,
       ),
     );
 
-    // 🔔 Notify User
+    // 🔔 Notify Client
     try {
-      const expert = await this.expertProfileFacade.getExpertById(
-        savedSession.expert_id,
-      );
-      const expertUser = expert
-        ? await this.usersFacade.findById(expert.userId as string)
-        : null;
-
       if (expert) {
         const startTime = savedSession.start_time
           ? savedSession.start_time.toLocaleTimeString('en-IN', {
@@ -275,7 +266,8 @@ export class EndCallUseCase {
               minute: '2-digit',
             })
           : 'N/A';
-        const expertName = expertUser?.name || 'Astrologer';
+        const expertName =
+          (expertUser?.name as string | null) || (expert.name as string | null) || 'Astrologer';
         const duration = savedSession.duration_seconds
           ? (savedSession.duration_seconds / 60).toFixed(1)
           : '0';
@@ -286,7 +278,7 @@ export class EndCallUseCase {
         const message = `From ${startTime} to ${endTime} you consulted ${expertName} via ${typeLabel}, total duration: ${duration} mins, total cost: ₹${savedSession.final_price}`;
 
         await this.notificationFacade.create(
-          savedSession.user_id,
+          savedSession.client_id,
           NotificationType.GENERAL,
           title,
           message,

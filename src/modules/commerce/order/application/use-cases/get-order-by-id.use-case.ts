@@ -10,9 +10,9 @@ export class GetOrderByIdUseCase {
     private orderRepo: Repository<Order>,
   ) {}
 
-  async execute(id: string, userId: string) {
+  async execute(id: string, profileId: string) {
     const order = await this.orderRepo.findOne({
-      where: { id, client: { user: { id: userId } } },
+      where: { id, client_id: profileId },
       relations: ['items', 'items.product', 'client', 'client.user'],
     });
 

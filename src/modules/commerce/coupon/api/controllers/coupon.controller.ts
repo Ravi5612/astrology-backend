@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { IUser } from '@/common/types/access-token.payload';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { GetMyRewardsUseCase } from '../../application/use-cases/get-my-rewards.use-case';
 import { ApplyCouponUseCase } from '../../application/use-cases/apply-coupon.use-case';
 
@@ -17,13 +16,12 @@ export class CouponController {
   ) {}
 
   @Get('my-rewards')
-  async getMyRewards(@CurrentUser() user: IUser) {
-    return this.getMyRewardsUseCase.execute(user);
+  async getMyRewards(@CurrentProfile() profileId: string) {
+    return this.getMyRewardsUseCase.execute(profileId);
   }
 
   @Post('apply')
   async applyCoupon(
-    @CurrentUser() user: IUser,
     @Body()
     body: {
       code?: string;
@@ -35,6 +33,6 @@ export class CouponController {
   ) {
     const code = body.code || body.couponCode || '';
     const amount = body.amount || body.orderValue || 0;
-    return this.applyCouponUseCase.execute(user.id, code, amount);
+    return this.applyCouponUseCase.execute(code, amount);
   }
 }

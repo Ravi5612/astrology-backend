@@ -13,7 +13,7 @@ export class MarkCouponAsUsedUseCase {
     private readonly userCouponRepo: Repository<UserCoupon>,
   ) {}
 
-  async execute(userId: string, code: string, manager?: EntityManager) {
+  async execute(profileId: string, code: string, manager?: EntityManager) {
     const repo = manager ? manager.getRepository(Coupon) : this.couponRepo;
     const userCouponRepo = manager
       ? manager.getRepository(UserCoupon)
@@ -35,7 +35,7 @@ export class MarkCouponAsUsedUseCase {
 
     // Record user usage
     let userCoupon = await userCouponRepo.findOne({
-      where: { client_id: userId, coupon_id: coupon.id },
+      where: { client_id: profileId, coupon_id: coupon.id },
     });
 
     if (userCoupon) {
@@ -43,7 +43,7 @@ export class MarkCouponAsUsedUseCase {
       userCoupon.used_at = new Date();
     } else {
       userCoupon = userCouponRepo.create({
-        client_id: userId,
+        client_id: profileId,
         coupon_id: coupon.id,
         is_used: true,
         used_at: new Date(),

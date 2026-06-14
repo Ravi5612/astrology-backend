@@ -16,13 +16,13 @@ export class UpdateCartItemUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    profileId: string,
     updateCartItemDto: UpdateCartItemDto & { productId: string },
   ) {
     const { productId, quantity } = updateCartItemDto;
 
     const cart = await this.cartRepository.findOne({
-      where: { client: { user: { id: userId } } },
+      where: { client_id: profileId },
     });
 
     if (!cart) {

@@ -21,13 +21,13 @@ export class CouponFacade {
     private readonly bulkAssignCouponUseCase: BulkAssignCouponUseCase,
   ) {}
 
-  async applyCoupon(userId: string, code: string, amount: number) {
-    return this.applyCouponUseCase.execute(userId, code, amount);
+  async applyCoupon(code: string, amount: number) {
+    return this.applyCouponUseCase.execute(code, amount);
   }
 
-  async markCouponAsUsed(userId: string, code: string, manager?: unknown) {
+  async markCouponAsUsed(profileId: string, code: string, manager?: unknown) {
     return this.markCouponAsUsedUseCase.execute(
-      userId,
+      profileId,
       code,
       manager as import('typeorm').EntityManager,
     );

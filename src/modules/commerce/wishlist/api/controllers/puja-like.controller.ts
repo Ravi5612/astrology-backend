@@ -1,4 +1,4 @@
-﻿import {
+import {
   Controller,
   Get,
   Post,
@@ -10,8 +10,7 @@
 import { WishlistFacade } from '../../application/wishlist.facade';
 import { AddPujaToWishlistDto } from '../dto/add-puja-wishlist.dto';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { IUser } from '@/common/types/access-token.payload';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 
 @Controller({
   path: 'puja-like',
@@ -22,28 +21,28 @@ export class PujaLikeController {
   constructor(private readonly wishlistFacade: WishlistFacade) {}
 
   @Get()
-  findAllPujas(@CurrentUser() user: IUser) {
-    return this.wishlistFacade.getPujaWishlist(user.id);
+  findAllPujas(@CurrentProfile() profileId: string) {
+    return this.wishlistFacade.getPujaWishlist(profileId);
   }
 
   @Post('add')
   createPuja(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Body() addPujaToWishlistDto: AddPujaToWishlistDto,
   ) {
     return this.wishlistFacade.addPujaToWishlist(
-      user,
+      profileId,
       addPujaToWishlistDto.pujaId,
     );
   }
 
   @Delete('remove/:pujaId')
   async removePuja(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Param('pujaId') pujaId: string,
   ) {
     const _result = await this.wishlistFacade.removePujaFromWishlist(
-      user,
+      profileId,
       pujaId,
     );
     return { success: true };

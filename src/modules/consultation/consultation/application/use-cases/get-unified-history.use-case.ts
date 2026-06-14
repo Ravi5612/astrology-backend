@@ -49,7 +49,11 @@ export class GetUnifiedHistoryUseCase {
       callFilter = { expert_id: expertProfile.id };
     } else {
       chatFilter = { client_id: userId };
-      callFilter = { user_id: userId };
+      // CallSession.client_id → ProfileClient.id, so look up profile first
+      const clientProfile = await this.profileClientRepo.findOne({
+        where: { user_id: userId },
+      });
+      callFilter = clientProfile ? { client_id: clientProfile.id } : { client_id: '__none__' };
     }
 
     // 2. Fetch Sessions with relations
@@ -61,7 +65,7 @@ export class GetUnifiedHistoryUseCase {
 
     const callSessions = await this.callRepo.find({
       where: callFilter,
-      relations: ['expert', 'expert.user', 'user'],
+      relations: ['expert', 'expert.user', 'client', 'client.user'],
       order: { created_at: 'DESC' },
     });
 
@@ -103,18 +107,14 @@ export class GetUnifiedHistoryUseCase {
         });
     });
 
-    // 4. Fetch Client Profiles for users
-    const allUserIds = [
-      ...new Set(
-        [...chatSessions, ...callSessions]
-          .map((s) => s.user?.id)
-          .filter((id) => id),
-      ),
+    // 4. Fetch Client Profiles for chat session users (call sessions load client directly)
+    const chatUserIds = [
+      ...new Set(chatSessions.map((s) => s.user?.id).filter((id) => id)),
     ];
     const clientProfiles =
-      allUserIds.length > 0
+      chatUserIds.length > 0
         ? await this.profileClientRepo.find({
-            where: { user_id: In(allUserIds) },
+            where: { user_id: In(chatUserIds) },
           })
         : [];
 
@@ -139,14 +139,11 @@ export class GetUnifiedHistoryUseCase {
       }),
       ...callSessions.map((s) => {
         const duration = s.duration_seconds || 0;
-        const profile = s.user?.id
-          ? clientProfileMap.get(s.user.id)
-          : undefined;
         return this.mapCallSession(
           s,
           callReviewMap.get(s.id),
           duration,
-          profile,
+          s.client,
         );
       }),
     ];
@@ -263,11 +260,11 @@ export class GetUnifiedHistoryUseCase {
       user_image:
         clientProfile?.profile_picture ||
         clientProfile?.avatar ||
-        session.user?.avatar ||
+        (session.client?.user as unknown as { avatar?: string })?.avatar ||
         '/images/dummy-user.jpg',
       expert_name: session.expert?.user?.name || 'Expert',
       expert_category: session.expert?.specialization || 'Astrologer',
-      user_name: session.user?.name || 'User',
+      user_name: session.client?.user?.name || 'User',
       expert: {
         id: session.expert?.id || '',
         name: session.expert?.user?.name || 'Expert',

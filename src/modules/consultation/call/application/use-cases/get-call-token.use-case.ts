@@ -19,19 +19,18 @@ export class GetCallTokenUseCase {
     private readonly twilioService: TwilioService,
   ) {}
 
-  async execute(userId: string, sessionId: string) {
+  async execute(profileId: string, sessionId: string) {
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId },
-      relations: ['user', 'expert', 'expert.user'],
+      relations: ['client', 'client.user', 'expert', 'expert.user'],
     });
 
     if (!session) {
       throw new NotFoundException(`Call session ${sessionId} not found`);
     }
 
-    // Check if user is either the client or .. the expert
-    const isClient = session.user.id === userId;
-    const isExpert = session.expert.user_id === userId; // In this project, expert.user_id usually links to User entity
+    const isClient = session.client_id === profileId;
+    const isExpert = session.expert_id === profileId;
 
     if (!isClient && !isExpert) {
       throw new ForbiddenException(
@@ -40,18 +39,16 @@ export class GetCallTokenUseCase {
     }
 
     if (session.status !== CallSessionStatus.ACTIVE) {
-      // If it's still pending, expert shouldn't get a token via this (they use /accept)
-      // But user might need it if they are re-joining or waiting
       if (isClient && session.status === CallSessionStatus.PENDING) {
-        // For client, we can return token even if pending so they are ready
+        // Client can get token even while pending so they are ready
       } else {
         throw new ForbiddenException('Call session is not active');
       }
     }
 
     const identity = isExpert
-      ? `expert_${userId}_${sessionId}`
-      : `user_${userId}_${sessionId}`;
+      ? `expert_${profileId}_${sessionId}`
+      : `client_${profileId}_${sessionId}`;
     const roomName = `call_room_${sessionId}`;
 
     const token = this.twilioService.generateToken(

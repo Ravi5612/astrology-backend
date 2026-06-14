@@ -1,4 +1,4 @@
-﻿import {
+import {
   Controller,
   Get,
   Post,
@@ -11,8 +11,7 @@
 import { WishlistFacade } from '../../application/wishlist.facade';
 import { AddMerchantWishlistDto } from '../dto/add-merchant-wishlist.dto';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { IUser } from '@/common/types/access-token.payload';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 
 @Controller({
   path: 'merchant-like',
@@ -23,25 +22,25 @@ export class MerchantLikeController {
   constructor(private readonly wishlistFacade: WishlistFacade) {}
 
   @Get()
-  findAll(@CurrentUser() user: IUser) {
-    return this.wishlistFacade.getMerchantWishlist(user.id);
+  findAll(@CurrentProfile() profileId: string) {
+    return this.wishlistFacade.getMerchantWishlist(profileId);
   }
 
   @Post('add')
   create(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Body() dto: AddMerchantWishlistDto,
   ) {
-    return this.wishlistFacade.addMerchantToWishlist(user, dto.merchantId);
+    return this.wishlistFacade.addMerchantToWishlist(profileId, dto.merchantId);
   }
 
   @Delete('remove/:merchantId')
   async remove(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Param('merchantId', ParseUUIDPipe) merchantId: string,
   ) {
     const _result = await this.wishlistFacade.removeMerchantFromWishlist(
-      user,
+      profileId,
       merchantId,
     );
     return { success: true };

@@ -1,4 +1,4 @@
-﻿import {
+import {
   Controller,
   Get,
   Post,
@@ -14,7 +14,7 @@ import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { IUser } from '@/common/types/access-token.payload';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderStatusDto } from '../dto/update-order-status.dto';
 
@@ -28,20 +28,26 @@ export class OrderController {
   constructor(private readonly orderFacade: OrderFacade) {}
 
   @Post()
-  async createOrder(@CurrentUser() user: IUser, @Body() dto: CreateOrderDto) {
-    return this.orderFacade.createOrder(user, dto);
+  async createOrder(
+    @CurrentProfile() profileId: string,
+    @CurrentUser('id') userId: string,
+    @Body() dto: CreateOrderDto,
+  ) {
+    return this.orderFacade.createOrder(profileId, userId, dto);
   }
 
   @Get('my-orders')
   async getMyOrders(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
+    @CurrentUser('id') userId: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
     const limitNum = limit ? parseInt(limit, 10) : 10;
     const offsetNum = offset ? parseInt(offset, 10) : 0;
     const { data, total_count } = await this.orderFacade.getUserOrders(
-      user.id,
+      profileId,
+      userId,
       limitNum,
       offsetNum,
     );
@@ -58,11 +64,12 @@ export class OrderController {
 
   @Get()
   async getMyOrdersAlias(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
+    @CurrentUser('id') userId: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
-    return this.getMyOrders(user, limit, offset);
+    return this.getMyOrders(profileId, userId, limit, offset);
   }
 
   @Roles('ADMIN')
@@ -89,10 +96,10 @@ export class OrderController {
 
   @Get(':id')
   async getOrder(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.orderFacade.getOrderById(id, user.id);
+    return this.orderFacade.getOrderById(id, profileId);
   }
 }
 
@@ -106,20 +113,26 @@ export class OrderSingularController {
   constructor(private readonly orderFacade: OrderFacade) {}
 
   @Post()
-  async createOrder(@CurrentUser() user: IUser, @Body() dto: CreateOrderDto) {
-    return this.orderFacade.createOrder(user, dto);
+  async createOrder(
+    @CurrentProfile() profileId: string,
+    @CurrentUser('id') userId: string,
+    @Body() dto: CreateOrderDto,
+  ) {
+    return this.orderFacade.createOrder(profileId, userId, dto);
   }
 
   @Get('my-orders')
   async getMyOrders(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
+    @CurrentUser('id') userId: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
     const limitNum = limit ? parseInt(limit, 10) : 10;
     const offsetNum = offset ? parseInt(offset, 10) : 0;
     const { data, total_count } = await this.orderFacade.getUserOrders(
-      user.id,
+      profileId,
+      userId,
       limitNum,
       offsetNum,
     );
@@ -152,9 +165,9 @@ export class OrderSingularController {
 
   @Get(':id')
   async getOrder(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.orderFacade.getOrderById(id, user.id);
+    return this.orderFacade.getOrderById(id, profileId);
   }
 }

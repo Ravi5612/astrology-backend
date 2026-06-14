@@ -13,9 +13,9 @@ export class ClearCartUseCase {
     private readonly cartItemRepo: Repository<CartItem>,
   ) {}
 
-  async execute(userId: string): Promise<void> {
+  async execute(profileId: string): Promise<void> {
     const cart = await this.cartRepo.findOne({
-      where: { client: { user: { id: userId } } },
+      where: { client_id: profileId },
       relations: ['items'],
     });
 

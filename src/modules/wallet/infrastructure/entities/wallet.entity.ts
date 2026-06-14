@@ -13,6 +13,8 @@ import { ProfileAgent } from '@/modules/agent/infrastructure/entities/profile-ag
 import { ColumnNumericTransformer } from '@/common/transformers/numeric.transformer';
 import { UuidPrimaryKeyColumn } from '@/common/decorators/primary-key.decorator';
 
+export type WalletKey = 'client_id' | 'expert_id' | 'merchant_id' | 'agent_id';
+
 @Entity({ schema: 'finance', name: 'wallets' })
 export class Wallet {
   @UuidPrimaryKeyColumn()

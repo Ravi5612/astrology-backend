@@ -1,4 +1,4 @@
-﻿import {
+import {
   Controller,
   Get,
   Post,
@@ -10,8 +10,7 @@
 import { WishlistFacade } from '../../application/wishlist.facade';
 import { AddExpertToWishlistDto } from '../dto/add-expert-wishlist.dto';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { IUser } from '@/common/types/access-token.payload';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 
 @Controller({
   path: 'expert-like',
@@ -22,28 +21,28 @@ export class ExpertLikeController {
   constructor(private readonly wishlistFacade: WishlistFacade) {}
 
   @Get()
-  findAllExperts(@CurrentUser() user: IUser) {
-    return this.wishlistFacade.getExpertWishlist(user.id);
+  findAllExperts(@CurrentProfile() profileId: string) {
+    return this.wishlistFacade.getExpertWishlist(profileId);
   }
 
   @Post('add')
   createExpert(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Body() addExpertToWishlistDto: AddExpertToWishlistDto,
   ) {
     return this.wishlistFacade.addExpertToWishlist(
-      user,
+      profileId,
       addExpertToWishlistDto.expert_id,
     );
   }
 
   @Delete('remove/:expert_id')
   async removeExpert(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Param('expert_id') expert_id: string,
   ) {
     const _result = await this.wishlistFacade.removeExpertFromWishlist(
-      user,
+      profileId,
       expert_id,
     );
     return { success: true };

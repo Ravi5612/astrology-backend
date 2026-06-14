@@ -11,7 +11,9 @@ import { GetOrderEarningsUseCase } from './use-cases/get-order-earnings.use-case
 import { GetAdminMerchantSalesOverviewUseCase } from './use-cases/get-admin-merchant-sales-overview.use-case';
 import { GetAdminMerchantSalesDetailsUseCase } from './use-cases/get-admin-merchant-sales-details.use-case';
 import { OrderStatus } from '../infrastructure/entities/order.entity';
-import { IUser } from '@/common/types/access-token.payload';
+import { CreateOrderDto } from '../api/dto/create-order.dto';
+import { QueryRunner } from 'typeorm';
+import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 
 @Injectable()
 export class OrderFacade {
@@ -29,29 +31,24 @@ export class OrderFacade {
     private readonly getAdminMerchantSalesDetailsUseCase: GetAdminMerchantSalesDetailsUseCase,
   ) {}
 
-  async createOrder(
-    user: IUser,
-    dto: import('../api/dto/create-order.dto').CreateOrderDto,
-  ) {
+  async createOrder(profileId: string, userId: string, dto: CreateOrderDto) {
     if (dto.product_id) {
       // Logic for single product order will be added to the use case
     }
-    return this.createOrderFromCartUseCase.execute(user, dto);
+    return this.createOrderFromCartUseCase.execute(profileId, userId, dto);
   }
 
   async createOrderFromCart(
-    user: IUser,
+    profileId: string,
+    userId: string,
     shippingAddress: Record<string, unknown>,
   ) {
-    return this.createOrderFromCartUseCase.execute(user, {
+    return this.createOrderFromCartUseCase.execute(profileId, userId, {
       shipping_address: shippingAddress,
     });
   }
 
-  async markAsPaid(
-    razorpayOrderId: string,
-    externalQueryRunner?: import('typeorm').QueryRunner,
-  ) {
+  async markAsPaid(razorpayOrderId: string, externalQueryRunner?: QueryRunner) {
     return this.markOrderAsPaidUseCase.execute(
       razorpayOrderId,
       externalQueryRunner,
@@ -62,12 +59,17 @@ export class OrderFacade {
     return this.setOrderRazorpayIdUseCase.execute(orderId, razorpayOrderId);
   }
 
-  async getUserOrders(userId: string, limit?: number, offset?: number) {
-    return this.getUserOrdersUseCase.execute(userId, limit, offset);
+  async getUserOrders(
+    profileId: string,
+    userId: string,
+    limit?: number,
+    offset?: number,
+  ) {
+    return this.getUserOrdersUseCase.execute(profileId, userId, limit, offset);
   }
 
-  async getOrderById(id: string, userId: string) {
-    return this.getOrderByIdUseCase.execute(id, userId);
+  async getOrderById(id: string, profileId: string) {
+    return this.getOrderByIdUseCase.execute(id, profileId);
   }
 
   async updateOrderStatus(
@@ -143,7 +145,7 @@ export class OrderFacade {
     orderId: string,
     otp: string,
     merchantId: string,
-    walletFacade: import('@/modules/wallet/application/wallet.facade').WalletFacade,
+    walletFacade: WalletFacade,
   ) {
     return this.merchantOrderQueriesUseCase.verifyOrderOtp(
       orderId,

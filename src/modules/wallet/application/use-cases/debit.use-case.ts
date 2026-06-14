@@ -2,21 +2,17 @@ import {
   Injectable,
   BadRequestException,
   Logger,
-  ForbiddenException,
-  NotFoundException,
 } from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
-import { Wallet } from '../../infrastructure/entities/wallet.entity';
+import { Wallet, WalletKey } from '../../infrastructure/entities/wallet.entity';
 import {
   Transaction,
   TransactionType,
   TransactionPurpose,
 } from '../../infrastructure/entities/transaction.entity';
 import { InsufficientBalanceError } from '../../domain/errors/insufficient-balance.error';
-
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
-import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class DebitUseCase {
@@ -25,7 +21,8 @@ export class DebitUseCase {
   constructor(private readonly dataSource: DataSource) {}
 
   async execute(
-    userId: string,
+    profileId: string,
+    walletKey: WalletKey,
     amount: number,
     purpose: TransactionPurpose,
     referenceId?: string,
@@ -43,78 +40,20 @@ export class DebitUseCase {
 
     try {
       this.logger.log(
-        `[DEBIT_TX] User: ${userId}, Amount: ${amount}, Reference: ${referenceId}`,
+        `[DEBIT_TX] Profile: ${profileId} (${walletKey}), Amount: ${amount}, Reference: ${referenceId}`,
       );
-
-      // 1. Fetch wallet with lock (verify existence)
-
-      // --- START WALLET LOOKUP ---
-      const { ProfileClient } = await import(
-        '../../../client/profile/infrastructure/entities/profile-client.entity'
-      );
-      const { ProfileExpert } = await import(
-        '../../../expert/profile/infrastructure/entities/profile-expert.entity'
-      );
-      const { ProfileMerchant } = await import(
-        '../../../merchant/profile/infrastructure/entities/profile-merchant.entity'
-      );
-      const { ProfileAgent } = await import(
-        '../../../agent/infrastructure/entities/profile-agent.entity'
-      );
-
-      let walletOwnerId = '';
-      let queryKey = '';
-
-      const expert = await qr.manager.findOne(ProfileExpert, {
-        where: { user: { id: userId } },
-      });
-      if (expert) {
-        walletOwnerId = expert.id;
-        queryKey = 'expert_id';
-      }
-
-      if (!walletOwnerId) {
-        const merchant = await qr.manager.findOne(ProfileMerchant, {
-          where: { user: { id: userId } },
-        });
-        if (merchant) {
-          walletOwnerId = merchant.id;
-          queryKey = 'merchant_id';
-        }
-      }
-
-      if (!walletOwnerId) {
-        const agent = await qr.manager.findOne(ProfileAgent, {
-          where: { user: { id: userId } },
-        });
-        if (agent) {
-          walletOwnerId = agent.id;
-          queryKey = 'agent_id';
-        }
-      }
-
-      if (!walletOwnerId) {
-        const client = await qr.manager.findOne(ProfileClient, {
-          where: { user: { id: userId } },
-        });
-        if (client) {
-          walletOwnerId = client.id;
-          queryKey = 'client_id';
-        }
-      }
 
       let wallet = await qr.manager.findOne(Wallet, {
-        where: { [queryKey || 'client_id']: walletOwnerId },
+        where: { [walletKey]: profileId },
         lock: { mode: 'pessimistic_write' },
       });
-      // --- END WALLET LOOKUP ---
 
       if (!wallet) {
         this.logger.log(
-          `[DEBIT_TX] User ${userId} wallet not found. Creating shell wallet...`,
+          `[DEBIT_TX] Wallet not found for ${profileId}. Creating shell wallet...`,
         );
         wallet = qr.manager.create(Wallet, {
-          client_id: userId,
+          [walletKey]: profileId,
           balance: 0,
           reserved_balance: 0,
         });
@@ -124,58 +63,47 @@ export class DebitUseCase {
       const balance = Number(wallet.balance) || 0;
       if (!allowNegative && balance < amount) {
         this.logger.error(
-          `[DEBIT_TX] User ${userId} insufficient balance. Has: ${balance}, Needs: ${amount}`,
+          `[DEBIT_TX] Insufficient balance for ${profileId}. Has: ${balance}, Needs: ${amount}`,
         );
         throw new InsufficientBalanceError();
       }
 
-      // 2. Perform Atomic Balance Update via QueryBuilder
-      // This is the most reliable way to avoid any TypeORM object-state issues
       await qr.manager
         .createQueryBuilder()
         .update(Wallet)
         .set({ balance: () => `balance - ${Number(amount)}` })
-        .where(`${queryKey || 'client_id'} = :walletOwnerId`, { walletOwnerId })
+        .where(`${walletKey} = :profileId`, { profileId })
         .execute();
 
-      this.logger.log(`[DEBIT_TX] Balance subtracted for user ${userId}`);
+      this.logger.log(`[DEBIT_TX] Balance subtracted for profile ${profileId}`);
 
-      // 3. Create Transaction Record with Snapshots
       const balanceBefore = Number(wallet.balance) || 0;
       const balanceAfter = balanceBefore - Number(amount);
 
       const transaction = qr.manager.create(Transaction, {
         wallet_id: wallet.id,
-        amount: amount,
+        amount,
         balance_before: balanceBefore,
         balance_after: balanceAfter,
         type: TransactionType.DEBIT,
-        purpose: purpose,
+        purpose,
         reference_id: referenceId,
       });
       const savedTx = await qr.manager.save(Transaction, transaction);
 
-      // 3.5 Generate Custom Transaction No
+      // Generate transaction number using role derived from walletKey
       try {
-        const user = await qr.manager
-          .createQueryBuilder(User, 'u')
-          .where('u.id = :userId', { userId })
-          .getOne();
-
-        if (!user) {
-          throw new NotFoundException(`User with id ${userId} not found`);
-        }
-
-        const isUserClient = hasRoles(user.roles, 'CLIENT');
-
-        if (!isUserClient) {
-          throw new ForbiddenException(
-            'Only clients can have wallet transactions',
-          );
-        }
+        const roleForTx =
+          walletKey === 'expert_id'
+            ? 'EXPERT'
+            : walletKey === 'merchant_id'
+              ? 'MERCHANT'
+              : walletKey === 'agent_id'
+                ? 'AGENT'
+                : 'CLIENT';
 
         savedTx.transaction_no = generateTransactionNo(
-          'CLIENT',
+          roleForTx,
           purpose,
           savedTx.id,
         );
@@ -186,33 +114,22 @@ export class DebitUseCase {
         );
       }
 
-      // 4. Update Client Spending Tracking
+      // Update client spending tracking
       if (
-        purpose === TransactionPurpose.CONSULTATION ||
-        purpose === TransactionPurpose.PRODUCT_PURCHASE
+        walletKey === 'client_id' &&
+        (purpose === TransactionPurpose.CONSULTATION ||
+          purpose === TransactionPurpose.PRODUCT_PURCHASE)
       ) {
         try {
-          const clientProfile = await qr.manager.findOne(ProfileClient, {
-            where: { [queryKey || 'client_id']: walletOwnerId },
-            select: ['id'],
-          });
-
-          if (!clientProfile) {
-            // Cannot auto-create client profile - it requires a user relation
-            this.logger.warn(
-              `[DEBIT_TX] Client profile not found for wallet owner ${walletOwnerId}, skipping spending tracking`,
-            );
-          } else {
-            await qr.manager
-              .createQueryBuilder()
-              .update(ProfileClient)
-              .set({
-                total_spending: () =>
-                  `COALESCE(total_spending, 0) + ${Number(amount)}`,
-              })
-              .where('id = :id', { id: clientProfile.id })
-              .execute();
-          }
+          await qr.manager
+            .createQueryBuilder()
+            .update(ProfileClient)
+            .set({
+              total_spending: () =>
+                `COALESCE(total_spending, 0) + ${Number(amount)}`,
+            })
+            .where('id = :id', { id: profileId })
+            .execute();
         } catch (e) {
           this.logger.error(
             `[DEBIT_TX] Spending tracking failed: ${(e as Error).message}`,
@@ -224,9 +141,8 @@ export class DebitUseCase {
         await qr.commitTransaction();
       }
 
-      // Refresh and return
       const refreshedWallet = await qr.manager.findOne(Wallet, {
-        where: { [queryKey || 'client_id']: walletOwnerId },
+        where: { [walletKey]: profileId },
       });
       return refreshedWallet as Wallet;
     } catch (err) {

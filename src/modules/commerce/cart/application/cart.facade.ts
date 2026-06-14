@@ -6,7 +6,6 @@ import { RemoveCartItemUseCase } from './use-cases/remove-cart-item.use-case';
 import { ClearCartUseCase } from './use-cases/clear-cart.use-case';
 import { AddToCartDto } from '../api/dto/create-cart.dto';
 import { UpdateCartItemDto } from '../api/dto/update-cart.dto';
-import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class CartFacade {
@@ -18,26 +17,26 @@ export class CartFacade {
     private readonly clearCartUseCase: ClearCartUseCase,
   ) {}
 
-  async getCart(userId: string) {
-    return this.getCartUseCase.execute(userId);
+  async getCart(profileId: string) {
+    return this.getCartUseCase.execute(profileId);
   }
 
-  async addToCart(user: IUser, addToCartDto: AddToCartDto) {
-    return this.addToCartUseCase.execute(user, addToCartDto);
+  async addToCart(profileId: string, addToCartDto: AddToCartDto) {
+    return this.addToCartUseCase.execute(profileId, addToCartDto);
   }
 
   async updateCartItem(
-    userId: string,
+    profileId: string,
     updateCartItemDto: UpdateCartItemDto & { productId: string },
   ) {
-    return this.updateCartItemUseCase.execute(userId, updateCartItemDto);
+    return this.updateCartItemUseCase.execute(profileId, updateCartItemDto);
   }
 
-  async removeCartItem(userId: string, productId: string) {
-    return this.removeCartItemUseCase.execute(userId, productId);
+  async removeCartItem(profileId: string, productId: string) {
+    return this.removeCartItemUseCase.execute(profileId, productId);
   }
 
-  async clearCart(userId: string) {
-    return this.clearCartUseCase.execute(userId);
+  async clearCart(profileId: string) {
+    return this.clearCartUseCase.execute(profileId);
   }
 }

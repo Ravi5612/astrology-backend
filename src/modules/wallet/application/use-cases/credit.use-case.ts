@@ -4,7 +4,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
-import { Wallet } from '../../infrastructure/entities/wallet.entity';
+import { Wallet, WalletKey } from '../../infrastructure/entities/wallet.entity';
 import {
   Transaction,
   TransactionType,
@@ -14,9 +14,8 @@ import { NotificationFacade } from '@/modules/notification/application/notificat
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { User } from '@/modules/users/infrastructure/entities/user.entity';
+import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
 import { generateTransactionNo } from '@/common/utils/transaction-no.util';
-import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 
 @Injectable()
 export class CreditUseCase {
@@ -29,7 +28,8 @@ export class CreditUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    profileId: string,
+    walletKey: WalletKey,
     amount: number,
     purpose: TransactionPurpose,
     referenceId?: string,
@@ -44,150 +44,98 @@ export class CreditUseCase {
       await qr.startTransaction();
     }
 
+    // Resolve user_id upfront for RECHARGE notifications (client wallets only)
+    let notifyUserId: string | null = null;
+    if (purpose === TransactionPurpose.RECHARGE && walletKey === 'client_id') {
+      const profile = await this.dataSource.manager.findOne(ProfileClient, {
+        where: { id: profileId },
+        select: ['user_id'],
+      });
+      notifyUserId = profile?.user_id ?? null;
+    }
+
     try {
       this.logger.log(
-        `[CREDIT_TX] User: ${userId}, Amount: ${amount}, Reference: ${referenceId}`,
+        `[CREDIT_TX] Profile: ${profileId} (${walletKey}), Amount: ${amount}, Reference: ${referenceId}`,
       );
-
-      // --- START WALLET LOOKUP ---
-      const { ProfileClient } = await import(
-        '../../../client/profile/infrastructure/entities/profile-client.entity'
-      );
-      const { ProfileMerchant } = await import(
-        '../../../merchant/profile/infrastructure/entities/profile-merchant.entity'
-      );
-      const { ProfileAgent } = await import(
-        '../../../agent/infrastructure/entities/profile-agent.entity'
-      );
-
-      let walletOwnerId = '';
-      let queryKey = '';
-
-      const expert = await qr.manager.findOne(ProfileExpert, {
-        where: { user: { id: userId } },
-      });
-      if (expert) {
-        walletOwnerId = expert.id;
-        queryKey = 'expert_id';
-      }
-
-      if (!walletOwnerId) {
-        const merchant = await qr.manager.findOne(ProfileMerchant, {
-          where: { user: { id: userId } },
-        });
-        if (merchant) {
-          walletOwnerId = merchant.id;
-          queryKey = 'merchant_id';
-        }
-      }
-
-      if (!walletOwnerId) {
-        const agent = await qr.manager.findOne(ProfileAgent, {
-          where: { user: { id: userId } },
-        });
-        if (agent) {
-          walletOwnerId = agent.id;
-          queryKey = 'agent_id';
-        }
-      }
-
-      if (!walletOwnerId) {
-        const client = await qr.manager.findOne(ProfileClient, {
-          where: { user: { id: userId } },
-        });
-        if (client) {
-          walletOwnerId = client.id;
-          queryKey = 'client_id';
-        }
-      }
 
       let wallet = await qr.manager.findOne(Wallet, {
-        where: { [queryKey || 'client_id']: walletOwnerId },
+        where: { [walletKey]: profileId },
         lock: { mode: 'pessimistic_write' },
       });
 
       if (!wallet) {
-        if (walletOwnerId && queryKey) {
-          const newWallet = new Wallet();
-          Object.assign(newWallet, { [queryKey]: walletOwnerId });
-          newWallet.balance = 0;
-          newWallet.reserved_balance = 0;
-          wallet = await qr.manager.save(Wallet, newWallet);
-        }
+        const newWallet = new Wallet();
+        Object.assign(newWallet, { [walletKey]: profileId });
+        newWallet.balance = 0;
+        newWallet.reserved_balance = 0;
+        wallet = await qr.manager.save(Wallet, newWallet);
         if (!wallet) {
-          throw new BadRequestException('Unable to create wallet for user');
+          throw new BadRequestException('Unable to create wallet for profile');
         }
       }
 
-      // 2. Atomic Balance update via QueryBuilder
       await qr.manager
         .createQueryBuilder()
         .update(Wallet)
         .set({ balance: () => `balance + ${Number(amount)}` })
-        .where(`${queryKey || 'client_id'} = :walletOwnerId`, { walletOwnerId })
+        .where(`${walletKey} = :profileId`, { profileId })
         .execute();
 
-      this.logger.log(`[CREDIT_TX] Balance added for user ${userId}`);
+      this.logger.log(
+        `[CREDIT_TX] Balance added for profile ${profileId}`,
+      );
 
-      // 3. Record Transaction with Snapshots
       const balanceBefore = Number(wallet.balance) || 0;
       const balanceAfter = balanceBefore + Number(amount);
 
       const transaction = qr.manager.create(Transaction, {
         wallet_id: wallet.id,
-        amount: amount,
+        amount,
         balance_before: balanceBefore,
         balance_after: balanceAfter,
         type: TransactionType.CREDIT,
-        purpose: purpose,
+        purpose,
         reference_id: referenceId,
       });
       const savedTx = await qr.manager.save(Transaction, transaction);
 
-      // 3.5 Generate Custom Transaction No
+      // Generate transaction number using role derived from walletKey
       try {
-        const user = await qr.manager
-          .createQueryBuilder(User, 'u')
-          .where('u.id = :userId', { userId })
-          .getOne();
+        const roleForTx =
+          walletKey === 'expert_id'
+            ? 'EXPERT'
+            : walletKey === 'merchant_id'
+              ? 'MERCHANT'
+              : walletKey === 'agent_id'
+                ? 'AGENT'
+                : 'CLIENT';
 
-        if (user) {
-          // Determine role for transaction number prefix
-          let roleForTx: 'CLIENT' | 'MERCHANT' | 'EXPERT' | 'AGENT' = 'CLIENT';
-          if (hasRoles(user.roles, 'MERCHANT')) roleForTx = 'MERCHANT';
-          else if (hasRoles(user.roles, 'EXPERT')) roleForTx = 'EXPERT';
-          else if (hasRoles(user.roles, 'AGENT')) roleForTx = 'AGENT';
-
-          savedTx.transaction_no = generateTransactionNo(
-            roleForTx,
-            purpose,
-            savedTx.id,
-          );
-          await qr.manager.save(Transaction, savedTx);
-        }
+        savedTx.transaction_no = generateTransactionNo(
+          roleForTx,
+          purpose,
+          savedTx.id,
+        );
+        await qr.manager.save(Transaction, savedTx);
       } catch (err) {
         this.logger.error(
           `[CREDIT_TX] Failed to generate transaction no: ${(err as Error).message}`,
         );
       }
 
-      // 4. Update Expert Earning Tracking (ONLY for experts, not merchants/agents/clients)
+      // Update expert earning tracking
       if (
-        queryKey === 'expert_id' &&
+        walletKey === 'expert_id' &&
         (purpose === TransactionPurpose.CONSULTATION ||
           purpose === TransactionPurpose.PRODUCT_PURCHASE)
       ) {
         try {
-          let expertProfile = await qr.manager.findOne(ProfileExpert, {
-            where: { id: walletOwnerId },
+          const expertProfile = await qr.manager.findOne(ProfileExpert, {
+            where: { id: profileId },
             select: ['id'],
           });
 
-          if (!expertProfile) {
-            this.logger.warn(
-              `[CREDIT_TX] Expert profile not found for walletOwnerId ${walletOwnerId}, skipping earning tracking`,
-            );
-          } else {
+          if (expertProfile) {
             await qr.manager
               .createQueryBuilder()
               .update(ProfileExpert)
@@ -208,19 +156,18 @@ export class CreditUseCase {
       if (!externalQueryRunner) {
         await qr.commitTransaction();
 
-        // Send notifications ONLY for final commit and specifically for Recharges
-        if (purpose === TransactionPurpose.RECHARGE) {
+        if (purpose === TransactionPurpose.RECHARGE && notifyUserId) {
           try {
             const title = 'Wallet Recharged';
             const message = `Your wallet has been credited with ₹${amount}`;
             await this.notificationFacade.create(
-              userId,
+              notifyUserId,
               NotificationType.WALLET_RECHARGE,
               title,
               message,
               { amount, referenceId },
             );
-            this.notificationGateway.emitToUser(userId, 'wallet_updated', {
+            this.notificationGateway.emitToUser(notifyUserId, 'wallet_updated', {
               type: 'credit',
               amount,
               title,
@@ -235,7 +182,7 @@ export class CreditUseCase {
       }
 
       const refreshedWallet = await qr.manager.findOne(Wallet, {
-        where: { [queryKey || 'client_id']: walletOwnerId },
+        where: { [walletKey]: profileId },
       });
       return refreshedWallet as Wallet;
     } catch (err) {

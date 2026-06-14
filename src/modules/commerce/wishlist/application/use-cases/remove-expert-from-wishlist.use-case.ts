@@ -5,13 +5,11 @@ import { Repository } from 'typeorm';
 import { Wishlist } from '../../infrastructure/entities/wishlist.entity';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import {
   ExpertNotInWishlistError,
   UserNotFoundError,
 } from '../../domain/errors/wishlist.errors';
 import { DataSource } from 'typeorm';
-import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class RemoveExpertFromWishlistUseCase {
@@ -19,21 +17,19 @@ export class RemoveExpertFromWishlistUseCase {
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
     private readonly expertProfileFacade: ExpertProfileFacade,
-    private readonly clientProfileFacade: ClientProfileFacade,
     private readonly dataSource: DataSource,
   ) {}
 
   async execute(
-    user: IUser,
+    profileId: string,
     expert_id: string,
   ): Promise<{ message: string }> {
-    const client = await this.clientProfileFacade.getProfile(user);
-    if (!client) {
+    if (!profileId) {
       throw new UserNotFoundError();
     }
 
     const result = await this.wishlistRepository.delete({
-      client_id: client.id,
+      client_id: profileId,
       expert_id: expert_id,
     });
 

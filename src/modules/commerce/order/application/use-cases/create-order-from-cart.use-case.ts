@@ -14,13 +14,11 @@ import { CartFacade } from '@/modules/commerce/cart/application/cart.facade';
 import { Cart } from '@/modules/commerce/cart/infrastructure/entities/cart.entity';
 import { NotificationGateway } from '@/modules/notification/api/gateways/notification.gateway';
 import { NodeMailerService } from '@/external/nodemailer/nodemailer.service';
-import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
 import { CouponFacade } from '@/modules/commerce/coupon/application/coupon.facade';
 import { Product } from '@/modules/commerce/product/infrastructure/entities/product.entity';
 import { CreateOrderDto } from '../../api/dto/create-order.dto';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { TransactionPurpose } from '@/modules/wallet/infrastructure/entities/transaction.entity';
-import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class CreateOrderFromCartUseCase {
@@ -39,15 +37,12 @@ export class CreateOrderFromCartUseCase {
     private walletFacade: WalletFacade,
     @Inject(forwardRef(() => CouponFacade))
     private couponFacade: CouponFacade,
-    @Inject(forwardRef(() => ClientProfileFacade))
-    private clientFacade: ClientProfileFacade,
     private dataSource: DataSource,
     private notificationGateway: NotificationGateway,
     private emailService: NodeMailerService,
   ) {}
 
-  async execute(user: IUser, dto: CreateOrderDto) {
-    const userId = user.id;
+  async execute(profileId: string, userId: string, dto: CreateOrderDto) {
     const shipping_address = dto.shipping_address as
       | Record<string, unknown>
       | undefined;
@@ -62,7 +57,7 @@ export class CreateOrderFromCartUseCase {
 
     try {
       this.logger.log(
-        `[CREATE_ORDER] Request received. User: ${userId}, DTO: ${JSON.stringify(dto)}`,
+        `[CREATE_ORDER] Request received. ProfileId: ${profileId}, UserId: ${userId}, DTO: ${JSON.stringify(dto)}`,
       );
 
       let totalAmount = 0;
@@ -97,7 +92,7 @@ export class CreateOrderFromCartUseCase {
         const price = Number(product.price) || 0;
         totalAmount = price * quantity;
         this.logger.log(
-          `[CREATE_ORDER] Base price: â‚¹${product.price}, MRP: â‚¹${product.original_price}, Authoritative price used: â‚¹${price}`,
+          `[CREATE_ORDER] Base price: ₹${product.price}, MRP: ₹${product.original_price}, Authoritative price used: ₹${price}`,
         );
 
         itemsToCreate.push({
@@ -119,7 +114,7 @@ export class CreateOrderFromCartUseCase {
         );
       } else {
         // 2. Handle Cart-based Order
-        const cart = (await this.cartFacade.getCart(userId)) as Cart;
+        const cart = (await this.cartFacade.getCart(profileId)) as Cart;
         if (!cart || !cart.items || cart.items.length === 0) {
           throw new BadRequestException('Cart is empty');
         }
@@ -137,7 +132,7 @@ export class CreateOrderFromCartUseCase {
           const price = Number(product.price) || 0;
           totalAmount += price * qty;
           this.logger.log(
-            `[CREATE_ORDER] Cart Item: ${product.name}, Price used: â‚¹${price}, Qty: ${qty}`,
+            `[CREATE_ORDER] Cart Item: ${product.name}, Price used: ₹${price}, Qty: ${qty}`,
           );
 
           itemsToCreate.push({
@@ -161,7 +156,7 @@ export class CreateOrderFromCartUseCase {
       }
 
       this.logger.log(
-        `[CREATE_ORDER] Initial totalAmount before coupon: â‚¹${totalAmount}`,
+        `[CREATE_ORDER] Initial totalAmount before coupon: ₹${totalAmount}`,
       );
 
       if (isNaN(totalAmount) || totalAmount <= 0) {
@@ -175,7 +170,6 @@ export class CreateOrderFromCartUseCase {
       if (dto.coupon_code) {
         try {
           const couponResult = await this.couponFacade.applyCoupon(
-            userId,
             dto.coupon_code,
             totalAmount,
           );
@@ -183,7 +177,7 @@ export class CreateOrderFromCartUseCase {
             discountAmount = couponResult.discount;
             totalAmount = couponResult.final_amount;
             this.logger.log(
-              `[CREATE_ORDER] Coupon applied successfully: ${dto.coupon_code}. Discount: â‚¹${discountAmount}, New totalAmount: â‚¹${totalAmount}`,
+              `[CREATE_ORDER] Coupon applied successfully: ${dto.coupon_code}. Discount: ₹${discountAmount}, New totalAmount: ₹${totalAmount}`,
             );
           } else {
             this.logger.warn(
@@ -192,14 +186,11 @@ export class CreateOrderFromCartUseCase {
           }
         } catch (error: unknown) {
           this.logger.error(
-            `[CREATE_ORDER] Error applying coupon ${dto.coupon_code}: ${error instanceof Error ? (error instanceof Error ? error.message : String(error)) : String(error)}`,
+            `[CREATE_ORDER] Error applying coupon ${dto.coupon_code}: ${error instanceof Error ? error.message : String(error)}`,
           );
           throw new BadRequestException(
-            (error instanceof Error
-              ? error instanceof Error
-                ? error.message
-                : String(error)
-              : String(error)) || 'Invalid coupon code',
+            (error instanceof Error ? error.message : String(error)) ||
+              'Invalid coupon code',
           );
         }
       } else {
@@ -221,7 +212,8 @@ export class CreateOrderFromCartUseCase {
       if (isWalletPayment) {
         // Validation before debit
         const hasBalance = await this.walletFacade.validateBalance(
-          userId,
+          profileId,
+          'client_id',
           totalAmount,
         );
         if (!hasBalance) {
@@ -231,28 +223,29 @@ export class CreateOrderFromCartUseCase {
         // Force Number conversion to be safe against any decimal-to-string conversion
         const finalDebitAmount = Number(totalAmount);
         this.logger.log(
-          `[CREATE_ORDER] [WALLET_DEBIT] Final calculated debit amount: â‚¹${finalDebitAmount} (Type: ${typeof finalDebitAmount})`,
+          `[CREATE_ORDER] [WALLET_DEBIT] Final calculated debit amount: ₹${finalDebitAmount} (Type: ${typeof finalDebitAmount})`,
         );
 
         // Debit user wallet
         await this.walletFacade.debit(
-          userId,
+          profileId,
+          'client_id',
           finalDebitAmount,
           TransactionPurpose.PRODUCT_PURCHASE,
           `order_wallet_payment`,
           queryRunner,
         );
         this.logger.log(
-          `[CREATE_ORDER] [WALLET_DEBIT] Successfully debited â‚¹${finalDebitAmount} from user ${userId}`,
+          `[CREATE_ORDER] [WALLET_DEBIT] Successfully debited ₹${finalDebitAmount} from user ${userId}`,
         );
 
         // Mark coupon as used if applied
         if (dto.coupon_code) {
           this.logger.log(
-            `[CREATE_ORDER] [COUPON] Marking coupon ${dto.coupon_code} as used for user ${userId}`,
+            `[CREATE_ORDER] [COUPON] Marking coupon ${dto.coupon_code} as used for profile ${profileId}`,
           );
           await this.couponFacade.markCouponAsUsed(
-            userId,
+            profileId,
             dto.coupon_code,
             queryRunner.manager,
           );
@@ -264,14 +257,9 @@ export class CreateOrderFromCartUseCase {
         100000 + Math.random() * 900000,
       ).toString();
 
-      // 3. Create Order record
-      const client = await this.clientFacade.getProfile(user, queryRunner);
-      if (!client) {
-        throw new BadRequestException('Client profile not found');
-      }
-
+      // 3. Create Order record using profileId directly as client_id
       const order = queryRunner.manager.create(Order, {
-        client_id: client.id,
+        client_id: profileId,
         total_amount: totalAmount,
         shipping_address: shipping_address,
         status: isWalletPayment ? OrderStatus.PAID : OrderStatus.PENDING,
@@ -296,7 +284,7 @@ export class CreateOrderFromCartUseCase {
 
       // 5. Clear Cart
       if (!dto.product_id) {
-        await this.cartFacade.clearCart(userId);
+        await this.cartFacade.clearCart(profileId);
       }
 
       await queryRunner.commitTransaction();
@@ -308,7 +296,7 @@ export class CreateOrderFromCartUseCase {
       try {
         this.notificationGateway.emitToAdmins('new_order', {
           order_id: savedOrder.id,
-          client_id: userId,
+          client_id: profileId,
           total_amount: totalAmount,
           created_at: savedOrder.created_at,
         });
@@ -325,7 +313,9 @@ export class CreateOrderFromCartUseCase {
         error instanceof BadRequestException
           ? `Order Validation Failed: ${error instanceof Error ? error.message : String(error)}`
           : `Internal Order Error: ${error instanceof Error ? error.message : String(error)}`;
-      this.logger.error(`[CREATE_ORDER] ${errorMessage} for user ${userId}`);
+      this.logger.error(
+        `[CREATE_ORDER] ${errorMessage} for profileId ${profileId}`,
+      );
       // Propagate the specific message to the frontend for debugging
       throw new BadRequestException(
         error instanceof Error

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In, MoreThanOrEqual } from 'typeorm';
+import { Repository, In, MoreThanOrEqual, FindOptionsWhere } from 'typeorm';
 import {
   CallSession,
   CallSessionStatus,
@@ -20,7 +20,7 @@ export class CountExpertCallSessionsUseCase {
       startDate?: Date;
     } = {},
   ) {
-    const where: import('typeorm').FindOptionsWhere<CallSession> = {
+    const where: FindOptionsWhere<CallSession> = {
       expert_id,
     };
 

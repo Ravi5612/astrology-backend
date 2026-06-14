@@ -13,7 +13,7 @@ export class GetCallSessionUseCase {
   async execute(sessionId: string) {
     const session = await this.sessionRepo.findOne({
       where: { id: sessionId },
-      relations: ['user', 'expert', 'expert.user'],
+      relations: ['client', 'client.user', 'expert', 'expert.user'],
     });
 
     if (!session) {

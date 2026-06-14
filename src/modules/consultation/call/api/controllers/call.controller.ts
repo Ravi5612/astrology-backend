@@ -11,8 +11,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { IUser } from '@/common/types/access-token.payload';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { CallType } from '../../infrastructure/entities/call-session.entity';
 import { CallFacade } from '../../application/call.facade';
 import { CallSessionFilter } from '../../application/use-cases/get-expert-sessions.use-case';
@@ -30,27 +29,29 @@ export class CallController {
   ) {}
 
   @Post('initiate')
-  // ... (lines 14-24 remains same)
   async initiate(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() clientId: string,
     @Body() body: { expert_id: string; type?: CallType },
   ) {
     console.log(
-      `[CallController] Initiate call: userId=${user.id}, expert_id=${body.expert_id}, type=${body.type || CallType.AUDIO}`,
+      `[CallController] Initiate call: clientId=${clientId}, expert_id=${body.expert_id}, type=${body.type || CallType.AUDIO}`,
     );
     return this.callFacade.initiate(
-      user.id,
+      clientId,
       body.expert_id,
       body.type || CallType.AUDIO,
     );
   }
 
   @Post('accept')
-  async accept(@CurrentUser() user: IUser, @Body() body: { sessionId: string }) {
+  async accept(
+    @CurrentProfile() profileId: string,
+    @Body() body: { sessionId: string },
+  ) {
     console.log(
-      `[CallController] Accept call: userId=${user.id}, sessionId=${body.sessionId}`,
+      `[CallController] Accept call: profileId=${profileId}, sessionId=${body.sessionId}`,
     );
-    return this.callFacade.accept(user.id, body.sessionId);
+    return this.callFacade.accept(profileId, body.sessionId);
   }
 
   @Post('end')
@@ -65,7 +66,7 @@ export class CallController {
 
   @Patch('session/:sessionId/status')
   async updateStatus(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Body('status') status: string,
   ) {
@@ -74,7 +75,7 @@ export class CallController {
     );
 
     if (status === 'accepted') {
-      await this.callFacade.accept(user.id, sessionId);
+      await this.callFacade.accept(profileId, sessionId);
       return { success: true };
     }
 
@@ -100,26 +101,26 @@ export class CallController {
   @Get('token/:sessionId')
   @Header('Cache-Control', 'no-store')
   async getToken(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
   ) {
-    return this.callFacade.getCallToken(user.id, sessionId);
+    return this.callFacade.getCallToken(profileId, sessionId);
   }
 
   @Get('sessions/appointments/pending')
   @Header('Cache-Control', 'no-store')
-  async getPendingAppointments(@CurrentUser() user: IUser) {
+  async getPendingAppointments(@CurrentProfile() profileId: string) {
     return this.callFacade.getExpertSessions(
-      user.id,
+      profileId,
       CallSessionFilter.RECENT_PENDING,
     );
   }
 
   @Get('sessions/appointments/completed')
   @Header('Cache-Control', 'no-store')
-  async getCompletedAppointments(@CurrentUser() user: IUser) {
+  async getCompletedAppointments(@CurrentProfile() profileId: string) {
     return this.callFacade.getExpertSessions(
-      user.id,
+      profileId,
       CallSessionFilter.RECENT_COMPLETED,
     );
   }
@@ -127,15 +128,19 @@ export class CallController {
   @Get('sessions/all')
   @Header('Cache-Control', 'no-store')
   async getAllSessions(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
     @Query('search') search?: string,
   ) {
-    return this.callFacade.getExpertSessions(user.id, CallSessionFilter.ALL, {
-      limit: limit ? parseInt(limit) : undefined,
-      offset: offset ? parseInt(offset) : undefined,
-      search,
-    });
+    return this.callFacade.getExpertSessions(
+      profileId,
+      CallSessionFilter.ALL,
+      {
+        limit: limit ? parseInt(limit) : undefined,
+        offset: offset ? parseInt(offset) : undefined,
+        search,
+      },
+    );
   }
 }

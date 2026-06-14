@@ -10,9 +10,9 @@ export class GetPujaWishlistUseCase {
     private readonly wishlistRepository: Repository<Wishlist>,
   ) {}
 
-  async execute(userId: string): Promise<Wishlist[]> {
+  async execute(profileId: string): Promise<Wishlist[]> {
     const wishlists = await this.wishlistRepository.find({
-      where: { client: { user: { id: userId } } },
+      where: { client_id: profileId },
       relations: ['puja'],
       order: { created_at: 'DESC' },
     });

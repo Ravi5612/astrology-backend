@@ -1,12 +1,10 @@
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
   CallSession,
   CallSessionStatus,
 } from '../../infrastructure/entities/call-session.entity';
-import { ProfileClient } from '@/modules/client/profile/infrastructure/entities/profile-client.entity';
-import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 
 export enum CallSessionFilter {
   PENDING = 'pending',
@@ -21,30 +19,18 @@ export class GetExpertCallSessionsUseCase {
   constructor(
     @InjectRepository(CallSession)
     private sessionRepo: Repository<CallSession>,
-    @Inject(forwardRef(() => ExpertProfileFacade))
-    private expertProfileFacade: ExpertProfileFacade,
   ) {}
 
   async execute(
-    expertUserId: string,
+    expertProfileId: string,
     filter: CallSessionFilter,
     options: { limit?: number; offset?: number; search?: string } = {},
   ) {
-    const expert =
-      await this.expertProfileFacade.getExpertByUserId(expertUserId);
-
-    if (!expert) return { data: [], meta: { total_count: 0 } };
-
     const queryBuilder = this.sessionRepo
       .createQueryBuilder('session')
-      .leftJoinAndSelect('session.user', 'user')
-      .leftJoinAndMapOne(
-        'user.profile_client',
-        ProfileClient,
-        'profile_client',
-        'profile_client.user_id = user.id',
-      )
-      .where('session.expert_id = :expert_id', { expert_id: expert.id });
+      .leftJoinAndSelect('session.client', 'client')
+      .leftJoinAndSelect('client.user', 'clientUser')
+      .where('session.expert_id = :expert_id', { expert_id: expertProfileId });
 
     switch (filter) {
       case CallSessionFilter.PENDING:
@@ -83,7 +69,7 @@ export class GetExpertCallSessionsUseCase {
     }
 
     if (options.search) {
-      queryBuilder.andWhere('user.name ILIKE :search', {
+      queryBuilder.andWhere('clientUser.name ILIKE :search', {
         search: `%${options.search}%`,
       });
     }

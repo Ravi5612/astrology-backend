@@ -7,25 +7,21 @@ import {
   ProductNotInWishlistError,
   UserNotFoundError,
 } from '../../domain/errors/wishlist.errors';
-import { ClientProfileFacade } from '@/modules/client/profile/application/profile.facade';
-import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class RemoveProductFromWishlistUseCase {
   constructor(
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
-    private readonly clientProfileFacade: ClientProfileFacade,
   ) {}
 
-  async execute(user: IUser, productId: string): Promise<BooleanMessage> {
-    const client = await this.clientProfileFacade.getProfile(user);
-    if (!client) {
+  async execute(profileId: string, productId: string): Promise<BooleanMessage> {
+    if (!profileId) {
       throw new UserNotFoundError();
     }
 
     const result = await this.wishlistRepository.delete({
-      client: { id: client.id },
+      client_id: profileId,
       product: { id: productId },
     });
 

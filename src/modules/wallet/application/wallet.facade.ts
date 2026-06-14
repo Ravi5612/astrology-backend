@@ -21,11 +21,14 @@ import { GetAdminWithdrawalStatsUseCase } from './use-cases/get-admin-withdrawal
 import { GetMerchantTransactionsUseCase } from './use-cases/get-merchant-transactions.use-case';
 import { GetAdminRevenueTrendUseCase } from './use-cases/get-admin-revenue-trend.use-case';
 import { TransactionPurpose } from '../infrastructure/entities/transaction.entity';
+import { WalletKey } from '../infrastructure/entities/wallet.entity';
 import { WithdrawalStatus } from '../infrastructure/entities/withdrawal.entity';
 import { SystemSetting } from '@/modules/admin/infrastructure/entities/system-setting.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RoleEnum } from '@/modules/users/infrastructure/enums/Role.enum';
+
+export { WalletKey };
 
 @Injectable()
 export class WalletFacade {
@@ -55,43 +58,49 @@ export class WalletFacade {
     private readonly getAdminRevenueTrendUseCase: GetAdminRevenueTrendUseCase,
   ) {}
 
-  async getWallet(userId: string) {
-    return this.getWalletUseCase.execute(userId);
+  async getWallet(profileId: string, walletKey: WalletKey) {
+    return this.getWalletUseCase.execute(profileId, walletKey);
   }
 
-  async getBalance(userId: string) {
-    return this.getBalanceUseCase.execute(userId);
+  async getBalance(profileId: string, walletKey: WalletKey) {
+    return this.getBalanceUseCase.execute(profileId, walletKey);
   }
 
-  async validateBalance(userId: string | undefined, minAmount: number) {
-    if (!userId) throw new Error('userId is required');
-    return this.validateBalanceUseCase.execute(userId, minAmount);
+  async validateBalance(
+    profileId: string,
+    walletKey: WalletKey,
+    minAmount: number,
+  ) {
+    return this.validateBalanceUseCase.execute(profileId, walletKey, minAmount);
   }
 
   async topUp(
-    userId: string | undefined,
+    profileId: string,
+    walletKey: WalletKey,
     amount: number,
     referenceId?: string,
     externalQueryRunner?: import('typeorm').QueryRunner,
   ) {
     return this.topUpUseCase.execute(
-      userId as string,
+      profileId,
+      walletKey,
       amount,
-      'razorpay',
       referenceId,
       externalQueryRunner,
     );
   }
 
   async credit(
-    userId: string,
+    profileId: string,
+    walletKey: WalletKey,
     amount: number,
     purpose: TransactionPurpose,
     referenceId?: string,
     externalQueryRunner?: import('typeorm').QueryRunner,
   ) {
     return this.creditUseCase.execute(
-      userId,
+      profileId,
+      walletKey,
       amount,
       purpose,
       referenceId,
@@ -100,7 +109,8 @@ export class WalletFacade {
   }
 
   async debit(
-    userId: string,
+    profileId: string,
+    walletKey: WalletKey,
     amount: number,
     purpose: TransactionPurpose,
     referenceId?: string,
@@ -108,7 +118,8 @@ export class WalletFacade {
     allowNegative: boolean = false,
   ) {
     return this.debitUseCase.execute(
-      userId,
+      profileId,
+      walletKey,
       amount,
       purpose,
       referenceId,
@@ -118,13 +129,15 @@ export class WalletFacade {
   }
 
   async reserveBalance(
-    userId: string,
+    profileId: string,
+    walletKey: WalletKey,
     amount: number,
     referenceId: string,
     externalQueryRunner?: import('typeorm').QueryRunner,
   ) {
     return this.reserveBalanceUseCase.execute(
-      userId,
+      profileId,
+      walletKey,
       amount,
       referenceId,
       externalQueryRunner,
@@ -132,13 +145,15 @@ export class WalletFacade {
   }
 
   async deductFromReserved(
-    userId: string,
+    profileId: string,
+    walletKey: WalletKey,
     amount: number,
     referenceId: string,
     externalQueryRunner?: import('typeorm').QueryRunner,
   ) {
     return this.deductFromReservedUseCase.execute(
-      userId,
+      profileId,
+      walletKey,
       amount,
       referenceId,
       externalQueryRunner,
@@ -146,13 +161,15 @@ export class WalletFacade {
   }
 
   async releaseReserved(
-    userId: string,
+    profileId: string,
+    walletKey: WalletKey,
     amount: number,
     referenceId: string,
     externalQueryRunner?: import('typeorm').QueryRunner,
   ) {
     return this.releaseReservedUseCase.execute(
-      userId,
+      profileId,
+      walletKey,
       amount,
       referenceId,
       externalQueryRunner,
@@ -260,7 +277,6 @@ export class WalletFacade {
     try {
       let setting = await this.settingRepo.findOne({ where: { key } });
 
-      // Fallback for common spelling inconsistency (COMMISION vs COMMISSION)
       if (!setting) {
         const altKey = key.includes('COMMISSION')
           ? key.replace('COMMISSION', 'COMMISION')
@@ -274,7 +290,7 @@ export class WalletFacade {
     } catch (e) {
       console.error(`[WalletFacade] Failed to fetch setting ${key}:`, e);
     }
-    return 3; // Default 3% fallback
+    return 3;
   }
 
   async getAdminRevenueTrend(days?: number) {
