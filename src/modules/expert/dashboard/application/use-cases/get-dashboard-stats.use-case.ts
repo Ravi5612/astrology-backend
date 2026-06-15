@@ -2,7 +2,6 @@ import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ReviewsFacade } from '@/modules/consultation/reviews/application/reviews.facade';
-import { DashboardPolicy } from '../../domain/policies/dashboard.policy';
 import { ChatSessionStatus } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { CallSessionStatus } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { CallFacade } from '@/modules/consultation/call/application/call.facade';
