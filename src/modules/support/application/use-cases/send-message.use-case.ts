@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GetDisputeByIdUseCase } from './get-dispute-by-id.use-case';
@@ -17,13 +17,13 @@ export class SendDisputeMessageUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    profileId: string,
     disputeId: string,
     dto: SendDisputeMessageDto,
     isAdmin = false,
   ) {
     const dispute = await this.getDisputeByIdUseCase.execute(
-      userId,
+      profileId,
       disputeId,
       isAdmin,
     );
@@ -32,9 +32,9 @@ export class SendDisputeMessageUseCase {
     let expert_id: string | null = null;
 
     if (!isAdmin) {
-      if (dispute.client && dispute.client.user_id === userId) {
+      if (dispute.client_id === profileId) {
         clientId = dispute.client_id;
-      } else if (dispute.expert && dispute.expert.user_id === userId) {
+      } else if (dispute.expert_id === profileId) {
         expert_id = dispute.expert_id;
       }
     }

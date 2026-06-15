@@ -28,28 +28,28 @@ export class SupportFacade {
     return this.createDisputeUseCase.execute(user, dto);
   }
 
-  async getDisputes(userId: string) {
-    return this.getDisputesUseCase.execute(userId);
+  async getDisputes(profileId: string) {
+    return this.getDisputesUseCase.execute(profileId);
   }
 
-  async getDisputeById(userId: string, disputeId: string) {
-    return this.getDisputeByIdUseCase.execute(userId, disputeId);
+  async getDisputeById(profileId: string, disputeId: string) {
+    return this.getDisputeByIdUseCase.execute(profileId, disputeId);
   }
 
   async sendMessage(
-    userId: string,
+    profileId: string,
     disputeId: string,
     dto: SendDisputeMessageDto,
   ) {
-    return this.sendMessageUseCase.execute(userId, disputeId, dto);
+    return this.sendMessageUseCase.execute(profileId, disputeId, dto);
   }
 
-  async getMessages(userId: string, disputeId: string) {
-    return this.getMessagesUseCase.execute(userId, disputeId);
+  async getMessages(profileId: string, disputeId: string) {
+    return this.getMessagesUseCase.execute(profileId, disputeId);
   }
 
-  async markMessagesAsRead(userId: string, disputeId: string) {
-    return this.markMessagesAsReadUseCase.execute(userId, disputeId);
+  async markMessagesAsRead(profileId: string, disputeId: string) {
+    return this.markMessagesAsReadUseCase.execute(profileId, disputeId);
   }
 
   // --- Admin Methods ---

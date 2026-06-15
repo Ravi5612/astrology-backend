@@ -10,7 +10,7 @@ export class GetDisputeByIdUseCase {
     private readonly disputeRepo: Repository<Dispute>,
   ) {}
 
-  async execute(userId: string, disputeId: string, isAdmin = false) {
+  async execute(profileId: string, disputeId: string, isAdmin = false) {
     const query = this.disputeRepo
       .createQueryBuilder('dispute')
       .leftJoinAndSelect('dispute.client', 'client')
@@ -18,8 +18,8 @@ export class GetDisputeByIdUseCase {
       .where('dispute.id = :disputeId', { disputeId });
 
     if (!isAdmin) {
-      query.andWhere('(client.user_id = :userId OR expert.user_id = :userId)', {
-        userId,
+      query.andWhere('(dispute.client_id = :profileId OR dispute.expert_id = :profileId)', {
+        profileId,
       });
     }
 

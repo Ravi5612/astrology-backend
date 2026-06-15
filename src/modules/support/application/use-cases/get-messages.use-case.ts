@@ -12,8 +12,8 @@ export class GetDisputeMessagesUseCase {
     private readonly messageRepo: Repository<DisputeMessage>,
   ) {}
 
-  async execute(userId: string, disputeId: string, isAdmin = false) {
-    await this.getDisputeByIdUseCase.execute(userId, disputeId, isAdmin);
+  async execute(profileId: string, disputeId: string, isAdmin = false) {
+    await this.getDisputeByIdUseCase.execute(profileId, disputeId, isAdmin);
 
     return this.messageRepo.find({
       where: { dispute_id: disputeId },

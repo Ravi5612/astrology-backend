@@ -16,7 +16,6 @@ describe('GetDisputesUseCase', () => {
           provide: getRepositoryToken(Dispute),
           useValue: {
             createQueryBuilder: jest.fn().mockReturnValue({
-              leftJoin: jest.fn().mockReturnThis(),
               where: jest.fn().mockReturnThis(),
               orderBy: jest.fn().mockReturnThis(),
               getMany: jest.fn().mockResolvedValue([]),

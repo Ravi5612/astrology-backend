@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GetDisputeByIdUseCase } from './get-dispute-by-id.use-case';
@@ -12,9 +12,9 @@ export class MarkMessagesAsReadUseCase {
     private readonly messageRepo: Repository<DisputeMessage>,
   ) {}
 
-  async execute(userId: string, disputeId: string) {
+  async execute(profileId: string, disputeId: string) {
     const _dispute = await this.getDisputeByIdUseCase.execute(
-      userId,
+      profileId,
       disputeId,
     );
 

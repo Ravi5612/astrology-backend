@@ -13,6 +13,7 @@ import { CreateDisputeDto } from '../dto/create-dispute.dto';
 import { SendDisputeMessageDto } from '../dto/send-dispute-message.dto';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 import { IUser } from '@/common/types/access-token.payload';
 
 @Controller({
@@ -24,16 +25,16 @@ export class SupportController {
   constructor(private readonly supportFacade: SupportFacade) {}
 
   @Get('disputes')
-  async getDisputes(@CurrentUser() user: IUser) {
-    return this.supportFacade.getDisputes(user.id);
+  async getDisputes(@CurrentProfile() profileId: string) {
+    return this.supportFacade.getDisputes(profileId);
   }
 
   @Get('disputes/:id')
   async getDisputeById(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.supportFacade.getDisputeById(user.id, id);
+    return this.supportFacade.getDisputeById(profileId, id);
   }
 
   @Post('disputes')
@@ -46,27 +47,27 @@ export class SupportController {
 
   @Get('disputes/:id/messages')
   async getMessages(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.supportFacade.getMessages(user.id, id);
+    return this.supportFacade.getMessages(profileId, id);
   }
 
   @Post('disputes/:id/messages')
   async sendMessage(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: SendDisputeMessageDto,
   ) {
-    return this.supportFacade.sendMessage(user.id, id, dto);
+    return this.supportFacade.sendMessage(profileId, id, dto);
   }
 
   @Patch('disputes/:id/messages/read')
   async markMessagesAsRead(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() profileId: string,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    const result = await this.supportFacade.markMessagesAsRead(user.id, id);
+    const result = await this.supportFacade.markMessagesAsRead(profileId, id);
     if (
       result &&
       typeof result === 'object' &&
