@@ -15,8 +15,7 @@ import {
   UpdateTodoDto,
 } from '../../infrastructure/dto/todo.dto';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { IUser } from '@/common/types/access-token.payload';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 
 @Controller({
   path: 'expert/todos',
@@ -27,31 +26,31 @@ export class TodosController {
   constructor(private readonly todosFacade: TodosFacade) {}
 
   @Get()
-  findAll(@CurrentUser() user: IUser) {
-    return this.todosFacade.findAll(user);
+  findAll(@CurrentProfile() expertProfileId: string) {
+    return this.todosFacade.findAll(expertProfileId);
   }
 
   @Post()
-  create(@CurrentUser() user: IUser, @Body() dto: CreateTodoDto) {
-    return this.todosFacade.create(user, dto);
+  create(@CurrentProfile() expertProfileId: string, @Body() dto: CreateTodoDto) {
+    return this.todosFacade.create(expertProfileId, dto);
   }
 
   @Patch(':id')
   async update(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() expertProfileId: string,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateTodoDto,
   ) {
-    const _result = await this.todosFacade.update(user, id, dto);
+    await this.todosFacade.update(expertProfileId, id, dto);
     return { success: true };
   }
 
   @Delete(':id')
   async remove(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() expertProfileId: string,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    await this.todosFacade.remove(user, id);
+    await this.todosFacade.remove(expertProfileId, id);
     return { success: true };
   }
 }
