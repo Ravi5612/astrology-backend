@@ -87,11 +87,11 @@ export class GetAdminDashboardStatsUseCase {
     const admin_earnings = await this.walletFacade.getAdminCommission();
 
     return {
-      total_chat_sessions: chatSessionsCount,
-      total_experts: expertStats.total_experts,
-      total_users: clientStats.totalClients,
-      total_earnings: total_earnings,
-      admin_earnings: admin_earnings,
+      totalChatSessions: chatSessionsCount,
+      totalExperts: expertStats.total_experts,
+      totalUsers: clientStats.totalUsers,
+      totalEarnings: total_earnings,
+      adminEarnings: admin_earnings,
       trends: expertStats.trends,
       activities: activities,
     };

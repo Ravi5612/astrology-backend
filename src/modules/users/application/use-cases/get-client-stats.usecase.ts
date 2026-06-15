@@ -35,9 +35,9 @@ export class GetClientStatsUseCase {
       .getCount();
 
     return {
-      totalClients,
-      recentClients,
-      blockedClients,
+      totalUsers: totalClients,
+      recentUsers: recentClients,
+      blockedUsers: blockedClients,
     };
   }
 }

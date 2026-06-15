@@ -449,20 +449,20 @@ export class GetEarningsStatsUseCase {
 
     return {
       stats: {
-        total_revenue: totalRevenue,
+        totalRevenue: totalRevenue,
         consultations: consultationsCount,
-        average_rating,
-        growth,
-        wallet_balance: wallet_balance || 0,
-        total_withdrawn: total_withdrawn || 0,
-        puja_revenue: pujaRevenue,
-        revenue_growth: growth,
+        averageRating: average_rating,
+        growth: growth,
+        walletBalance: wallet_balance || 0,
+        totalWithdrawn: total_withdrawn || 0,
+        pujaRevenue: pujaRevenue,
+        revenueGrowth: growth,
       },
-      income_trends: incomeTrends,
-      revenue_breakdown: revenueBreakdown,
-      top_users: topUsers,
-      top_services: topServices,
-      recent_transactions: recentTransactions,
+      incomeTrends: incomeTrends,
+      revenueBreakdown: revenueBreakdown,
+      topUsers: topUsers,
+      topServices: topServices,
+      recentTransactions: recentTransactions,
     };
   }
 }

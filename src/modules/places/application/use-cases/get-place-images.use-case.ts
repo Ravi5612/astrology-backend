@@ -25,8 +25,7 @@ export class GetPlaceImagesUseCase {
     const isFresh =
       cached &&
       Date.now() - cached.last_synced.getTime() < this.CACHE_DURATION_MS &&
-      Array.isArray(cached.results) &&
-      cached.results.length > 0;
+      Array.isArray(cached.results);
 
     if (isFresh) {
       this.logger.log(`Serving cached images for: ${query}`);

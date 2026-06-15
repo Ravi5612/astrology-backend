@@ -49,7 +49,7 @@ export class RefreshTokenUseCase {
       await this.sessionRepo.revoke(session.user.id, session.id, queryRunner);
       return this.issueAuthTokens.execute(
         session.user,
-        undefined,
+        session.user.roles?.[0],
         undefined,
         undefined,
         queryRunner,
