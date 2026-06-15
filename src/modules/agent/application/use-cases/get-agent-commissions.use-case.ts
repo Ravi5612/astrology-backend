@@ -1,4 +1,4 @@
-﻿import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { DatabaseService } from '@/core/database/database.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,6 +7,8 @@ import { CallSession } from '@/modules/consultation/call/infrastructure/entities
 import { ChatSession } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
 import { PujaAppointment } from '@/modules/puja-appointment/infrastructure/entities/puja-appointment.entity';
 import { PaginationDto } from '@/common/dto/pagination.dto';
+
+import { ProfileAgent } from '../../infrastructure/entities/profile-agent.entity';
 
 @Injectable()
 export class GetAgentCommissionsUseCase {
@@ -20,12 +22,23 @@ export class GetAgentCommissionsUseCase {
     private readonly chatSessionRepo: Repository<ChatSession>,
     @InjectRepository(PujaAppointment)
     private readonly pujaAppointmentRepo: Repository<PujaAppointment>,
+    @InjectRepository(ProfileAgent)
+    private readonly profileAgentRepo: Repository<ProfileAgent>,
   ) {}
 
   async execute(userId: string, pagination: PaginationDto) {
+    const agentProfile = await this.profileAgentRepo.findOne({
+      where: { user_id: userId },
+    });
+    if (!agentProfile) {
+      throw new Error('Agent profile not found');
+    }
+    const profileId = agentProfile.id;
+
     const offset = pagination.offset;
     const result = await this.walletFacade.getTransactions(
-      userId,
+      profileId,
+      'agent_id',
       String(pagination.limit),
       String(offset),
       'all',

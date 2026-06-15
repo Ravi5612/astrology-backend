@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Withdrawal } from '../../infrastructure/entities/withdrawal.entity';
 import { GetWalletUseCase } from './get-wallet.use-case';
+import { WalletKey } from '../../infrastructure/entities/wallet.entity';
 
 @Injectable()
 export class GetWithdrawalsUseCase {
@@ -12,8 +13,13 @@ export class GetWithdrawalsUseCase {
     private readonly getWalletUseCase: GetWalletUseCase,
   ) {}
 
-  async execute(userId: string, limit: number = 50, offset: number = 0) {
-    const wallet = await this.getWalletUseCase.execute(userId);
+  async execute(
+    profileId: string,
+    walletKey: WalletKey,
+    limit: number = 50,
+    offset: number = 0,
+  ) {
+    const wallet = await this.getWalletUseCase.execute(profileId, walletKey);
     let ownerWhere: Record<string, unknown> = { id: null }; // Default fail if no owner found
     if (wallet.expert_id) ownerWhere = { expert_id: wallet.expert_id };
     else if (wallet.merchant_id)

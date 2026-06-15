@@ -7,6 +7,7 @@ import {
   TransactionPurpose,
 } from '../../infrastructure/entities/transaction.entity';
 import { GetWalletUseCase } from './get-wallet.use-case';
+import { WalletKey } from '../../infrastructure/entities/wallet.entity';
 
 @Injectable()
 export class GetTotalEarningsUseCase {
@@ -17,10 +18,11 @@ export class GetTotalEarningsUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    profileId: string,
+    walletKey: WalletKey,
     options: { startDate?: Date; endDate?: Date } = {},
   ): Promise<number> {
-    const wallet = await this.getWalletUseCase.execute(userId);
+    const wallet = await this.getWalletUseCase.execute(profileId, walletKey);
 
     const query = this.transactionRepository
       .createQueryBuilder('transaction')

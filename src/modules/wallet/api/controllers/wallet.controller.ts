@@ -1,8 +1,7 @@
 import { Controller, Get, Body, UseGuards, Query } from '@nestjs/common';
 import { WalletFacade } from '../../application/wallet.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { IUser } from '@/common/types/access-token.payload';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 
 @Controller({
   path: 'wallet',
@@ -13,18 +12,18 @@ export class WalletController {
   constructor(private readonly walletFacade: WalletFacade) {}
 
   @Get()
-  getWallet(@CurrentUser() user: IUser) {
-    return this.walletFacade.getWallet(user.id);
+  getWallet(@CurrentProfile() clientProfileId: string) {
+    return this.walletFacade.getWallet(clientProfileId, 'client_id');
   }
 
   @Get('balance')
-  getBalance(@CurrentUser() user: IUser) {
-    return this.walletFacade.getBalance(user.id);
+  getBalance(@CurrentProfile() clientProfileId: string) {
+    return this.walletFacade.getBalance(clientProfileId, 'client_id');
   }
 
   @Get('transactions')
   getTransactions(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() clientProfileId: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
     @Query('type') type: string = 'all',
@@ -33,7 +32,8 @@ export class WalletController {
     const limitNum = limit || '10';
     const offsetNum = offset || '0';
     return this.walletFacade.getTransactions(
-      user.id,
+      clientProfileId,
+      'client_id',
       limitNum,
       offsetNum,
       type,

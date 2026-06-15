@@ -46,9 +46,12 @@ export class GetExpertDetailUseCase {
     });
 
     const clientProfile = await this.clientProfileFacade.getProfile({ id: user.id, email: user.email || '', roles: [] });
-    const total_earnings = await this.walletFacade.getTotalEarnings(user.id);
     const expertProfileId =
       profile?.id || '00000000-0000-0000-0000-000000000000';
+    const total_earnings = await this.walletFacade.getTotalEarnings(
+      expertProfileId,
+      'expert_id',
+    );
 
     const chatCount = await this.chatFacade.getExpertSessionCount(
       expertProfileId,

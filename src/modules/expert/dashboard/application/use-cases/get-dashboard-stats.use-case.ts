@@ -1,7 +1,6 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { ChatFacade } from '@/modules/consultation/chat/application/chat.facade';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
-import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
 import { ReviewsFacade } from '@/modules/consultation/reviews/application/reviews.facade';
 import { DashboardPolicy } from '../../domain/policies/dashboard.policy';
 import { ChatSessionStatus } from '@/modules/consultation/chat/infrastructure/entities/chat-session.entity';
@@ -15,19 +14,17 @@ export class GetDashboardStatsUseCase {
     private readonly chatFacade: ChatFacade,
     @Inject(forwardRef(() => WalletFacade))
     private readonly walletFacade: WalletFacade,
-    @Inject(forwardRef(() => ExpertProfileFacade))
-    private readonly profileFacade: ExpertProfileFacade,
     private readonly reviewsFacade: ReviewsFacade,
     @Inject(forwardRef(() => CallFacade))
     private readonly callFacade: CallFacade,
   ) {}
 
-  async execute(userId: string, type: 'today' | 'total' = 'today') {
-    const expertProfile = await this.profileFacade.getExpertByUserId(userId);
+  async execute(expertProfileId: string, type: 'today' | 'total' = 'today') {
+    if (!expertProfileId) {
+      throw new Error('Expert profile ID is required');
+    }
 
-    DashboardPolicy.ensureProfileExists(expertProfile);
-
-    const expert_id = expertProfile.id;
+    const expert_id = expertProfileId;
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
@@ -83,12 +80,17 @@ export class GetDashboardStatsUseCase {
         },
       );
 
-      const todayEarnings = await this.walletFacade.getTotalEarnings(userId, {
-        startDate: startOfToday,
-      });
+      const todayEarnings = await this.walletFacade.getTotalEarnings(
+        expert_id,
+        'expert_id',
+        {
+          startDate: startOfToday,
+        },
+      );
 
       const wallet_balance = await this.walletFacade.getBalance(
-        userId as unknown as string,
+        expert_id,
+        'expert_id',
       );
 
       return {
@@ -139,9 +141,13 @@ export class GetDashboardStatsUseCase {
         },
       );
 
-      const total_earnings = await this.walletFacade.getTotalEarnings(userId);
+      const total_earnings = await this.walletFacade.getTotalEarnings(
+        expert_id,
+        'expert_id',
+      );
       const wallet_balance = await this.walletFacade.getBalance(
-        userId as unknown as string,
+        expert_id,
+        'expert_id',
       );
 
       return {

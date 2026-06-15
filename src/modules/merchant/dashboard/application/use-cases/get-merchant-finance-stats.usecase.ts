@@ -24,12 +24,15 @@ export class GetMerchantFinanceStatsUseCase {
         select: ['id'],
       });
       const merchantId = merchantProfile?.id;
+      if (!merchantId) {
+        throw new Error('Merchant profile not found');
+      }
 
       const [wallet, actual_earnings, withdrawalsStatus, grossEarnings] =
         await Promise.all([
-          this.walletFacade.getWallet(userId),
-          this.walletFacade.getTotalEarnings(userId),
-          this.walletFacade.getWithdrawalsStatus(userId),
+          this.walletFacade.getWallet(merchantId, 'merchant_id'),
+          this.walletFacade.getTotalEarnings(merchantId, 'merchant_id'),
+          this.walletFacade.getWithdrawalsStatus(merchantId, 'merchant_id'),
           merchantId
             ? this.orderFacade.getMerchantGrossTotalEarnings(merchantId)
             : Promise.resolve(0),

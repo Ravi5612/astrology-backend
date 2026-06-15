@@ -88,13 +88,17 @@ export class AgentController {
 
   @Get('wallet/balance')
   async getBalance(@CurrentUser() user: IUser) {
-    const balance = await this.walletFacade.getBalance(user.id);
+    const profile = await this.agentFacade.getProfile(user);
+    if (!profile) throw new BadRequestException('Agent profile not found');
+    const balance = await this.walletFacade.getBalance(profile.id, 'agent_id');
     return { balance };
   }
 
   @Get('wallet/withdrawals')
   async getWithdrawals(@CurrentUser() user: IUser) {
-    const result = await this.walletFacade.getWithdrawals(user.id);
+    const profile = await this.agentFacade.getProfile(user);
+    if (!profile) throw new BadRequestException('Agent profile not found');
+    const result = await this.walletFacade.getWithdrawals(profile.id, 'agent_id');
     return result.data;
   }
 
@@ -110,8 +114,11 @@ export class AgentController {
     if (amount < 500) {
       throw new BadRequestException('Minimum withdrawal amount is ₹500');
     }
+    const profile = await this.agentFacade.getProfile(user);
+    if (!profile) throw new BadRequestException('Agent profile not found');
     return this.walletFacade.requestWithdrawal(
-      user.id,
+      profile.id,
+      'agent_id',
       amount,
       bankAccountId,
       idempotencyKey,

@@ -1,8 +1,9 @@
-import { Controller, Get, UseGuards, Req, Query } from '@nestjs/common';
+import { Controller, Get, UseGuards, Query } from '@nestjs/common';
 import { ExpertDashboardFacade } from '../../application/expert-dashboard.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 
 @Controller({
   path: 'expert-dashboard',
@@ -15,12 +16,11 @@ export class ExpertDashboardController {
   @Get('stats')
   @Roles('EXPERT', 'CLIENT')
   async getStats(
-    @Req() req: { user: { id: string } },
+    @CurrentProfile() expertProfileId: string,
     @Query('type') type: 'today' | 'total',
   ) {
-    const userId = req.user.id;
     const stats = await this.dashboardFacade.getDashboardStats(
-      userId,
+      expertProfileId,
       type || 'today',
     );
     return {

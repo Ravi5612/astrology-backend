@@ -3,8 +3,7 @@ import { ExpertEarningsFacade } from '../../application/expert-earnings.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { IUser } from '@/common/types/access-token.payload';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 
 @Controller({
   path: 'expert/earnings',
@@ -17,11 +16,16 @@ export class ExpertEarningsController {
 
   @Get('stats')
   getStats(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() expertProfileId: string,
     @Query('period') period: string = 'last_6_months',
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    return this.earningsFacade.getStats(user, period, startDate, endDate);
+    return this.earningsFacade.getStats(
+      expertProfileId,
+      period,
+      startDate,
+      endDate,
+    );
   }
 }

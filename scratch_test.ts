@@ -82,6 +82,7 @@ async function run() {
         console.log(`Crediting merchant with ${merchantNet}...`);
         await walletFacade.credit(
           merchantId,
+          'merchant_id',
           merchantNet,
           TransactionPurpose.CONSULTATION,
           `order_item_${item.id}`,

@@ -16,11 +16,10 @@ import {
   TransactionType,
   TransactionPurpose,
 } from '../../infrastructure/entities/transaction.entity';
-import { Wallet } from '../../infrastructure/entities/wallet.entity';
+import { Wallet, WalletKey } from '../../infrastructure/entities/wallet.entity';
 import { Idempotency } from '../../infrastructure/entities/idempotency.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
-import { hasRoles } from '@/modules/users/infrastructure/enums/Role.enum';
 import { AdminFacade } from '@/modules/admin/application/admin.facade';
 import { UsersFacade } from '@/modules/users/application/users.facade';
 import { ExpertProfileFacade } from '@/modules/expert/profile/application/profile.facade';
@@ -44,7 +43,8 @@ export class RequestWithdrawalUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    profileId: string,
+    walletKey: WalletKey,
     amount: number,
     bank_account_id?: string | number,
     idempotencyKey?: string,
@@ -107,45 +107,52 @@ export class RequestWithdrawalUseCase {
       );
 
     // 2.1 KYC / Verification Check
-    const user = await this.usersFacade.findById(userId);
-
-    if (!user) throw new BadRequestException('User not found');
-    const roles = user.roles || [];
-
-    let walletOwnerId = '';
+    let walletOwnerId = profileId;
     let ownerIdField = '';
+    let resolvedUserId = '';
+    let rolePrefix: 'CLIENT' | 'EXPERT' | 'MERCHANT' | 'AGENT' | 'ADMIN' = 'CLIENT';
 
-    if (hasRoles(roles, 'EXPERT')) {
-      const profile_expert = await this.expertFacade.getExpertByUserId(userId);
-      if (profile_expert?.kyc_status !== 'approved') {
+    if (walletKey === 'expert_id') {
+      const profile_expert = await this.expertFacade.getExpertById(profileId);
+      if (!profile_expert) throw new BadRequestException('Expert profile not found');
+      if (profile_expert.kyc_status !== 'approved') {
         throw new BadRequestException(
           'Your KYC is not approved. Please complete verification to withdraw funds.',
         );
       }
-      walletOwnerId = profile_expert.id;
       ownerIdField = 'w.expert_id';
-    } else if (hasRoles(roles, 'MERCHANT')) {
-      const profile_merchant =
-        await this.merchantFacade.getProfileByUserId(userId);
+      resolvedUserId = profile_expert.user_id as unknown as string;
+      rolePrefix = 'EXPERT';
+    } else if (walletKey === 'merchant_id') {
+      const profile_merchant = await this.merchantFacade.getProfileById(profileId);
+      if (!profile_merchant) throw new BadRequestException('Merchant profile not found');
       if (
-        profile_merchant?.status !== ('active' as unknown) &&
-        !profile_merchant?.isVerified
+        profile_merchant.status !== ('active' as unknown) &&
+        !profile_merchant.isVerified
       ) {
         throw new BadRequestException(
           'Your merchant account is not active or verified. Please contact support.',
         );
       }
-      walletOwnerId = profile_merchant!.id;
       ownerIdField = 'w.merchant_id';
-    } else if (hasRoles(roles, 'AGENT')) {
-      const agent_profile = await this.agentFacade.getProfile({ id: userId, email: '', roles: [] });
-      if (!agent_profile?.pan_no || !agent_profile?.bank_name) {
+      resolvedUserId = profile_merchant.user_id as unknown as string;
+      rolePrefix = 'MERCHANT';
+    } else if (walletKey === 'agent_id') {
+      const { ProfileAgent } = await import(
+        '@/modules/agent/infrastructure/entities/profile-agent.entity'
+      );
+      const agent_profile = await this.dataSource
+        .getRepository(ProfileAgent)
+        .findOne({ where: { id: profileId } });
+      if (!agent_profile) throw new BadRequestException('Agent profile not found');
+      if (!agent_profile.pan_no || !agent_profile.bank_name) {
         throw new BadRequestException(
           'Please complete your agent profile and bank details to withdraw funds.',
         );
       }
-      walletOwnerId = agent_profile.id;
       ownerIdField = 'w.agent_profile_id';
+      resolvedUserId = agent_profile.user_id as unknown as string;
+      rolePrefix = 'AGENT';
     } else {
       throw new BadRequestException(
         'Clients cannot request withdrawals directly.',
@@ -199,10 +206,10 @@ export class RequestWithdrawalUseCase {
     try {
       // A. Fetch Wallet with PESSIMISTIC LOCK
       let walletWhere: Record<string, unknown> = {};
-      if (hasRoles(roles, 'EXPERT')) walletWhere = { expert_id: walletOwnerId };
-      else if (hasRoles(roles, 'MERCHANT'))
+      if (walletKey === 'expert_id') walletWhere = { expert_id: walletOwnerId };
+      else if (walletKey === 'merchant_id')
         walletWhere = { merchant_id: walletOwnerId };
-      else if (hasRoles(roles, 'AGENT'))
+      else if (walletKey === 'agent_id')
         walletWhere = { agent_id: walletOwnerId };
 
       const wallet = await queryRunner.manager.findOne(Wallet, {
@@ -220,10 +227,10 @@ export class RequestWithdrawalUseCase {
         throw new BadRequestException('Insufficient balance for withdrawal');
       }
 
-      // C. Capture Snapshot of Bank Details (pre-fetched before transaction if needed, but doing safe read here)
+      // C. Capture Snapshot of Bank Details
       let merchantSnapshot: Record<string, unknown> = {};
       if (bank_account_id) {
-        const merchant = await this.merchantFacade.getProfileByUserId(userId);
+        const merchant = await this.merchantFacade.getProfileById(profileId);
 
         if (
           merchant &&
@@ -245,8 +252,7 @@ export class RequestWithdrawalUseCase {
         }
 
         if (!merchantSnapshot.merchant_bank_name && bank_account_id) {
-          const expertProfile =
-            await this.expertFacade.getExpertByUserId(userId);
+          const expertProfile = await this.expertFacade.getExpertById(profileId);
           if (expertProfile) {
             const bankAccount = (await this.dataSource
               .getRepository('BankAccount')
@@ -271,7 +277,7 @@ export class RequestWithdrawalUseCase {
           throw new BadRequestException('Invalid bank account selected');
       } else {
         // Fallback to legacy profiles
-        const merchant = await this.merchantFacade.getProfileByUserId(userId);
+        const merchant = await this.merchantFacade.getProfileById(profileId);
 
         if (merchant && merchant.bankName) {
           merchantSnapshot = {
@@ -281,10 +287,12 @@ export class RequestWithdrawalUseCase {
             merchant_account_holder: merchant.accountHolder || 'N/A',
           };
         } else {
-          const agent = (await this.agentFacade.getProfile({ id: userId, email: '', roles: [] })) as Record<
-            string,
-            unknown
-          >;
+          const { ProfileAgent } = await import(
+            '@/modules/agent/infrastructure/entities/profile-agent.entity'
+          );
+          const agent = await this.dataSource
+            .getRepository(ProfileAgent)
+            .findOne({ where: { id: profileId } });
           if (agent && agent.bank_name) {
             merchantSnapshot = {
               merchant_bank_name: agent.bank_name,
@@ -349,14 +357,6 @@ export class RequestWithdrawalUseCase {
           '../../../../common/utils/transaction-no.util'
         );
 
-        const rolePrefix = hasRoles(user.roles, 'EXPERT')
-          ? 'EXPERT'
-          : hasRoles(user.roles, 'MERCHANT')
-            ? 'MERCHANT'
-            : hasRoles(user.roles, 'AGENT')
-              ? 'AGENT'
-              : 'CLIENT';
-
         // Update Transaction No
         transaction.transaction_no = generateTransactionNo(
           rolePrefix,
@@ -375,7 +375,7 @@ export class RequestWithdrawalUseCase {
 
         // Send instant notification
         await this.notificationFacade.create(
-          userId,
+          resolvedUserId,
           NotificationType.GENERAL,
           'Withdrawal Request Received',
           `A payout request of ₹${amount.toLocaleString('en-IN')} (${withdrawal.withdrawal_no}) has been submitted successfully. It is currently under review by our team.`,

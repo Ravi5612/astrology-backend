@@ -8,6 +8,7 @@ import {
 } from '../../infrastructure/entities/transaction.entity';
 import { Withdrawal } from '../../infrastructure/entities/withdrawal.entity';
 import { GetWalletUseCase } from './get-wallet.use-case';
+import { WalletKey } from '../../infrastructure/entities/wallet.entity';
 
 @Injectable()
 export class GetTransactionsUseCase {
@@ -18,13 +19,14 @@ export class GetTransactionsUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    profileId: string,
+    walletKey: WalletKey,
     limit = 10,
     offset = 0,
     type = 'all',
     purpose?: string,
   ) {
-    const wallet = await this.getWalletUseCase.execute(userId);
+    const wallet = await this.getWalletUseCase.execute(profileId, walletKey);
     const query = this.transactionRepository
       .createQueryBuilder('t')
       .where('t.wallet_id = :walletId', { walletId: wallet.id });

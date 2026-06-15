@@ -8,7 +8,6 @@ import { ReviewsFacade } from '@/modules/consultation/reviews/application/review
 import { CallType } from '@/modules/consultation/call/infrastructure/entities/call-session.entity';
 import { WalletFacade } from '@/modules/wallet/application/wallet.facade';
 import { ProfileExpert } from '@/modules/expert/profile/infrastructure/entities/profile-expert.entity';
-import { IUser } from '@/common/types/access-token.payload';
 
 @Injectable()
 export class GetEarningsStatsUseCase {
@@ -23,17 +22,15 @@ export class GetEarningsStatsUseCase {
   ) {}
 
   async execute(
-    user: IUser,
+    expertProfileId: string,
     period: string,
     startDateStr?: string,
     endDateStr?: string,
   ) {
-    const where = user.profile
-      ? { id: user.profile, user: { id: user.id } }
-      : { user: { id: user.id } };
-    const expert = await this.expertRepo.findOne({ where });
+    const expert = await this.expertRepo.findOne({
+      where: { id: expertProfileId },
+    });
     if (!expert) return null;
-    const userId = user.id;
 
     const expert_id = expert.id;
 
@@ -427,13 +424,16 @@ export class GetEarningsStatsUseCase {
 
     // Wallet and Stats
     const wallet_balance = await this.walletFacade.getBalance(
-      userId as unknown as string,
+      expert_id,
+      'expert_id',
     );
     const { total_withdrawn } = await this.walletFacade.getWithdrawalsStatus(
-      userId as unknown as string,
+      expert_id,
+      'expert_id',
     );
     const { data: transactions } = await this.walletFacade.getTransactions(
-      userId as unknown as string,
+      expert_id,
+      'expert_id',
       '5',
       '0',
       'all',

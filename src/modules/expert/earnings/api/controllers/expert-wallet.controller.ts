@@ -12,8 +12,7 @@ import { ExpertEarningsFacade } from '../../application/expert-earnings.facade';
 import { JwtAuthGuard } from '@/modules/auth/api/guards/auth.guard';
 import { RolesGuard } from '@/modules/auth/api/guards/role.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { IUser } from '@/common/types/access-token.payload';
+import { CurrentProfile } from '@/common/decorators/current-profile.decorator';
 
 @Controller({
   path: 'expert/wallet',
@@ -25,13 +24,13 @@ export class ExpertWalletController {
   constructor(private readonly earningsFacade: ExpertEarningsFacade) {}
 
   @Get('balance')
-  async getBalance(@CurrentUser() user: IUser) {
-    return this.earningsFacade.getWalletBalance(user.id);
+  async getBalance(@CurrentProfile() expertProfileId: string) {
+    return this.earningsFacade.getWalletBalance(expertProfileId);
   }
 
   @Get('transactions')
   getTransactions(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() expertProfileId: string,
     @Query('limit') limit: string = '10',
     @Query('page') page: string = '1',
     @Query('offset') offset: string,
@@ -44,7 +43,7 @@ export class ExpertWalletController {
       : (parsedPage - 1) * parsedLimit;
 
     return this.earningsFacade.getTransactions(
-      user.id,
+      expertProfileId,
       parsedLimit,
       parsedOffset,
       type,
@@ -53,7 +52,7 @@ export class ExpertWalletController {
 
   @Post('withdraw')
   async requestWithdrawal(
-    @CurrentUser() user: IUser,
+    @CurrentProfile() expertProfileId: string,
     @Body('amount') amount: number,
     @Body('bank_account_id') bank_account_id: string | number,
     @Ip() ip: string,
@@ -61,7 +60,7 @@ export class ExpertWalletController {
     @Headers('x-idempotency-key') idempotencyKey: string,
   ) {
     return this.earningsFacade.requestWithdrawal(
-      user.id,
+      expertProfileId,
       amount,
       bank_account_id,
       idempotencyKey,

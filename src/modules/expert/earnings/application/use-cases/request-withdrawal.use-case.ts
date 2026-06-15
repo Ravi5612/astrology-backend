@@ -6,14 +6,15 @@ export class RequestWithdrawalUseCase {
   constructor(private readonly walletFacade: WalletFacade) {}
 
   async execute(
-    userId: string,
+    expertProfileId: string,
     amount: number,
     bank_account_id: string | number,
     idempotencyKey?: string,
     securityMetadata?: { ip?: string; ua?: string },
   ) {
     return this.walletFacade.requestWithdrawal(
-      userId,
+      expertProfileId,
+      'expert_id',
       amount,
       bank_account_id,
       idempotencyKey,

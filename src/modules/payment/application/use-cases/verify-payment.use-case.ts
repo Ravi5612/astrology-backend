@@ -74,15 +74,15 @@ export class VerifyPaymentUseCase {
         order.notes?.isOrder === true;
 
       if (!isProduct) {
-        // Case 1: Wallet Recharge
-        const userId = order.notes?.userId;
-        if (!userId) {
+        const clientProfileId = order.client_id;
+        if (!clientProfileId) {
           throw new Error(
-            'Cannot top up wallet because userId is missing from order notes.',
+            'Cannot top up wallet because client_id is missing from order.',
           );
         }
         await this.walletFacade.topUp(
-          userId as string,
+          clientProfileId,
+          'client_id',
           order.amount,
           `razorpay_${razorpay_payment_id}`,
           queryRunner,

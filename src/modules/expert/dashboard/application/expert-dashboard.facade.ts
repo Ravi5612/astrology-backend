@@ -7,7 +7,7 @@ export class ExpertDashboardFacade {
     private readonly getDashboardStatsUseCase: GetDashboardStatsUseCase,
   ) {}
 
-  async getDashboardStats(userId: string, type: 'today' | 'total') {
-    return this.getDashboardStatsUseCase.execute(userId, type);
+  async getDashboardStats(expertProfileId: string, type: 'today' | 'total') {
+    return this.getDashboardStatsUseCase.execute(expertProfileId, type);
   }
 }

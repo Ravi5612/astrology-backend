@@ -177,7 +177,8 @@ export class WalletFacade {
   }
 
   async getTransactions(
-    userId: string,
+    profileId: string,
+    walletKey: WalletKey,
     limit?: string,
     offset?: string,
     type?: string,
@@ -186,7 +187,8 @@ export class WalletFacade {
     const limitNum = limit ? parseInt(limit, 10) : undefined;
     const offsetNum = offset ? parseInt(offset, 10) : undefined;
     return this.getTransactionsUseCase.execute(
-      userId,
+      profileId,
+      walletKey,
       limitNum,
       offsetNum,
       type,
@@ -195,41 +197,57 @@ export class WalletFacade {
   }
 
   async getMerchantTransactions(
-    userId: string,
+    merchantProfileId: string,
     options: { search?: string; page?: number; limit?: number },
   ) {
-    return this.getMerchantTransactionsUseCase.execute(userId, options);
+    return this.getMerchantTransactionsUseCase.execute(merchantProfileId, options);
   }
 
   async getTotalEarnings(
-    userId: string,
+    profileId: string,
+    walletKey: WalletKey,
     options: { startDate?: Date; endDate?: Date } = {},
   ) {
-    return this.getTotalEarningsUseCase.execute(userId, options);
+    return this.getTotalEarningsUseCase.execute(profileId, walletKey, options);
   }
 
   async getGlobalEarnings() {
     return this.getGlobalEarningsUseCase.execute();
   }
 
-  async getWithdrawalsStatus(userId: string | undefined) {
-    if (!userId) throw new Error('userId is required');
-    return this.getWithdrawalsStatusUseCase.execute(userId);
+  async getWithdrawalsStatus(
+    profileId: string | undefined,
+    walletKey: WalletKey,
+  ) {
+    if (!profileId) throw new Error('profileId is required');
+    return this.getWithdrawalsStatusUseCase.execute(profileId, walletKey);
   }
 
-  async getWithdrawals(userId: string, limit?: number, offset?: number) {
-    return this.getWithdrawalsUseCase.execute(userId, limit, offset);
+  async getWithdrawals(
+    profileId: string,
+    walletKey: WalletKey,
+    limit?: number,
+    offset?: number,
+  ) {
+    return this.getWithdrawalsUseCase.execute(
+      profileId,
+      walletKey,
+      limit,
+      offset,
+    );
   }
 
   async requestWithdrawal(
-    userId: string,
+    profileId: string,
+    walletKey: WalletKey,
     amount: number,
     bank_account_id?: string | number,
     idempotencyKey?: string,
     securityMetadata?: { ip?: string; ua?: string },
   ) {
     return this.requestWithdrawalUseCase.execute(
-      userId,
+      profileId,
+      walletKey,
       amount,
       bank_account_id,
       idempotencyKey,

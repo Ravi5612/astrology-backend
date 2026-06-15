@@ -112,9 +112,14 @@ export class SettleAgentCommissionsUseCase {
         }
       });
 
-      const currentBalance = await this.walletFacade.getBalance(userId);
-      const withdrawalStats =
-        await this.walletFacade.getWithdrawalsStatus(userId);
+      const currentBalance = await this.walletFacade.getBalance(
+        profile.id,
+        'agent_id',
+      );
+      const withdrawalStats = await this.walletFacade.getWithdrawalsStatus(
+        profile.id,
+        'agent_id',
+      );
 
       const totalAlreadyPaidOut =
         (Number(currentBalance) || 0) +
@@ -133,12 +138,15 @@ export class SettleAgentCommissionsUseCase {
         };
       }
 
+      const { TransactionPurpose } = await import(
+        '@/modules/wallet/infrastructure/entities/transaction.entity'
+      );
+
       await this.walletFacade.credit(
-        userId,
+        profile.id,
+        'agent_id',
         amountToSettle,
-        'agent_commission' as unknown as Parameters<
-          typeof this.walletFacade.credit
-        >[2],
+        TransactionPurpose.AGENT_COMMISSION,
         'manual_settlement',
         queryRunner,
       );

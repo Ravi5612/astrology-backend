@@ -162,8 +162,12 @@ export class UpdatePujaAppointmentStatusUseCase {
           );
 
           // 1. Debit User
+          if (!appointment.client?.id) {
+            throw new Error('Client profile ID is missing');
+          }
           await this.walletFacade.debit(
-            (appointment.client?.user_id as unknown as string) || '',
+            appointment.client.id,
+            'client_id',
             totalAmount,
             TransactionPurpose.PUJA_CONFIRMATION,
             `puja_appt_${appointment.id}`,
@@ -171,8 +175,12 @@ export class UpdatePujaAppointmentStatusUseCase {
           );
 
           // 2. Credit Expert (Net Share)
+          if (!appointment.expert?.id) {
+            throw new Error('Expert profile ID is missing');
+          }
           await this.walletFacade.credit(
-            appointment.expert.user_id as unknown as string,
+            appointment.expert.id,
+            'expert_id',
             expertNetShare,
             TransactionPurpose.PUJA_CONFIRMATION,
             `puja_appt_${appointment.id}`,
@@ -181,31 +189,49 @@ export class UpdatePujaAppointmentStatusUseCase {
 
           // 3. Credit Seller's Agent (if applicable)
           if (agent_commission > 0 && agent_id) {
-            await this.walletFacade.credit(
-              agent_id,
-              agent_commission,
-              'agent_commission' as unknown as TransactionPurpose,
-              `puja_appt_${appointment.id}`,
-              qr,
+            const { ProfileAgent } = await import(
+              '@/modules/agent/infrastructure/entities/profile-agent.entity'
             );
+            const agentProfile = await qr.manager.findOne(ProfileAgent, {
+              where: { user_id: agent_id },
+            });
+            if (agentProfile) {
+              await this.walletFacade.credit(
+                agentProfile.id,
+                'agent_id',
+                agent_commission,
+                TransactionPurpose.AGENT_COMMISSION,
+                `puja_appt_${appointment.id}`,
+                qr,
+              );
+            }
           }
 
           // 4. Credit Buyer's Agent (if applicable)
           if (buyer_agent_commission > 0 && buyer_agent_id) {
-            await this.walletFacade.credit(
-              buyer_agent_id,
-              buyer_agent_commission,
-              'agent_commission' as unknown as TransactionPurpose,
-              `puja_appt_buyer_ref_${appointment.id}`,
-              qr,
+            const { ProfileAgent } = await import(
+              '@/modules/agent/infrastructure/entities/profile-agent.entity'
             );
+            const buyerAgentProfile = await qr.manager.findOne(ProfileAgent, {
+              where: { user_id: buyer_agent_id },
+            });
+            if (buyerAgentProfile) {
+              await this.walletFacade.credit(
+                buyerAgentProfile.id,
+                'agent_id',
+                buyer_agent_commission,
+                TransactionPurpose.AGENT_COMMISSION,
+                `puja_appt_buyer_ref_${appointment.id}`,
+                qr,
+              );
+            }
           }
 
           // 3. Create Todo for Expert
           try {
             // Not strictly part of financial transaction, but good to have
             await this.todosFacade.create(
-              { id: appointment.expert.user_id, email: '', roles: [] },
+              appointment.expert.user_id as unknown as string,
               {
                 text: `Confirmed Puja: ${appointment.puja?.name} with ${appointment.client?.user?.name || 'Client'} on ${String(appointment.scheduled_date || 'TBD')} at ${String(appointment.scheduled_time || 'TBD')}`,
               },

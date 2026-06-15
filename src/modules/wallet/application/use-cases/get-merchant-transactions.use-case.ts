@@ -20,13 +20,13 @@ export class GetMerchantTransactionsUseCase {
   ) {}
 
   async execute(
-    userId: string,
+    merchantProfileId: string,
     options: { search?: string; page?: number; limit?: number },
   ) {
     const { search, page = 1, limit = 10 } = options;
 
     const wallet = await this.walletRepo.findOne({
-      where: { id: userId as unknown as string },
+      where: { merchant_id: merchantProfileId },
     });
     if (!wallet) {
       return { transactions: [], total: 0, page, limit };
