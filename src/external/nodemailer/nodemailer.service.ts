@@ -16,16 +16,19 @@ export class NodeMailerService {
       const fromEmail = this.configService.get<string>('email.from');
       const authUser = this.configService.get<string>('email.user');
 
-      return (await this.transporter.sendMail({
+      console.log(`[NodeMailer] Attempting to send email to ${to} (Subject: ${subject})`);
+      const info = await this.transporter.sendMail({
         from: fromEmail ? `"Astrology in Bharat" <${fromEmail}>` : authUser,
         to,
         subject,
         html,
-      })) as Record<string, unknown>;
+      });
+      console.log(`[NodeMailer] Successfully sent email to ${to}. MessageId: ${info.messageId}`);
+      return info as Record<string, unknown>;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
-      console.warn('⚠️ NodeMailer error (Email not sent):', errorMessage);
+      console.warn('⚠️ [NodeMailer] Error (Email not sent):', errorMessage);
       // Return false instead of throwing so that auth flow doesn't crash in dev
       return false;
     }
