@@ -192,8 +192,8 @@ export class AuthController {
 
     const cookieOptions: CookieOptions = {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
+      secure: true, // Must be true for sameSite: 'none'
+      sameSite: 'none', // Allows cross-site cookie usage
       path: '/',
     };
 

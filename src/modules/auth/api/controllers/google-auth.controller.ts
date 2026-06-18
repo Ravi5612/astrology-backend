@@ -161,21 +161,20 @@ export class GoogleAuthController {
     tokens: { accessToken?: string; refreshToken?: string },
     res: Response,
   ) {
-    const isProduction = process.env.NODE_ENV === 'production';
+    const cookieOptions: CookieOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      path: '/',
+    };
 
     res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
-      path: '/',
+      ...cookieOptions,
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
     res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
-      path: '/',
+      ...cookieOptions,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
   }
