@@ -1,11 +1,7 @@
-import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty } from 'class-validator';
 
 export class AddExpertToWishlistDto {
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  expert_id?: string;
-
-  @IsOptional()
-  @IsString()
-  expertId?: string;
+  expert_id: string;
 }
