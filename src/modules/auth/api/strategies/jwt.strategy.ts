@@ -19,8 +19,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (req: { cookies?: { accessToken?: string } }) =>
-          req?.cookies?.accessToken ?? null,
+        (req: import('express').Request) => {
+          console.log('[JwtStrategy] Incoming request to:', req.url);
+          console.log('[JwtStrategy] Incoming request headers:', req.headers);
+          console.log('[JwtStrategy] Incoming request cookies:', req.cookies);
+          const token = req?.cookies?.accessToken ?? null;
+          console.log('[JwtStrategy] Extracted accessToken from cookies:', token ? 'Found' : 'Missing');
+          return token;
+        },
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       secretOrKey: authConfig.jwtSecret,

@@ -10,9 +10,17 @@ export class JwtRefreshStrategy extends PassportStrategy(
 ) {
   // eslint-disable-next-line @typescript-eslint/require-await
   async validate(req: Request) {
+    const cookies = req.cookies as Record<string, string> | undefined;
+    const authHeader = req.headers?.authorization;
+    
+    console.log('[JwtRefreshStrategy] Incoming request headers:', req.headers);
+    console.log('[JwtRefreshStrategy] Incoming request cookies:', cookies);
+
     const refreshToken =
-      (req.cookies as Record<string, string> | undefined)?.refreshToken ||
-      req.headers?.authorization?.replace('Bearer ', '');
+      cookies?.refreshToken ||
+      authHeader?.replace('Bearer ', '');
+
+    console.log('[JwtRefreshStrategy] Extracted refreshToken:', refreshToken ? 'Found' : 'Missing');
 
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token missing');
