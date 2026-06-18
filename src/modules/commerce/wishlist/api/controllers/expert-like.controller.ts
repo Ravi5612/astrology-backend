@@ -32,7 +32,7 @@ export class ExpertLikeController {
   ) {
     return this.wishlistFacade.addExpertToWishlist(
       profileId,
-      addExpertToWishlistDto.expert_id,
+      addExpertToWishlistDto.expert_id || addExpertToWishlistDto.expertId,
     );
   }
 
