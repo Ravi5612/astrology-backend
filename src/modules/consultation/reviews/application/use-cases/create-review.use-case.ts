@@ -270,6 +270,7 @@ export class CreateReviewUseCase {
       .select('AVG(review.rating)', 'average')
       .addSelect('COUNT(review.id)', 'count')
       .where('review.expert_id = :expert_id', { expert_id })
+      .andWhere('review.status = :status', { status: 'approved' })
       .getRawOne<{ average: string | null; count: string | null }>()) ?? {
       average: null,
       count: null,
@@ -282,7 +283,7 @@ export class CreateReviewUseCase {
 
     await this.dataSource
       .createQueryBuilder()
-      .update('profile_expert')
+      .update('expert.profile')
       .set({ rating: average, total_reviews: count })
       .where('id = :expert_id', { expert_id })
       .execute();
@@ -294,6 +295,7 @@ export class CreateReviewUseCase {
       .select('AVG(review.rating)', 'average')
       .addSelect('COUNT(review.id)', 'count')
       .where('review.merchant_id = :merchantId', { merchantId })
+      .andWhere('review.status = :status', { status: 'approved' })
       .getRawOne<{ average: string | null; count: string | null }>()) ?? {
       average: null,
       count: null,
@@ -306,7 +308,7 @@ export class CreateReviewUseCase {
 
     await this.dataSource
       .createQueryBuilder()
-      .update('profile_merchant')
+      .update('merchant.profile')
       .set({ rating: average, reviewCount: count })
       .where('id = :merchantId', { merchantId })
       .execute();
