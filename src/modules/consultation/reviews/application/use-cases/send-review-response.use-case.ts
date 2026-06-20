@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Review } from '../../infrastructure/entities/review.entity';
 import { NotificationFacade } from '@/modules/notification/application/notification.facade';
 import { NotificationType } from '@/modules/notification/infrastructure/entities/notification.entity';
+import { BooleanMessage } from '@/common/dto/boolean-message.dto';
 
 @Injectable()
 export class SendReviewResponseUseCase {
@@ -38,6 +39,6 @@ export class SendReviewResponseUseCase {
       { reviewId: review.id },
     );
 
-    return { success: true };
+    return new BooleanMessage(true, 'Review sent successfully')
   }
 }

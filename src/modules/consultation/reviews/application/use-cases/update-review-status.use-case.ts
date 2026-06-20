@@ -21,6 +21,10 @@ export class UpdateReviewStatusUseCase {
 
     const result = await this.reviewRepository.update(id, { status });
 
+    if(!result.affected){
+        throw new NotFoundException(`Review with id ${id} not found`);
+    }
+
     if (review.expert_id) {
       await this.updateExpertRating(review.expert_id as string);
     }
@@ -28,25 +32,22 @@ export class UpdateReviewStatusUseCase {
       await this.updateMerchantRating(review.merchant_id as string);
     }
 
-    return new BooleanMessage();
-  }
+    return new BooleanMessage(true, 'Review Updated Successfully');
+  } 
 
   private async updateExpertRating(expert_id: string) {
-    const result = (await this.reviewRepository
+    const result = await this.reviewRepository
       .createQueryBuilder('review')
       .select('AVG(review.rating)', 'average')
       .addSelect('COUNT(review.id)', 'count')
       .where('review.expert_id = :expert_id', { expert_id })
       .andWhere('review.status = :status', { status: 'approved' })
-      .getRawOne<{ average: string | null; count: string | null }>()) ?? {
-      average: null,
-      count: null,
-    };
+      .getRawOne<{ average: string | null; count: string | null }>();
 
-    const average = result.average
-      ? parseFloat(parseFloat(result.average).toFixed(1))
+    const average = result?.average
+      ? parseFloat(parseFloat(result?.average).toFixed(1))
       : 0;
-    const count = result.count ? parseInt(result.count, 10) : 0;
+    const count = result?.count ? parseInt(result?.count, 10) : 0;
 
     await this.dataSource
       .createQueryBuilder()

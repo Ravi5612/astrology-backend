@@ -13,9 +13,9 @@ export class DeleteReviewUseCase {
 
   async execute(id: string) {
     const result = await this.reviewRepository.delete(id);
-    if (result.affected === 0) {
+    if (!result.affected) {
       throw new NotFoundException(`Review with id ${id} not found`);
     }
-    return new BooleanMessage();
+    return new BooleanMessage(true, 'Review deleted successfully');
   }
 }

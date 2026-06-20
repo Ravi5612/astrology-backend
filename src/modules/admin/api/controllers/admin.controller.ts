@@ -39,6 +39,7 @@ import { MerchantStatus } from '@/modules/merchant/profile/infrastructure/entiti
 import { DisputeStatus } from '@/modules/support/infrastructure/entities/dispute.entity';
 import { PaginationDto } from '@/common/dto/pagination.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { GetReviewsDTO } from '../dto/get-reviews.dto';
 
 @Controller({
   path: 'admin',
@@ -59,7 +60,7 @@ export class AdminController {
 
   // Review Management
   @Get('reviews')
-  async getReviews(@Query() query: Record<string, unknown>) {
+  async getReviews(@Query() query: GetReviewsDTO) {
     return this.reviewsFacade.getAdminReviews(query);
   }
 
@@ -73,14 +74,13 @@ export class AdminController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body('status') status: string,
   ) {
-    const _result = await this.reviewsFacade.updateReviewStatus(id, status);
-    return { success: true };
+    return this.reviewsFacade.updateReviewStatus(id, status);
   }
 
   @Delete('reviews/:id')
   async deleteReview(@Param('id', ParseUUIDPipe) id: string) {
-    const _result = await this.reviewsFacade.deleteReview(id);
-    return { success: true };
+    return this.reviewsFacade.deleteReview(id);
+
   }
 
   @Post('reviews/:id/response')
