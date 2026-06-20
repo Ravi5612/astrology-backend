@@ -16,28 +16,23 @@ export class GetClientStatsUseCase {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const totalClients = await this.userRepository
-      .createQueryBuilder('user')
-      .where(':role = ANY("user".roles)', { role: RoleEnum.CLIENT })
-      .getCount();
+ const result = await this.userRepository
+  .createQueryBuilder('user')
+  .leftJoin(ProfileClient, 'profile', 'profile.user_id = user.id')
+  .select([
+    `COUNT(*) AS total_clients`,
+    `COUNT(*) FILTER (WHERE user.created_at >= :today) AS recent_clients`,
+    `COUNT(*) FILTER (WHERE profile.is_blocked = true) AS blocked_clients`,
+  ])
+  .where(':role = ANY(user.roles)', { role: RoleEnum.CLIENT })
+  .setParameter('today', today)
+  .getRawOne();
 
-    const recentClients = await this.userRepository
-      .createQueryBuilder('user')
-      .where(':role = ANY("user".roles)', { role: RoleEnum.CLIENT })
-      .andWhere('"user".created_at >= :today', { today })
-      .getCount();
+return {
+  totalUsers: Number(result.total_clients),
+  recentUsers: Number(result.recent_clients),
+  blockedUsers: Number(result.blocked_clients),
+};
 
-    const blockedClients = await this.userRepository
-      .createQueryBuilder('user')
-      .where(':role = ANY("user".roles)', { role: RoleEnum.CLIENT })
-      .leftJoin(ProfileClient, 'profile', 'profile.user_id = "user".id')
-      .andWhere('profile.is_blocked = :isBlocked', { isBlocked: true })
-      .getCount();
-
-    return {
-      totalUsers: totalClients,
-      recentUsers: recentClients,
-      blockedUsers: blockedClients,
-    };
-  }
+}
 }
