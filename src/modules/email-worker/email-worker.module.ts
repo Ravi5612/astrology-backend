@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
-import { ExternalModule } from '@/external/external.module';
+import { NodemailerModule } from '@/external/nodemailer/nodemailer.module';
 import { EmailProcessor } from './application/email.processor';
 import { RedisConfig } from '@/config/redis.config';
 import configs from '@/config';
@@ -12,7 +12,7 @@ import configs from '@/config';
       isGlobal: true,
       load: configs,
     }),
-    ExternalModule, // Brings in NodeMailerService
+    NodemailerModule, // Only what EmailProcessor actually needs
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
